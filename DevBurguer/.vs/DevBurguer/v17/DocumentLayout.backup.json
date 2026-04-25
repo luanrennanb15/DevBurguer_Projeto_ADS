@@ -1,0 +1,125 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\forms\\formmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|c:\\users\\pc\\onedrive\\\u00E1rea de trabalho\\estoy louco\\devburguer\\forms\\formmotoboy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formmotoboy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|c:\\users\\pc\\onedrive\\\u00E1rea de trabalho\\estoy louco\\devburguer\\forms\\formmotoboy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formmotoboy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|c:\\users\\pc\\onedrive\\\u00E1rea de trabalho\\estoy louco\\devburguer\\forms\\formclientes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formclientes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\forms\\formclientes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formclientes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\services\\exceptionlogger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:services\\exceptionlogger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "FormMotoboy.cs",
+              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormMotoboy.cs",
+              "RelativeDocumentMoniker": "Forms\\FormMotoboy.cs",
+              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormMotoboy.cs",
+              "RelativeToolTip": "Forms\\FormMotoboy.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAmwH4AAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-25T00:09:01.242Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "FormMotoboy.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormMotoboy.cs",
+              "RelativeDocumentMoniker": "Forms\\FormMotoboy.cs",
+              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormMotoboy.cs [Design]",
+              "RelativeToolTip": "Forms\\FormMotoboy.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-25T00:08:38.239Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "FormClientes.cs",
+              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormClientes.cs",
+              "RelativeDocumentMoniker": "Forms\\FormClientes.cs",
+              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormClientes.cs",
+              "RelativeToolTip": "Forms\\FormClientes.cs",
+              "ViewState": "AgIAACkAAAAAAAAAAAAwwE0AAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-24T22:46:17.811Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "FormClientes.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormClientes.cs",
+              "RelativeDocumentMoniker": "Forms\\FormClientes.cs",
+              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormClientes.cs [Design]",
+              "RelativeToolTip": "Forms\\FormClientes.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-24T04:08:46.397Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "FormMenu.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormMenu.cs",
+              "RelativeDocumentMoniker": "Forms\\FormMenu.cs",
+              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormMenu.cs [Design]",
+              "RelativeToolTip": "Forms\\FormMenu.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T21:12:07.064Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ExceptionLogger.cs",
+              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Services\\ExceptionLogger.cs",
+              "RelativeDocumentMoniker": "Services\\ExceptionLogger.cs",
+              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Services\\ExceptionLogger.cs",
+              "RelativeToolTip": "Services\\ExceptionLogger.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAqwB8AAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T21:10:54.011Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

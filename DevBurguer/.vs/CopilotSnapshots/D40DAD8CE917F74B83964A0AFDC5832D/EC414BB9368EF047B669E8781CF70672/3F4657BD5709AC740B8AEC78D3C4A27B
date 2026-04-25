@@ -1,0 +1,39 @@
+﻿using System;
+using System.IO;
+using System.Windows.Forms;
+
+namespace DevBurguer.Services
+{
+    public static class ExceptionLogger
+    {
+        private static readonly object _lock = new object();
+
+        public static void Log(Exception ex, string context)
+        {
+            try
+            {
+                string logsDir = Path.Combine(Application.StartupPath, "logs");
+                Directory.CreateDirectory(logsDir);
+
+                string logPath = Path.Combine(logsDir, "error.log");
+
+                string entry = string.Format(
+                    "{0} | {1}{2}{3}{2}{2}",
+                    DateTime.Now.ToString("s"),
+                    context,
+                    Environment.NewLine,
+                    ex.ToString()
+                );
+
+                lock (_lock)
+                {
+                    File.AppendAllText(logPath, entry);
+                }
+            }
+            catch
+            {
+                // Não propagar falha do logger
+            }
+        }
+    }
+}

@@ -1,0 +1,73 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Threading.Tasks;
+using DevBurguer.Models;
+
+namespace DevBurguer.Data
+{
+    public class PagamentoMotoboyRepository
+    {
+        public async Task<List<PagamentoMotoboy>> GetAllPagamentosAsync()
+        {
+            string sql = SqlLoader.Load("PagamentoMotoboy\\SelectPagamentos.sql");
+            DataTable dt = await DbHelper.ExecuteDataTableAsync(sql).ConfigureAwait(false);
+            return Mappers.MapPagamentos(dt);
+        }
+
+        public async Task<List<Motoboy>> GetAllMotoboysAsync()
+        {
+            string sql = SqlLoader.Load("PagamentoMotoboy\\SelectMotoboys.sql");
+            DataTable dt = await DbHelper.ExecuteDataTableAsync(sql).ConfigureAwait(false);
+            return Mappers.MapMotoboys(dt);
+        }
+
+        public async Task InsertAsync(int idMotoboy, int qtd, decimal valorTotal, decimal chegada, DateTime data)
+        {
+            string sql = SqlLoader.Load("PagamentoMotoboy\\Insert.sql");
+
+            var p = new[]
+            {
+                new SqlParameter("@m", SqlDbType.Int) { Value = idMotoboy },
+                new SqlParameter("@q", SqlDbType.Int) { Value = qtd },
+                CreateDecimalParameter("@v", valorTotal),
+                CreateDecimalParameter("@c", chegada),
+                CreateDecimalParameter("@t", valorTotal + chegada),
+                new SqlParameter("@d", SqlDbType.DateTime) { Value = data }
+            };
+
+            await DbHelper.ExecuteNonQueryAsync(sql, p).ConfigureAwait(false);
+        }
+
+        public async Task UpdateAsync(int id, int qtd, decimal valorTotal, decimal chegada, DateTime data)
+        {
+            string sql = SqlLoader.Load("PagamentoMotoboy\\Update.sql");
+
+            var p = new[]
+            {
+                new SqlParameter("@q", SqlDbType.Int) { Value = qtd },
+                CreateDecimalParameter("@v", valorTotal),
+                CreateDecimalParameter("@c", chegada),
+                CreateDecimalParameter("@t", valorTotal + chegada),
+                new SqlParameter("@d", SqlDbType.DateTime) { Value = data },
+                new SqlParameter("@id", SqlDbType.Int) { Value = id }
+            };
+
+            await DbHelper.ExecuteNonQueryAsync(sql, p).ConfigureAwait(false);
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            string sql = SqlLoader.Load("PagamentoMotoboy\\Delete.sql");
+            var p = new[] { new SqlParameter("@id", SqlDbType.Int) { Value = id } };
+            await DbHelper.ExecuteNonQueryAsync(sql, p).ConfigureAwait(false);
+        }
+
+        private SqlParameter CreateDecimalParameter(string name, decimal value)
+        {
+            var p = new SqlParameter(name, SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = value };
+            return p;
+        }
+    }
+}

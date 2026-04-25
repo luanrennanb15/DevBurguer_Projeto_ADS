@@ -1,0 +1,201 @@
+﻿using System;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
+
+namespace DevBurguer
+{
+    public partial class FormFaturamento : Form
+    {
+        private Panel panelTop;
+        private DateTimePicker dtpFrom;
+        private DateTimePicker dtpTo;
+        private Button btnRefresh;
+        private Button btnExport;
+        private Chart chartFaturamento;
+        private DataGridView dgvFaturamento;
+        private Label lblTotalHoje;
+        private Label lblTotalMes;
+
+        public FormFaturamento()
+        {
+            InitializeComponent();
+            BuildLayout();
+            this.Load += FormFaturamento_Load;
+        }
+
+        private void BuildLayout()
+        {
+            this.Text = "Faturamento";
+            this.WindowState = FormWindowState.Maximized;
+            this.BackColor = Color.White;
+
+            panelTop = new Panel { Dock = DockStyle.Top, Height = 60, Padding = new Padding(8), BackColor = Color.White };
+            dtpFrom = new DateTimePicker { Left = 8, Top = 18, Width = 120, Format = DateTimePickerFormat.Short };
+            dtpTo = new DateTimePicker { Left = 136, Top = 18, Width = 120, Format = DateTimePickerFormat.Short };
+            btnRefresh = new Button { Text = "Atualizar", Left = 264, Top = 15, Width = 100 };
+            btnExport = new Button { Text = "Exportar CSV", Left = 372, Top = 15, Width = 100 };
+
+            lblTotalHoje = new Label { Left = 500, Top = 8, Width = 300, Font = new Font("Segoe UI", 12, FontStyle.Bold) };
+            lblTotalMes = new Label { Left = 500, Top = 30, Width = 300, Font = new Font("Segoe UI", 10) };
+
+            btnRefresh.Click += async (s, e) => await LoadFaturamentoAsync().ConfigureAwait(false);
+            btnExport.Click += (s, e) => ExportCsv();
+
+            panelTop.Controls.AddRange(new Control[] { dtpFrom, dtpTo, btnRefresh, btnExport, lblTotalHoje, lblTotalMes });
+            this.Controls.Add(panelTop);
+
+            chartFaturamento = new Chart { Dock = DockStyle.Top, Height = 320 };
+            chartFaturamento.ChartAreas.Add(new ChartArea());
+            var s = new Series { ChartType = SeriesChartType.Line, Name = "Faturamento" };
+            chartFaturamento.Series.Add(s);
+            this.Controls.Add(chartFaturamento);
+
+            dgvFaturamento = new DataGridView { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 11) };
+            dgvFaturamento.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            this.Controls.Add(dgvFaturamento);
+        }
+
+        private async void FormFaturamento_Load(object sender, EventArgs e)
+        {
+            // default range: last 30 days
+            dtpTo.Value = DateTime.Today;
+            dtpFrom.Value = DateTime.Today.AddDays(-30);
+            await LoadFaturamentoAsync().ConfigureAwait(false);
+        }
+
+        private async Task LoadFaturamentoAsync()
+        {
+            try
+            {
+                DateTime from = dtpFrom.Value.Date;
+                DateTime to = dtpTo.Value.Date.AddDays(1).AddTicks(-1);
+
+                string sql = @"SELECT CONVERT(date, p.DataPedido) AS Dia, SUM(p.Total) AS Total
+FROM Pedidos p
+WHERE p.DataPedido >= @from AND p.DataPedido <= @to
+GROUP BY CONVERT(date, p.DataPedido)
+ORDER BY Dia";
+
+                var parameters = new[] {
+                    new System.Data.SqlClient.SqlParameter("@from", System.Data.SqlDbType.DateTime) { Value = from },
+                    new System.Data.SqlClient.SqlParameter("@to", System.Data.SqlDbType.DateTime) { Value = to }
+                };
+
+                var dt = await DevBurguer.Data.DbHelper.ExecuteDataTableAsync(sql, parameters).ConfigureAwait(false);
+
+                BeginInvoke((Action)(() => {
+                    dgvFaturamento.DataSource = dt;
+                    FormatGrid();
+                    PopulateChart(dt);
+                    UpdateKpis(dt, from, to);
+                }));
+            }
+            catch (Exception ex)
+            {
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormFaturamento_Load");
+                BeginInvoke((Action)(() => MessageBox.Show("Erro ao carregar faturamento. Veja logs.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error)));
+            }
+        }
+
+        private void FormatGrid()
+        {
+            if (dgvFaturamento.DataSource is DataTable dt)
+            {
+                if (dt.Columns.Contains("Dia")) dgvFaturamento.Columns["Dia"].HeaderText = "Dia";
+                if (dt.Columns.Contains("Total"))
+                {
+                    dgvFaturamento.Columns["Total"].HeaderText = "Total";
+                    dgvFaturamento.Columns["Total"].DefaultCellStyle.Format = "C2";
+                }
+            }
+        }
+
+        private void PopulateChart(DataTable dt)
+        {
+            var series = chartFaturamento.Series["Faturamento"];
+            series.Points.Clear();
+            foreach (DataRow row in dt.Rows)
+            {
+                var dia = Convert.ToDateTime(row["Dia"]); 
+                var total = Convert.ToDouble(row["Total"]);
+                int idx = series.Points.AddXY(dia.ToOADate(), total);
+                var pt = series.Points[idx];
+                pt.ToolTip = string.Format("{0:d}: {1:C2}", dia, total);
+            }
+            var area = chartFaturamento.ChartAreas[0];
+            area.AxisX.LabelStyle.Format = "dd/MM";
+            area.AxisX.MajorGrid.Enabled = false;
+            area.AxisY.MajorGrid.LineColor = Color.LightGray;
+        }
+
+        private void UpdateKpis(DataTable dt, DateTime from, DateTime to)
+        {
+            // total today and total month within the selected range
+            decimal totalToday = 0m;
+            decimal totalMonth = 0m;
+            try
+            {
+                var today = DateTime.Today;
+                if (dt != null)
+                {
+                    foreach (DataRow r in dt.Rows)
+                    {
+                        var d = Convert.ToDateTime(r["Dia"]).Date;
+                        var t = Convert.ToDecimal(r["Total"]);
+                        if (d == today) totalToday += t;
+                        if (d >= new DateTime(today.Year, today.Month, 1) && d <= today) totalMonth += t;
+                    }
+                }
+            }
+            catch { }
+
+            lblTotalHoje.Text = $"Total hoje: {totalToday:C2}";
+            lblTotalMes.Text = $"Total no mês atual: {totalMonth:C2}";
+        }
+
+        private void ExportCsv()
+        {
+            try
+            {
+                if (!(dgvFaturamento.DataSource is DataTable dt) || dt.Rows.Count == 0)
+                {
+                    MessageBox.Show("Não há dados para exportar.", "Exportar", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                using (SaveFileDialog sfd = new SaveFileDialog())
+                {
+                    sfd.Filter = "CSV files (*.csv)|*.csv";
+                    sfd.FileName = "faturamento.csv";
+                    if (sfd.ShowDialog() != DialogResult.OK) return;
+
+                    var sb = new StringBuilder();
+                    var columnNames = dt.Columns.Cast<DataColumn>().Select(c => c.ColumnName);
+                    sb.AppendLine(string.Join(",", columnNames));
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        var fields = dt.Columns.Cast<DataColumn>().Select(c => {
+                            var val = row[c] == null || row.IsNull(c) ? string.Empty : row[c].ToString();
+                            if (val.Contains(",") || val.Contains("\"") ) val = "\"" + val.Replace("\"", "\"\"") + "\"";
+                            return val;
+                        });
+                        sb.AppendLine(string.Join(",", fields));
+                    }
+
+                    System.IO.File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
+                    MessageBox.Show("Exportado com sucesso.", "Exportar", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                DevBurguer.Services.ExceptionLogger.Log(ex, "ExportCsvFaturamento");
+                MessageBox.Show("Erro ao exportar CSV. Veja logs.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+    }
+}

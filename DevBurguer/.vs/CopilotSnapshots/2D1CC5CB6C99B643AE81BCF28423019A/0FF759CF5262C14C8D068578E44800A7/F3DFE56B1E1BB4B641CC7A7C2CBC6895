@@ -1,0 +1,11 @@
+﻿using System.Data.SqlClient;
+
+namespace DevBurguer.Banco
+{
+    public class Conexao
+    {
+        public static SqlConnection conn = new SqlConnection(
+            @"Data Source=DESKTOP-N98DB69;Initial Catalog=DevBurguerDB;Integrated Security=True"
+        );
+    }
+}

@@ -1,0 +1,150 @@
+﻿using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Windows.Forms;
+using System.Drawing;
+using DevBurguer.Banco;
+
+namespace DevBurguer
+{
+    public partial class FormMotoboy : Form
+    {
+        public FormMotoboy()
+        {
+            InitializeComponent();
+            this.Load += new System.EventHandler(this.FormMotoboy_Load);
+        }
+
+        private void FormMotoboy_Load(object sender, EventArgs e)
+        {
+            CarregarMotoboys();
+        }
+
+        private void CarregarMotoboys()
+        {
+            try
+            {
+                var repo = new DevBurguer.Data.MotoboyRepository();
+                var dt = repo.GetAllAsync().GetAwaiter().GetResult();
+                dgvMotoboys.DataSource = dt;
+
+                // Visual
+                dgvMotoboys.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                dgvMotoboys.Font = new Font("Arial", 12);
+                dgvMotoboys.ColumnHeadersDefaultCellStyle.Font = new Font("Arial", 12, FontStyle.Bold);
+
+                if (dgvMotoboys.Columns["Id"] != null)
+                    dgvMotoboys.Columns["Id"].Visible = false;
+            }
+            catch (Exception ex)
+            {
+                DevBurguer.Services.ExceptionLogger.Log(ex, "CarregarMotoboys");
+                MessageBox.Show("Erro ao carregar motoboys. Veja logs.");
+            }
+        }
+
+        private async void btnSalvar_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (txtNome.Text == "" || txtTelefone1.Text == "" || txtCPF.Text == "")
+                {
+                    MessageBox.Show("Preencha Nome, Telefone e CPF!");
+                    return;
+                }
+
+                var repo = new DevBurguer.Data.MotoboyRepository();
+                await repo.InsertAsync(txtNome.Text, txtEndereco.Text, txtTelefone1.Text, txtTelefone2.Text, txtCPF.Text).ConfigureAwait(false);
+
+                MessageBox.Show("Motoboy cadastrado!");
+
+                LimparCampos();
+                CarregarMotoboys();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void btnAtualizar_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (dgvMotoboys.CurrentRow == null)
+                {
+                    MessageBox.Show("Selecione um motoboy!");
+                    return;
+                }
+
+                int id = Convert.ToInt32(dgvMotoboys.CurrentRow.Cells["Id"].Value);
+
+                var repo = new DevBurguer.Data.MotoboyRepository();
+                await repo.UpdateAsync(id, txtNome.Text, txtEndereco.Text, txtTelefone1.Text, txtTelefone2.Text, txtCPF.Text).ConfigureAwait(false);
+
+                MessageBox.Show("Motoboy atualizado!");
+
+                LimparCampos();
+                CarregarMotoboys();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void btnExcluir_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (dgvMotoboys.CurrentRow == null)
+                {
+                    MessageBox.Show("Selecione um motoboy!");
+                    return;
+                }
+
+                int id = Convert.ToInt32(dgvMotoboys.CurrentRow.Cells["Id"].Value);
+
+                using (SqlConnection conn = Conexao.GetConnection())
+                {
+                    conn.Open();
+
+                    SqlCommand cmd = new SqlCommand("DELETE FROM Motoboys WHERE Id=@id", conn);
+                    cmd.Parameters.AddWithValue("@id", id);
+
+                    cmd.ExecuteNonQuery();
+                }
+
+                MessageBox.Show("Motoboy excluído!");
+
+                LimparCampos();
+                CarregarMotoboys();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void dgvMotoboys_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (dgvMotoboys.CurrentRow != null)
+            {
+                txtNome.Text = dgvMotoboys.CurrentRow.Cells["Nome"].Value.ToString();
+                txtEndereco.Text = dgvMotoboys.CurrentRow.Cells["Endereco"].Value.ToString();
+                txtTelefone1.Text = dgvMotoboys.CurrentRow.Cells["Telefone1"].Value.ToString();
+                txtTelefone2.Text = dgvMotoboys.CurrentRow.Cells["Telefone2"].Value.ToString();
+                txtCPF.Text = dgvMotoboys.CurrentRow.Cells["CPF"].Value.ToString();
+            }
+        }
+
+        private void LimparCampos()
+        {
+            txtNome.Clear();
+            txtEndereco.Clear();
+            txtTelefone1.Clear();
+            txtTelefone2.Clear();
+            txtCPF.Clear();
+        }
+    }
+}

@@ -1,0 +1,116 @@
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Threading.Tasks;
+using DevBurguer.Banco;
+using DevBurguer.Services;
+
+namespace DevBurguer.Data
+{
+    public static class DbHelper
+    {
+        // Synchronous implementation
+        public static DataTable ExecuteDataTable(string sql, params SqlParameter[] parameters)
+        {
+            try
+            {
+                using (SqlConnection conn = Conexao.GetConnection())
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        if (parameters != null && parameters.Length > 0)
+                            cmd.Parameters.AddRange(parameters);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            var dt = new DataTable();
+                            dt.Load(reader);
+                            return dt;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "DbHelper.ExecuteDataTable");
+                throw;
+            }
+        }
+
+        public static int ExecuteNonQuery(string sql, params SqlParameter[] parameters)
+        {
+            try
+            {
+                using (SqlConnection conn = Conexao.GetConnection())
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        if (parameters != null && parameters.Length > 0)
+                            cmd.Parameters.AddRange(parameters);
+
+                        return cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "DbHelper.ExecuteNonQuery");
+                throw;
+            }
+        }
+
+        // Async implementations
+        public static async Task<DataTable> ExecuteDataTableAsync(string sql, params SqlParameter[] parameters)
+        {
+            try
+            {
+                using (SqlConnection conn = Conexao.GetConnection())
+                {
+                    await conn.OpenAsync().ConfigureAwait(false);
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        if (parameters != null && parameters.Length > 0)
+                            cmd.Parameters.AddRange(parameters);
+
+                        using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
+                        {
+                            var dt = new DataTable();
+                            dt.Load(reader);
+                            return dt;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "DbHelper.ExecuteDataTableAsync");
+                throw;
+            }
+        }
+
+        public static async Task<int> ExecuteNonQueryAsync(string sql, params SqlParameter[] parameters)
+        {
+            try
+            {
+                using (SqlConnection conn = Conexao.GetConnection())
+                {
+                    await conn.OpenAsync().ConfigureAwait(false);
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        if (parameters != null && parameters.Length > 0)
+                            cmd.Parameters.AddRange(parameters);
+
+                        return await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "DbHelper.ExecuteNonQueryAsync");
+                throw;
+            }
+        }
+    }
+}

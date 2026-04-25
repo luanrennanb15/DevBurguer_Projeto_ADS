@@ -1,0 +1,28 @@
+﻿using System;
+using Serilog;
+
+namespace DevBurguer.Services
+{
+    public static class ExceptionLogger
+    {
+        static ExceptionLogger()
+        {
+            // configurar Serilog básico (arquivo rotativo)
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.File("logs\\error-.log", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+        }
+
+        public static void Log(Exception ex, string context)
+        {
+            try
+            {
+                Log.Logger.Error(ex, "{Context}", context);
+            }
+            catch
+            {
+                // Não propagar falha do logger
+            }
+        }
+    }
+}
