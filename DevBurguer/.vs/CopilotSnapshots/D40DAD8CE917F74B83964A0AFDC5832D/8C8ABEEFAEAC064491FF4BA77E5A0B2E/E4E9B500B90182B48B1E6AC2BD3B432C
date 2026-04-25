@@ -1,0 +1,23 @@
+﻿using System;
+using System.Data;
+using System.Data.SqlClient;
+
+namespace DevBurguer.Data
+{
+    public class RelatorioService
+    {
+        public DataTable ObterProdutosMaisVendidos(DateTime dataInicio, DateTime dataFim)
+        {
+            string sql = SqlLoader.Load("Relatorio\\ProdutosMaisVendidos.sql");
+
+            var parameters = new[]
+            {
+                new SqlParameter("@DataInicio", SqlDbType.DateTime) { Value = dataInicio.Date },
+                // para incluir todo o dia final, defina fim como 23:59:59.999
+                new SqlParameter("@DataFim", SqlDbType.DateTime) { Value = dataFim.Date.AddDays(1).AddTicks(-1) }
+            };
+
+            return DbHelper.ExecuteDataTable(sql, parameters);
+        }
+    }
+}

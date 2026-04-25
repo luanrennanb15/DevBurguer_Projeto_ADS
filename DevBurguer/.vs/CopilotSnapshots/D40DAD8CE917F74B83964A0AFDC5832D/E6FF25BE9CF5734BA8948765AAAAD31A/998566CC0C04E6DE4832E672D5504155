@@ -1,0 +1,63 @@
+﻿using System;
+using System.Data;
+using System.Data.SqlClient;
+using DevBurguer.Banco;
+using DevBurguer.Services;
+
+namespace DevBurguer.Data
+{
+    public static class DbHelper
+    {
+        public static DataTable ExecuteDataTable(string sql, params SqlParameter[] parameters)
+        {
+            try
+            {
+                using (SqlConnection conn = Conexao.GetConnection())
+                {
+                    conn.Open();
+                    using (SqlDataAdapter da = new SqlDataAdapter(sql, conn))
+                    {
+                        if (parameters != null && parameters.Length > 0)
+                        {
+                            da.SelectCommand.Parameters.AddRange(parameters);
+                        }
+
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+                        return dt;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "DbHelper.ExecuteDataTable");
+                throw;
+            }
+        }
+
+        public static int ExecuteNonQuery(string sql, params SqlParameter[] parameters)
+        {
+            try
+            {
+                using (SqlConnection conn = Conexao.GetConnection())
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        if (parameters != null && parameters.Length > 0)
+                        {
+                            cmd.Parameters.AddRange(parameters);
+                        }
+
+                        return cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "DbHelper.ExecuteNonQuery");
+                throw;
+            }
+        }
+    }
+}

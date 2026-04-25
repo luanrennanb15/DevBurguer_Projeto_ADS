@@ -98,13 +98,19 @@ namespace DevBurguer
         private void btnRelatorioProdutos_Click(object sender, EventArgs e)
         {
             AtivarBotao(btnRelatorioProdutos);
-            AbrirForm(new FormRelatorio());
+            // abrir relatório de produtos mais vendidos
+            var frm = new FormRelatorio();
+            frm.Tag = "ProdutosMaisVendidos"; // indica tipo de relatório
+            AbrirForm(frm);
         }
 
         private void btnFaturamento_Click(object sender, EventArgs e)
         {
             AtivarBotao(btnFaturamento);
-            AbrirForm(new FormRelatorio());
+            // abrir relatório de faturamento
+            var frm = new FormRelatorio();
+            frm.Tag = "Faturamento";
+            AbrirForm(frm);
         }
 
         private void btnFaturamentoMotoboy_Click(object sender, EventArgs e)

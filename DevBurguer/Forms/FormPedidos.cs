@@ -1,75 +1,63 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using DevBurguer.Banco;
+using DevBurguer.Models;
 
 namespace DevBurguer
 {
     public partial class FormPedidos : Form
     {
+        private DataTable _produtosCache; // 🔥 cache para evitar buscar toda hora
+
         public FormPedidos()
         {
             InitializeComponent();
         }
 
-        private void FormPedidos_Load(object sender, EventArgs e)
+        private async void FormPedidos_Load(object sender, EventArgs e)
         {
-            CarregarProdutos();
-            CarregarClientes();
+            await CarregarProdutosAsync();
+            await CarregarClientesAsync();
         }
 
-        private void CarregarProdutos()
+        private async Task CarregarProdutosAsync()
         {
             try
             {
-                using (SqlConnection conn = Conexao.GetConnection())
-                {
-                    conn.Open();
+                var repo = new DevBurguer.Data.PedidoRepository();
+                _produtosCache = await repo.GetProdutosSelectAsync();
 
-                    SqlDataAdapter da = new SqlDataAdapter(
-                        "SELECT Id, Nome, Preco FROM Produtos",
-                        conn
-                    );
-
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-
-                    cmbProdutos.DataSource = dt;
-                    cmbProdutos.DisplayMember = "Nome";
-                    cmbProdutos.ValueMember = "Id";
-                }
+                cmbProdutos.DataSource = _produtosCache;
+                cmbProdutos.DisplayMember = "Nome";
+                cmbProdutos.ValueMember = "Id";
+                cmbProdutos.SelectedIndex = -1;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao carregar produtos: " + ex.Message);
+                DevBurguer.Services.ExceptionLogger.Log(ex, "CarregarProdutosAsync");
+                MessageBox.Show("Erro ao carregar produtos");
             }
         }
 
-        private void CarregarClientes()
+        private async Task CarregarClientesAsync()
         {
             try
             {
-                using (SqlConnection conn = Conexao.GetConnection())
-                {
-                    conn.Open();
+                var repo = new DevBurguer.Data.PedidoRepository();
+                var dt = await repo.GetClientesSelectAsync();
 
-                    SqlDataAdapter da = new SqlDataAdapter(
-                        "SELECT Id, Nome + ' - CPF: ' + CPF AS Nome FROM Clientes",
-                        conn
-                    );
-
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-
-                    cmbClientes.DataSource = dt;
-                    cmbClientes.DisplayMember = "Nome";
-                    cmbClientes.ValueMember = "Id";
-                }
+                cmbClientes.DataSource = dt;
+                cmbClientes.DisplayMember = "Nome";
+                cmbClientes.ValueMember = "Id";
+                cmbClientes.SelectedIndex = -1;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao carregar clientes: " + ex.Message);
+                DevBurguer.Services.ExceptionLogger.Log(ex, "CarregarClientesAsync");
+                MessageBox.Show("Erro ao carregar clientes");
             }
         }
 
@@ -77,35 +65,23 @@ namespace DevBurguer
         {
             try
             {
-                if (cmbProdutos.SelectedItem == null || cmbProdutos.SelectedValue == null)
+                if (cmbProdutos.SelectedValue == null || _produtosCache == null)
                     return;
 
-                DataRowView drv = cmbProdutos.SelectedItem as DataRowView;
-                if (drv == null) return;
+                if (!int.TryParse(cmbProdutos.SelectedValue.ToString(), out int id))
+                    return;
 
-                txtPreco.Text = drv["Preco"].ToString();
+                var row = _produtosCache.Select($"Id = {id}").FirstOrDefault();
 
-                int id = Convert.ToInt32(drv["Id"]);
-
-                using (SqlConnection conn = Conexao.GetConnection())
+                if (row != null)
                 {
-                    conn.Open();
-
-                    SqlCommand cmd = new SqlCommand(
-                        "SELECT Ingredientes FROM Produtos WHERE Id=@id",
-                        conn
-                    );
-
-                    cmd.Parameters.AddWithValue("@id", id);
-
-                    object result = cmd.ExecuteScalar();
-
-                    txtIngredientes.Text = result != null ? result.ToString() : "";
+                    txtPreco.Text = row["Preco"].ToString();
+                    txtIngredientes.Text = row["Ingredientes"].ToString();
                 }
             }
             catch
             {
-                // evita erro ao carregar combobox
+                // evita erro ao carregar combo
             }
         }
 
@@ -124,12 +100,12 @@ namespace DevBurguer
                 }
             }
 
-            lblTotal.Text = "Total: R$ " + total.ToString("F2");
+            lblTotal.Text = total.ToString("F2"); // 🔥 só número
         }
 
         private void btnAdicionar_Click(object sender, EventArgs e)
         {
-            if (cmbProdutos.Text == "" || txtQuantidade.Text == "")
+            if (cmbProdutos.SelectedValue == null || txtQuantidade.Text == "")
             {
                 MessageBox.Show("Selecione produto e quantidade!");
                 return;
@@ -140,8 +116,10 @@ namespace DevBurguer
                 txtQuantidade.Text,
                 txtPreco.Text,
                 txtObservacao.Text,
-                cmbProdutos.SelectedValue // ID escondido
+                cmbProdutos.SelectedValue
+
             );
+
 
             txtQuantidade.Clear();
             txtObservacao.Clear();
@@ -158,7 +136,7 @@ namespace DevBurguer
             }
         }
 
-        private void btnFinalizar_Click(object sender, EventArgs e)
+        private async void btnFinalizar_Click(object sender, EventArgs e)
         {
             try
             {
@@ -168,50 +146,49 @@ namespace DevBurguer
                     return;
                 }
 
-                decimal total = Convert.ToDecimal(lblTotal.Text.Replace("Total: R$ ", ""));
-
-                using (SqlConnection conn = Conexao.GetConnection())
+                if (cmbClientes.SelectedValue == null)
                 {
-                    conn.Open();
+                    MessageBox.Show("Selecione um cliente!");
+                    return;
+                }
 
-                    SqlCommand cmdPedido = new SqlCommand(
-                        "INSERT INTO Pedidos (IdCliente, Total) OUTPUT INSERTED.Id VALUES (@c,@t)",
-                        conn
-                    );
+                if (!decimal.TryParse(lblTotal.Text, out decimal total))
+                {
+                    MessageBox.Show("Erro no total!");
+                    return;
+                }
 
-                    cmdPedido.Parameters.AddWithValue("@c", cmbClientes.SelectedValue);
-                    cmdPedido.Parameters.AddWithValue("@t", total);
+                int idCliente = Convert.ToInt32(cmbClientes.SelectedValue);
 
-                    int idPedido = (int)cmdPedido.ExecuteScalar();
+                var itens = new List<OrderItem>();
 
-                    foreach (DataGridViewRow row in dgvItens.Rows)
+                foreach (DataGridViewRow row in dgvItens.Rows)
+                {
+                    if (row.Cells[4].Value != null)
                     {
-                        if (row.Cells[4].Value != null)
+                        itens.Add(new OrderItem
                         {
-                            SqlCommand cmdItem = new SqlCommand(
-                                "INSERT INTO ItensPedido (IdPedido, IdProduto, Quantidade, Observacao, Preco) VALUES (@p,@prod,@q,@obs,@preco)",
-                                conn
-                            );
-
-                            cmdItem.Parameters.AddWithValue("@p", idPedido);
-                            cmdItem.Parameters.AddWithValue("@prod", row.Cells[4].Value);
-                            cmdItem.Parameters.AddWithValue("@q", Convert.ToInt32(row.Cells[1].Value));
-                            cmdItem.Parameters.AddWithValue("@obs", row.Cells[3].Value?.ToString());
-                            cmdItem.Parameters.AddWithValue("@preco", Convert.ToDecimal(row.Cells[2].Value));
-
-                            cmdItem.ExecuteNonQuery();
-                        }
+                            IdProduto = Convert.ToInt32(row.Cells[4].Value),
+                            Quantidade = Convert.ToInt32(row.Cells[1].Value),
+                            Observacao = row.Cells[3].Value?.ToString(),
+                            Preco = Convert.ToDecimal(row.Cells[2].Value)
+                        });
                     }
                 }
 
-                MessageBox.Show("Pedido salvo!");
+                var repo = new DevBurguer.Data.PedidoRepository();
+                int idPedido = await repo.InsertPedidoAsync(idCliente, total, itens);
+
+
+                MessageBox.Show("Pedido salvo! Id: " + idPedido);
 
                 dgvItens.Rows.Clear();
-                lblTotal.Text = "Total: R$ 0,00";
+                lblTotal.Text = "0,00";
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro: " + ex.Message);
+                DevBurguer.Services.ExceptionLogger.Log(ex, "btnFinalizar");
+                MessageBox.Show("Erro ao salvar pedido");
             }
         }
     }

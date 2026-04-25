@@ -1,0 +1,253 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Windows.Forms;
+using DevBurguer.Data;
+using DevBurguer.Models;
+using DevBurguer.Services;
+
+namespace DevBurguer
+{
+    public partial class FormPagamentoMotoboy : Form
+    {
+        private int idSelecionado = 0;
+        private readonly PagamentoMotoboyRepository _repo = new PagamentoMotoboyRepository();
+        private readonly BindingSource _pagamentosBinding = new BindingSource();
+        private readonly BindingSource _motoboysBinding = new BindingSource();
+
+        public FormPagamentoMotoboy()
+        {
+            InitializeComponent();
+
+            this.Load += FormPagamentoMotoboy_Load;
+
+            txtValorTotalEntregas.TextChanged += CalcularTotal;
+            txtChegada.TextChanged += CalcularTotal;
+
+            btnSalvar.Click += btnSalvar_Click;
+            btnRemover.Click += btnRemover_Click;
+            btnAtualizar.Click += btnAtualizar_Click;
+            dgvPagamentos.CellClick += dgvPagamentos_CellClick;
+            dgvPagamentos.SelectionChanged += dgvPagamentos_SelectionChanged;
+            dgvPagamentos.CellContentClick += dgvPagamentos_CellContentClick;
+
+            dgvPagamentos.AutoGenerateColumns = true;
+            dgvPagamentos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        }
+
+        private void FormPagamentoMotoboy_Load(object sender, EventArgs e)
+        {
+            txtTotal.ReadOnly = true;
+            CarregarMotoboys();
+            CarregarGrid();
+        }
+
+        private void CarregarMotoboys()
+        {
+            try
+            {
+                List<Motoboy> lista = _repo.GetAllMotoboys();
+                _motoboysBinding.DataSource = lista ?? new List<Motoboy>();
+                cmbMotoboy.DataSource = _motoboysBinding;
+                cmbMotoboy.DisplayMember = "Nome";
+                cmbMotoboy.ValueMember = "Id";
+                cmbMotoboy.SelectedIndex = -1;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "CarregarMotoboys");
+                MessageBox.Show("Erro ao carregar motoboys. Veja logs.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void CarregarGrid()
+        {
+            try
+            {
+                List<PagamentoMotoboy> lista = _repo.GetAllPagamentos();
+                _pagamentosBinding.DataSource = lista ?? new List<PagamentoMotoboy>();
+                dgvPagamentos.DataSource = _pagamentosBinding;
+
+                // manter seleção limpa
+                idSelecionado = 0;
+                LimparCamposEntrada();
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "CarregarGrid");
+                MessageBox.Show("Erro ao carregar pagamentos. Veja logs.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void CalcularTotal(object sender, EventArgs e)
+        {
+            decimal v = 0;
+            decimal c = 0;
+
+            decimal.TryParse(txtValorTotalEntregas.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out v);
+            decimal.TryParse(txtChegada.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out c);
+
+            txtTotal.Text = (v + c).ToString("F2");
+        }
+
+        private void btnSalvar_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (cmbMotoboy.SelectedValue == null || !int.TryParse(cmbMotoboy.SelectedValue.ToString(), out int idMotoboy))
+                {
+                    MessageBox.Show("Selecione um motoboy válido.");
+                    return;
+                }
+
+                if (!int.TryParse(txtQtd.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out int qtd))
+                {
+                    MessageBox.Show("Quantidade inválida");
+                    return;
+                }
+
+                if (!decimal.TryParse(txtValorTotalEntregas.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out decimal valorTotal))
+                {
+                    MessageBox.Show("Valor total inválido");
+                    return;
+                }
+
+                if (!decimal.TryParse(txtChegada.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out decimal chegada))
+                {
+                    MessageBox.Show("Chegada inválida");
+                    return;
+                }
+
+                _repo.Insert(idMotoboy, qtd, valorTotal, chegada, dtpData.Value);
+
+                CarregarGrid();
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "btnSalvar_Click");
+                MessageBox.Show("Erro ao salvar. Veja logs.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void dgvPagamentos_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            PreencherCamposDaLinhaSelecionada();
+        }
+
+        private void dgvPagamentos_SelectionChanged(object sender, EventArgs e)
+        {
+            // assegura atualização quando navega com teclado
+            PreencherCamposDaLinhaSelecionada();
+        }
+
+        private void PreencherCamposDaLinhaSelecionada()
+        {
+            try
+            {
+                if (dgvPagamentos.CurrentRow == null) return;
+
+                var item = dgvPagamentos.CurrentRow.DataBoundItem as PagamentoMotoboy;
+                if (item == null) return;
+
+                idSelecionado = item.Id;
+                txtQtd.Text = item.QuantidadeEntregas.ToString();
+                txtValorTotalEntregas.Text = item.ValorTotalEntregas.ToString("F2");
+                txtChegada.Text = item.ValorChegada.ToString("F2");
+                txtTotal.Text = item.TotalPagar.ToString("F2");
+
+                // selecionar motoboy no combobox se disponível
+                if (item.IdMotoboy > 0)
+                {
+                    cmbMotoboy.SelectedValue = item.IdMotoboy;
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "PreencherCamposDaLinhaSelecionada");
+            }
+        }
+
+        private void btnAtualizar_Click(object sender, EventArgs e)
+        {
+            if (idSelecionado == 0)
+            {
+                MessageBox.Show("Selecione um registro!");
+                return;
+            }
+
+            try
+            {
+                if (!decimal.TryParse(txtValorTotalEntregas.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out decimal valorTotal))
+                {
+                    MessageBox.Show("Valor total inválido");
+                    return;
+                }
+                if (!decimal.TryParse(txtChegada.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out decimal chegada))
+                {
+                    MessageBox.Show("Chegada inválida");
+                    return;
+                }
+                if (!int.TryParse(txtQtd.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out int qtd))
+                {
+                    MessageBox.Show("Quantidade inválida");
+                    return;
+                }
+
+                _repo.Update(idSelecionado, qtd, valorTotal, chegada, dtpData.Value);
+
+                CarregarGrid();
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "btnAtualizar_Click");
+                MessageBox.Show("Erro ao atualizar. Veja logs.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnRemover_Click(object sender, EventArgs e)
+        {
+            if (idSelecionado == 0)
+            {
+                MessageBox.Show("Selecione um registro!");
+                return;
+            }
+
+            try
+            {
+                var confirm = MessageBox.Show("Confirma exclusão?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (confirm != DialogResult.Yes) return;
+
+                _repo.Delete(idSelecionado);
+
+                CarregarGrid();
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "btnRemover_Click");
+                MessageBox.Show("Erro ao remover. Veja logs.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void Limpar()
+        {
+            LimparCamposEntrada();
+            idSelecionado = 0;
+            _pagamentosBinding.Clear();
+        }
+
+        private void LimparCamposEntrada()
+        {
+            txtQtd.Clear();
+            txtValorTotalEntregas.Clear();
+            txtChegada.Clear();
+            txtTotal.Text = "0,00";
+            cmbMotoboy.SelectedIndex = -1;
+            dtpData.Value = DateTime.Today;
+        }
+
+        private void dgvPagamentos_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            // comportamento extra se necessário
+        }
+    }
+}

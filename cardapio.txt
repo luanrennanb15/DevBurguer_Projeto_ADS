@@ -1,0 +1,53 @@
+xDEV-Bacon	33,00	Lanche Tradicional	Hamburguer, Bacon, Mussarela, Presunto, Alface, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.
+
+xDEV-Burguer	20,00	Lanche Tradicional	Hamburguer, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.
+
+xDEV-Egg	27,00	Lanche Tradicional	Hamburguer, Ovo, Alface, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.
+
+xDEV-Salada	24,00	Lanche Tradicional	Hamburguer, Alface, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.
+
+xDEV-Frango	28,00	Lanche Tradicional	 Frango desfiado,Catupiry, Alface, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.
+
+xDEV-Calabresa	30,00	Lanche Tradicional	Calabresa, Hamburguer, Alface, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.
+
+xDEV-Churrasco	35,00	Lanche Tradicional	Contra Filé, mussarela, Alface, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.
+
+xDEV-Tudo	43,00	Lanche Tradicional	Hamburguer, Calabresa, Bacon, Ovo, Frango Desfiado, Mussarela, Catupity, Alface, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.
+
+Coca-Cola Lata 350 ML	7,00	Bebidas	
+Coca-Cola Zero Lata 350 ML	7,00	Bebidas	
+Água	4,00	Bebidas	
+Suco de Laranja	12,00	Bebidas	Natural
+
+DevClassic	32,90	Lanche Gourmet	Blend 180g, cheddar, tomate e molho da casa.
+
+Bug Spicy	36,90	Lanche Gourmet	Blend 180g, Bacon, Cheddar,alface, Tomate e molho da casa.
+
+Byte Burger	37,90	Lanche Gourmet	Blend 180g, cheddar, bacon, onion rings, molho barbecue.
+
+404 Burger Not Found	39,90	Lanche Gourmet	Costela desfiada, molho barbecue, Cebola caramelizada e alface crocante.
+ 
+Guaraná Lata 350 ML	7,00	Bebidas	
+Fanta Laranja Lata 350 ML	7,00	Bebidas	
+Fanta Uva Lata 350 ML	7,00	Bebidas	
+Pepsi Lata 350 ML	7,00	Bebidas	
+Suco de Laranja	12,00	Suco	Natural
+Suco de Limão	12,00	Suco	Natural
+Suco de Maracujá	12,00	Suco	Natural
+Água sem gás	4,00	Bebidas	
+Água com gás	5,00	Bebidas	
+Skol Lata 350 ML	7,00	Bebidas Alcoólicas	
+Brahma Lata 350 ML	7,00	Bebidas Alcoólicas	
+Heineken Lata 350 ML	10,00	Bebidas Alcoólicas	
+Milkshakes Chocolate 400 ML	15,00	Milkshakes	
+Milkshakes Morango 400 ML	15,00	Milkshakes	
+Milkshakes Ovomaltine 400 ML	15,00	Milkshakes
+	
+DevClassic + Fritas c/ Cheddar e Bacon	39,90	Combo	Blend 180g, cheddar, tomate e molho da casa.
+
+Bug Spicy + Fritas c/ Cheddar e Bacon	43,90	Combo	Blend 180g, Bacon, Cheddar,alface, Tomate e molho da casa.
+
+Byte Burger + Fritas c/ Cheddar e Bacon	44,90	Combo	Blend 180g, cheddar, bacon, onion rings, molho barbecue.
+
+404 Burger Not Found + Fritas c/ Cheddar e Bacon	46,90	Combo	Costela desfiada, molho barbecue, Cebola caramelizada e alface crocante. 
+				

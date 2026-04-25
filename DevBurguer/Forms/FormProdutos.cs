@@ -1,94 +1,108 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 using System.Drawing;
-using DevBurguer.Banco;
+using System.Globalization;
 
 namespace DevBurguer
 {
     public partial class FormProdutos : Form
     {
-        private bool bloqueandoEvento = false; // 🔥 CONTROLE DE LOOP
+        private bool bloqueandoEvento = false;
+        private int idSelecionado = 0;
 
         public FormProdutos()
         {
             InitializeComponent();
+
+            dgvProdutos.CellClick += dgvProdutos_CellClick; // 🔥 EVENTO DO GRID
         }
 
-        private void FormProdutos_Load(object sender, EventArgs e)
+        private async void FormProdutos_Load(object sender, EventArgs e)
         {
-            CarregarProdutos();
-            CarregarCategorias();
+            await CarregarProdutosAsync();
+            await CarregarCategoriasAsync();
 
-            // 🔥 LIGA OS EVENTOS AQUI
             cmbCategoria.SelectedIndexChanged += cmbCategoria_SelectedIndexChanged;
             txtCategoria.TextChanged += txtCategoria_TextChanged;
         }
 
-        private void CarregarCategorias()
+        private async Task CarregarCategoriasAsync()
         {
             try
             {
-                using (SqlConnection conn = Conexao.GetConnection())
-                {
-                    conn.Open();
+                var repo = new DevBurguer.Data.ProdutoRepository();
+                var dt = await repo.GetDistinctCategoriasAsync();
 
-                    SqlDataAdapter da = new SqlDataAdapter(
-                        "SELECT DISTINCT Categoria FROM Produtos",
-                        conn
-                    );
+                if (dt == null)
+                    dt = new DataTable();
 
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
+                if (!dt.Columns.Contains("Categoria"))
+                    dt.Columns.Add("Categoria", typeof(string));
 
-                    DataRow linha = dt.NewRow();
-                    linha["Categoria"] = "Nenhum";
-                    dt.Rows.InsertAt(linha, 0);
+                DataRow linha = dt.NewRow();
+                linha["Categoria"] = "Nenhum";
+                dt.Rows.InsertAt(linha, 0);
 
-                    cmbCategoria.DataSource = dt;
-                    cmbCategoria.DisplayMember = "Categoria";
-                    cmbCategoria.SelectedIndex = 0;
-                    cmbCategoria.DropDownStyle = ComboBoxStyle.DropDownList;
-                }
+                cmbCategoria.DataSource = dt;
+                cmbCategoria.DisplayMember = "Categoria";
+                cmbCategoria.SelectedIndex = 0;
+                cmbCategoria.DropDownStyle = ComboBoxStyle.DropDownList;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao carregar categorias: " + ex.Message);
+                DevBurguer.Services.ExceptionLogger.Log(ex, "CarregarCategoriasAsync");
+                MessageBox.Show("Erro ao carregar categorias.");
             }
         }
 
-        private void CarregarProdutos()
+        private async Task CarregarProdutosAsync()
         {
             try
             {
-                using (SqlConnection conn = Conexao.GetConnection())
-                {
-                    conn.Open();
+                var repo = new DevBurguer.Data.ProdutoRepository();
+                var dt = await repo.GetAllProdutosAsync();
 
-                    SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM Produtos", conn);
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
+                dgvProdutos.DataSource = dt;
+                dgvProdutos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                dgvProdutos.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                dgvProdutos.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
 
-                    dgvProdutos.DataSource = dt;
+                dgvProdutos.Font = new Font("Arial", 12);
+                dgvProdutos.ColumnHeadersDefaultCellStyle.Font = new Font("Arial", 12, FontStyle.Bold);
 
-                    dgvProdutos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-                    dgvProdutos.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-                    dgvProdutos.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+                if (dgvProdutos.Columns["Id"] != null)
+                    dgvProdutos.Columns["Id"].Visible = false;
 
-                    dgvProdutos.Font = new Font("Arial", 14);
-                    dgvProdutos.ColumnHeadersDefaultCellStyle.Font = new Font("Arial", 14, FontStyle.Bold);
-
-                    if (dgvProdutos.Columns["Id"] != null)
-                        dgvProdutos.Columns["Id"].Visible = false;
-
-                    if (dgvProdutos.Columns["Ingredientes"] != null)
-                        dgvProdutos.Columns["Ingredientes"].Width = 300;
-                }
+                if (dgvProdutos.Columns["Ingredientes"] != null)
+                    dgvProdutos.Columns["Ingredientes"].Width = 300;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                DevBurguer.Services.ExceptionLogger.Log(ex, "CarregarProdutosAsync");
+                MessageBox.Show("Erro ao carregar produtos.");
+            }
+        }
+
+        private void dgvProdutos_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (dgvProdutos.CurrentRow == null) return;
+
+            var row = dgvProdutos.CurrentRow;
+
+            idSelecionado = Convert.ToInt32(row.Cells["Id"].Value);
+
+            txtNome.Text = row.Cells["Nome"].Value?.ToString();
+            txtPreco.Text = row.Cells["Preco"].Value?.ToString();
+            txtIngredientes.Text = row.Cells["Ingredientes"].Value?.ToString();
+
+            string categoria = row.Cells["Categoria"].Value?.ToString();
+
+            if (!string.IsNullOrEmpty(categoria))
+            {
+                cmbCategoria.Text = categoria;
+                txtCategoria.Clear();
             }
         }
 
@@ -99,7 +113,7 @@ namespace DevBurguer
 
             if (txtPreenchido && comboSelecionado)
             {
-                MessageBox.Show("ERRO: Não pode cadastrar duas categorias juntas");
+                MessageBox.Show("Não pode usar duas categorias.");
                 return null;
             }
 
@@ -113,7 +127,6 @@ namespace DevBurguer
             return null;
         }
 
-        // 🔥 CORRIGIDO (SEM LOOP)
         private void cmbCategoria_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (bloqueandoEvento) return;
@@ -121,14 +134,11 @@ namespace DevBurguer
             bloqueandoEvento = true;
 
             if (cmbCategoria.Text != "Nenhum")
-            {
                 txtCategoria.Clear();
-            }
 
             bloqueandoEvento = false;
         }
 
-        // 🔥 CORRIGIDO (SEM LOOP)
         private void txtCategoria_TextChanged(object sender, EventArgs e)
         {
             if (bloqueandoEvento) return;
@@ -136,14 +146,12 @@ namespace DevBurguer
             bloqueandoEvento = true;
 
             if (!string.IsNullOrWhiteSpace(txtCategoria.Text))
-            {
                 cmbCategoria.SelectedIndex = 0;
-            }
 
             bloqueandoEvento = false;
         }
 
-        private void btnSalvar_Click(object sender, EventArgs e)
+        private async void btnSalvar_Click(object sender, EventArgs e)
         {
             try
             {
@@ -153,8 +161,9 @@ namespace DevBurguer
                     return;
                 }
 
-                decimal preco;
-                if (!decimal.TryParse(txtPreco.Text, out preco))
+                string valorTexto = txtPreco.Text.Replace(".", ",");
+
+                if (!decimal.TryParse(valorTexto, out decimal preco))
                 {
                     MessageBox.Show("Preço inválido!");
                     return;
@@ -163,26 +172,14 @@ namespace DevBurguer
                 string categoria = ObterCategoria();
                 if (categoria == null) return;
 
-                using (SqlConnection conn = Conexao.GetConnection())
-                {
-                    conn.Open();
-
-                    string sql = "INSERT INTO Produtos (Nome, Preco, Categoria, Ingredientes) VALUES (@n,@p,@c,@i)";
-                    SqlCommand cmd = new SqlCommand(sql, conn);
-
-                    cmd.Parameters.AddWithValue("@n", txtNome.Text);
-                    cmd.Parameters.AddWithValue("@p", preco);
-                    cmd.Parameters.AddWithValue("@c", categoria);
-                    cmd.Parameters.AddWithValue("@i", txtIngredientes.Text);
-
-                    cmd.ExecuteNonQuery();
-                }
+                var repo = new DevBurguer.Data.ProdutoRepository();
+                await repo.InsertAsync(txtNome.Text, preco, categoria, txtIngredientes.Text);
 
                 MessageBox.Show("Produto cadastrado!");
 
                 LimparCampos();
-                CarregarProdutos();
-                CarregarCategorias();
+                await CarregarProdutosAsync(); // 🔥 atualiza grid
+                await CarregarCategoriasAsync();
             }
             catch (Exception ex)
             {
@@ -190,20 +187,19 @@ namespace DevBurguer
             }
         }
 
-        private void btnAtualizar_Click(object sender, EventArgs e)
+        private async void btnAtualizar_Click(object sender, EventArgs e)
         {
+            if (idSelecionado == 0)
+            {
+                MessageBox.Show("Selecione um produto!");
+                return;
+            }
+
             try
             {
-                if (dgvProdutos.CurrentRow == null)
-                {
-                    MessageBox.Show("Selecione um produto!");
-                    return;
-                }
+                string valorTexto = txtPreco.Text.Replace(".", ",");
 
-                int id = Convert.ToInt32(dgvProdutos.CurrentRow.Cells["Id"].Value);
-
-                decimal preco;
-                if (!decimal.TryParse(txtPreco.Text, out preco))
+                if (!decimal.TryParse(valorTexto, out decimal preco))
                 {
                     MessageBox.Show("Preço inválido!");
                     return;
@@ -212,27 +208,14 @@ namespace DevBurguer
                 string categoria = ObterCategoria();
                 if (categoria == null) return;
 
-                using (SqlConnection conn = Conexao.GetConnection())
-                {
-                    conn.Open();
-
-                    string sql = "UPDATE Produtos SET Nome=@n, Preco=@p, Categoria=@c, Ingredientes=@i WHERE Id=@id";
-                    SqlCommand cmd = new SqlCommand(sql, conn);
-
-                    cmd.Parameters.AddWithValue("@n", txtNome.Text);
-                    cmd.Parameters.AddWithValue("@p", preco);
-                    cmd.Parameters.AddWithValue("@c", categoria);
-                    cmd.Parameters.AddWithValue("@i", txtIngredientes.Text);
-                    cmd.Parameters.AddWithValue("@id", id);
-
-                    cmd.ExecuteNonQuery();
-                }
+                var repo = new DevBurguer.Data.ProdutoRepository();
+                await repo.UpdateAsync(idSelecionado, txtNome.Text, preco, categoria, txtIngredientes.Text);
 
                 MessageBox.Show("Produto atualizado!");
 
                 LimparCampos();
-                CarregarProdutos();
-                CarregarCategorias();
+                await CarregarProdutosAsync();
+                await CarregarCategoriasAsync();
             }
             catch (Exception ex)
             {
@@ -240,33 +223,24 @@ namespace DevBurguer
             }
         }
 
-        private void btnExcluir_Click(object sender, EventArgs e)
+        private async void btnExcluir_Click(object sender, EventArgs e)
         {
+            if (idSelecionado == 0)
+            {
+                MessageBox.Show("Selecione um produto!");
+                return;
+            }
+
             try
             {
-                if (dgvProdutos.CurrentRow == null)
-                {
-                    MessageBox.Show("Selecione um produto!");
-                    return;
-                }
-
-                int id = Convert.ToInt32(dgvProdutos.CurrentRow.Cells["Id"].Value);
-
-                using (SqlConnection conn = Conexao.GetConnection())
-                {
-                    conn.Open();
-
-                    SqlCommand cmd = new SqlCommand("DELETE FROM Produtos WHERE Id=@id", conn);
-                    cmd.Parameters.AddWithValue("@id", id);
-
-                    cmd.ExecuteNonQuery();
-                }
+                var repo = new DevBurguer.Data.ProdutoRepository();
+                await repo.DeleteAsync(idSelecionado);
 
                 MessageBox.Show("Produto excluído!");
 
                 LimparCampos();
-                CarregarProdutos();
-                CarregarCategorias();
+                await CarregarProdutosAsync();
+                await CarregarCategoriasAsync();
             }
             catch (Exception ex)
             {
@@ -279,8 +253,9 @@ namespace DevBurguer
             txtNome.Clear();
             txtPreco.Clear();
             txtCategoria.Clear();
-            cmbCategoria.SelectedIndex = 0;
             txtIngredientes.Clear();
+            cmbCategoria.SelectedIndex = 0;
+            idSelecionado = 0;
         }
     }
 }

@@ -34,12 +34,10 @@ namespace DevBurguer
                     dgvClientes.DataSource = dt;
                 }
 
-                // Visual
                 dgvClientes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 dgvClientes.Font = new Font("Arial", 12);
                 dgvClientes.ColumnHeadersDefaultCellStyle.Font = new Font("Arial", 12, FontStyle.Bold);
 
-                // Esconder ID
                 if (dgvClientes.Columns["Id"] != null)
                     dgvClientes.Columns["Id"].Visible = false;
             }
@@ -63,12 +61,17 @@ namespace DevBurguer
                 {
                     conn.Open();
 
-                    string sql = "INSERT INTO Clientes (Nome, Telefone, Endereco, CPF) VALUES (@n,@t,@e,@cpf)";
+                    string sql = @"INSERT INTO Clientes 
+                    (Nome, Telefone, Endereco, Numero, Bairro, CPF) 
+                    VALUES (@n,@t,@e,@num,@b,@cpf)";
+
                     SqlCommand cmd = new SqlCommand(sql, conn);
 
                     cmd.Parameters.AddWithValue("@n", txtNome.Text);
                     cmd.Parameters.AddWithValue("@t", txtTelefone.Text);
                     cmd.Parameters.AddWithValue("@e", txtEndereco.Text);
+                    cmd.Parameters.AddWithValue("@num", txtNumero.Text);
+                    cmd.Parameters.AddWithValue("@b", txtBairro.Text);
                     cmd.Parameters.AddWithValue("@cpf", txtCPF.Text);
 
                     cmd.ExecuteNonQuery();
@@ -101,12 +104,17 @@ namespace DevBurguer
                 {
                     conn.Open();
 
-                    string sql = "UPDATE Clientes SET Nome=@n, Telefone=@t, Endereco=@e, CPF=@cpf WHERE Id=@id";
+                    string sql = @"UPDATE Clientes 
+                    SET Nome=@n, Telefone=@t, Endereco=@e, Numero=@num, Bairro=@b, CPF=@cpf 
+                    WHERE Id=@id";
+
                     SqlCommand cmd = new SqlCommand(sql, conn);
 
                     cmd.Parameters.AddWithValue("@n", txtNome.Text);
                     cmd.Parameters.AddWithValue("@t", txtTelefone.Text);
                     cmd.Parameters.AddWithValue("@e", txtEndereco.Text);
+                    cmd.Parameters.AddWithValue("@num", txtNumero.Text);
+                    cmd.Parameters.AddWithValue("@b", txtBairro.Text);
                     cmd.Parameters.AddWithValue("@cpf", txtCPF.Text);
                     cmd.Parameters.AddWithValue("@id", id);
 
@@ -164,6 +172,8 @@ namespace DevBurguer
                 txtNome.Text = dgvClientes.CurrentRow.Cells["Nome"].Value?.ToString();
                 txtTelefone.Text = dgvClientes.CurrentRow.Cells["Telefone"].Value?.ToString();
                 txtEndereco.Text = dgvClientes.CurrentRow.Cells["Endereco"].Value?.ToString();
+                txtNumero.Text = dgvClientes.CurrentRow.Cells["Numero"].Value?.ToString();
+                txtBairro.Text = dgvClientes.CurrentRow.Cells["Bairro"].Value?.ToString();
                 txtCPF.Text = dgvClientes.CurrentRow.Cells["CPF"].Value?.ToString();
             }
         }
@@ -173,12 +183,9 @@ namespace DevBurguer
             txtNome.Clear();
             txtTelefone.Clear();
             txtEndereco.Clear();
+            txtNumero.Clear();
+            txtBairro.Clear();
             txtCPF.Clear();
-        }
-
-        private void lblCpf_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }

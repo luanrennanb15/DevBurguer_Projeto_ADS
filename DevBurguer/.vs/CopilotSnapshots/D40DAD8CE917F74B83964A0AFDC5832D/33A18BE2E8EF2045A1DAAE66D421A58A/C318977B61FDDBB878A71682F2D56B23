@@ -1,0 +1,56 @@
+﻿using System;
+using System.Data;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using DevBurguer.Data;
+using DevBurguer.Models;
+using System.Linq;
+using System.Collections.Generic;
+
+namespace DevBurguer.Tests
+{
+    [TestClass]
+    public class MappingTests
+    {
+        [TestMethod]
+        public void MapPagamentos_Should_Map_DataTable_To_List()
+        {
+            var dt = new DataTable();
+            dt.Columns.Add("Id", typeof(int));
+            dt.Columns.Add("IdMotoboy", typeof(int));
+            dt.Columns.Add("Motoboy", typeof(string));
+            dt.Columns.Add("QuantidadeEntregas", typeof(int));
+            dt.Columns.Add("ValorTotalEntregas", typeof(decimal));
+            dt.Columns.Add("ValorChegada", typeof(decimal));
+            dt.Columns.Add("TotalPagar", typeof(decimal));
+            dt.Columns.Add("DataPagamento", typeof(DateTime));
+
+            dt.Rows.Add(1, 10, "João", 5, 100.50m, 10.00m, 110.50m, new DateTime(2026,4,22));
+            dt.Rows.Add(2, 11, "Maria", 3, 60.00m, 5.00m, 65.00m, new DateTime(2026,4,21));
+
+            List<PagamentoMotoboy> list = Mappers.MapPagamentos(dt);
+
+            Assert.IsNotNull(list);
+            Assert.AreEqual(2, list.Count);
+            Assert.IsTrue(list.Any(x => x.Id == 1 && x.Motoboy == "João" && x.TotalPagar == 110.50m));
+            Assert.IsTrue(list.Any(x => x.Id == 2 && x.Motoboy == "Maria" && x.QuantidadeEntregas == 3));
+        }
+
+        [TestMethod]
+        public void MapMotoboys_Should_Map_DataTable_To_List()
+        {
+            var dt = new DataTable();
+            dt.Columns.Add("Id", typeof(int));
+            dt.Columns.Add("Nome", typeof(string));
+
+            dt.Rows.Add(1, "João");
+            dt.Rows.Add(2, "Maria");
+
+            List<Motoboy> list = Mappers.MapMotoboys(dt);
+
+            Assert.IsNotNull(list);
+            Assert.AreEqual(2, list.Count);
+            Assert.IsTrue(list.Any(x => x.Id == 1 && x.Nome == "João"));
+            Assert.IsTrue(list.Any(x => x.Id == 2 && x.Nome == "Maria"));
+        }
+    }
+}

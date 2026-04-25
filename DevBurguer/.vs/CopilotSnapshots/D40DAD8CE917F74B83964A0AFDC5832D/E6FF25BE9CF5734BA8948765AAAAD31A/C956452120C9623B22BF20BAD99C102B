@@ -1,0 +1,72 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using DevBurguer.Models;
+
+namespace DevBurguer.Data
+{
+    public class PagamentoMotoboyRepository
+    {
+        public List<PagamentoMotoboy> GetAllPagamentos()
+        {
+            string sql = SqlLoader.Load("PagamentoMotoboy\\SelectPagamentos.sql");
+            DataTable dt = DbHelper.ExecuteDataTable(sql);
+            return Mappers.MapPagamentos(dt);
+        }
+
+        public List<Motoboy> GetAllMotoboys()
+        {
+            string sql = SqlLoader.Load("PagamentoMotoboy\\SelectMotoboys.sql");
+            DataTable dt = DbHelper.ExecuteDataTable(sql);
+            return Mappers.MapMotoboys(dt);
+        }
+
+        public void Insert(int idMotoboy, int qtd, decimal valorTotal, decimal chegada, DateTime data)
+        {
+            string sql = SqlLoader.Load("PagamentoMotoboy\\Insert.sql");
+
+            var p = new[]
+            {
+                new SqlParameter("@m", SqlDbType.Int) { Value = idMotoboy },
+                new SqlParameter("@q", SqlDbType.Int) { Value = qtd },
+                CreateDecimalParameter("@v", valorTotal),
+                CreateDecimalParameter("@c", chegada),
+                CreateDecimalParameter("@t", valorTotal + chegada),
+                new SqlParameter("@d", SqlDbType.DateTime) { Value = data }
+            };
+
+            DbHelper.ExecuteNonQuery(sql, p);
+        }
+
+        public void Update(int id, int qtd, decimal valorTotal, decimal chegada, DateTime data)
+        {
+            string sql = SqlLoader.Load("PagamentoMotoboy\\Update.sql");
+
+            var p = new[]
+            {
+                new SqlParameter("@q", SqlDbType.Int) { Value = qtd },
+                CreateDecimalParameter("@v", valorTotal),
+                CreateDecimalParameter("@c", chegada),
+                CreateDecimalParameter("@t", valorTotal + chegada),
+                new SqlParameter("@d", SqlDbType.DateTime) { Value = data },
+                new SqlParameter("@id", SqlDbType.Int) { Value = id }
+            };
+
+            DbHelper.ExecuteNonQuery(sql, p);
+        }
+
+        public void Delete(int id)
+        {
+            string sql = SqlLoader.Load("PagamentoMotoboy\\Delete.sql");
+            var p = new[] { new SqlParameter("@id", SqlDbType.Int) { Value = id } };
+            DbHelper.ExecuteNonQuery(sql, p);
+        }
+
+        private SqlParameter CreateDecimalParameter(string name, decimal value)
+        {
+            var p = new SqlParameter(name, SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = value };
+            return p;
+        }
+    }
+}

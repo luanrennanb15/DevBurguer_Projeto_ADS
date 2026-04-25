@@ -1,0 +1,18 @@
+﻿using System.Configuration;
+using System.Data.SqlClient;
+
+namespace DevBurguer.Banco
+{
+    public class Conexao
+    {
+        public static SqlConnection GetConnection()
+        {
+            var cs = ConfigurationManager.ConnectionStrings["DevBurguerDB"]?.ConnectionString;
+            if (string.IsNullOrWhiteSpace(cs))
+            {
+                cs = @"Server=DESKTOP-N98DB69;Database=DevBurguerDB;Trusted_Connection=True;";
+            }
+            return new SqlConnection(cs);
+        }
+    }
+}
