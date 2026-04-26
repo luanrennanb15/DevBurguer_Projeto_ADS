@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
@@ -9,7 +9,6 @@ namespace DevBurguer.Data
 {
     public static class DbHelper
     {
-        // Synchronous implementation
         public static DataTable ExecuteDataTable(string sql, params SqlParameter[] parameters)
         {
             try
@@ -61,20 +60,21 @@ namespace DevBurguer.Data
             }
         }
 
-        // Async implementations
+        // ✅ ASYNC SEM ConfigureAwait(false)
         public static async Task<DataTable> ExecuteDataTableAsync(string sql, params SqlParameter[] parameters)
         {
             try
             {
                 using (SqlConnection conn = Conexao.GetConnection())
                 {
-                    await conn.OpenAsync().ConfigureAwait(false);
+                    await conn.OpenAsync(); // 🔥 corrigido
+
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         if (parameters != null && parameters.Length > 0)
                             cmd.Parameters.AddRange(parameters);
 
-                        using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
+                        using (var reader = await cmd.ExecuteReaderAsync()) // 🔥 corrigido
                         {
                             var dt = new DataTable();
                             dt.Load(reader);
@@ -96,13 +96,14 @@ namespace DevBurguer.Data
             {
                 using (SqlConnection conn = Conexao.GetConnection())
                 {
-                    await conn.OpenAsync().ConfigureAwait(false);
+                    await conn.OpenAsync(); // 🔥 corrigido
+
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         if (parameters != null && parameters.Length > 0)
                             cmd.Parameters.AddRange(parameters);
 
-                        return await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                        return await cmd.ExecuteNonQueryAsync(); // 🔥 corrigido
                     }
                 }
             }
