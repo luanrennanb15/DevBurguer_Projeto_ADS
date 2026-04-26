@@ -39,7 +39,7 @@
             // txtNome
             // 
             this.txtNome.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtNome.Location = new System.Drawing.Point(12, 74);
+            this.txtNome.Location = new System.Drawing.Point(12, 81);
             this.txtNome.Name = "txtNome";
             this.txtNome.Size = new System.Drawing.Size(300, 27);
             this.txtNome.TabIndex = 0;
@@ -47,7 +47,7 @@
             // txtEndereco
             // 
             this.txtEndereco.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtEndereco.Location = new System.Drawing.Point(12, 214);
+            this.txtEndereco.Location = new System.Drawing.Point(12, 217);
             this.txtEndereco.Name = "txtEndereco";
             this.txtEndereco.Size = new System.Drawing.Size(300, 27);
             this.txtEndereco.TabIndex = 2;
@@ -55,7 +55,7 @@
             // txtNumero
             // 
             this.txtNumero.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtNumero.Location = new System.Drawing.Point(12, 278);
+            this.txtNumero.Location = new System.Drawing.Point(12, 285);
             this.txtNumero.Name = "txtNumero";
             this.txtNumero.Size = new System.Drawing.Size(80, 27);
             this.txtNumero.TabIndex = 3;
@@ -63,7 +63,7 @@
             // txtBairro
             // 
             this.txtBairro.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtBairro.Location = new System.Drawing.Point(12, 351);
+            this.txtBairro.Location = new System.Drawing.Point(12, 353);
             this.txtBairro.Name = "txtBairro";
             this.txtBairro.Size = new System.Drawing.Size(300, 27);
             this.txtBairro.TabIndex = 4;
@@ -74,25 +74,25 @@
             this.lblNome.Location = new System.Drawing.Point(12, 49);
             this.lblNome.Name = "lblNome";
             this.lblNome.Size = new System.Drawing.Size(100, 23);
-            this.lblNome.TabIndex = 6;
+            this.lblNome.TabIndex = 9;
             this.lblNome.Text = "Nome";
             // 
             // lblTelefone
             // 
             this.lblTelefone.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTelefone.Location = new System.Drawing.Point(12, 119);
+            this.lblTelefone.Location = new System.Drawing.Point(12, 117);
             this.lblTelefone.Name = "lblTelefone";
             this.lblTelefone.Size = new System.Drawing.Size(100, 23);
-            this.lblTelefone.TabIndex = 7;
+            this.lblTelefone.TabIndex = 10;
             this.lblTelefone.Text = "Telefone";
             // 
             // lblEndereco
             // 
             this.lblEndereco.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblEndereco.Location = new System.Drawing.Point(12, 189);
+            this.lblEndereco.Location = new System.Drawing.Point(12, 185);
             this.lblEndereco.Name = "lblEndereco";
             this.lblEndereco.Size = new System.Drawing.Size(100, 23);
-            this.lblEndereco.TabIndex = 8;
+            this.lblEndereco.TabIndex = 11;
             this.lblEndereco.Text = "Endereço";
             // 
             // lblNumero
@@ -101,25 +101,25 @@
             this.lblNumero.Location = new System.Drawing.Point(12, 253);
             this.lblNumero.Name = "lblNumero";
             this.lblNumero.Size = new System.Drawing.Size(100, 23);
-            this.lblNumero.TabIndex = 9;
+            this.lblNumero.TabIndex = 12;
             this.lblNumero.Text = "Nº";
             // 
             // lblBairro
             // 
             this.lblBairro.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblBairro.Location = new System.Drawing.Point(12, 326);
+            this.lblBairro.Location = new System.Drawing.Point(12, 321);
             this.lblBairro.Name = "lblBairro";
             this.lblBairro.Size = new System.Drawing.Size(100, 23);
-            this.lblBairro.TabIndex = 10;
+            this.lblBairro.TabIndex = 13;
             this.lblBairro.Text = "Bairro";
             // 
             // lblCpf
             // 
             this.lblCpf.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblCpf.Location = new System.Drawing.Point(12, 396);
+            this.lblCpf.Location = new System.Drawing.Point(12, 389);
             this.lblCpf.Name = "lblCpf";
             this.lblCpf.Size = new System.Drawing.Size(100, 23);
-            this.lblCpf.TabIndex = 11;
+            this.lblCpf.TabIndex = 14;
             this.lblCpf.Text = "CPF";
             // 
             // btnSalvar
@@ -128,7 +128,7 @@
             this.btnSalvar.Location = new System.Drawing.Point(13, 531);
             this.btnSalvar.Name = "btnSalvar";
             this.btnSalvar.Size = new System.Drawing.Size(75, 31);
-            this.btnSalvar.TabIndex = 12;
+            this.btnSalvar.TabIndex = 6;
             this.btnSalvar.Text = "Salvar";
             this.btnSalvar.Click += new System.EventHandler(this.btnSalvar_Click);
             // 
@@ -138,7 +138,7 @@
             this.btnAtualizar.Location = new System.Drawing.Point(109, 531);
             this.btnAtualizar.Name = "btnAtualizar";
             this.btnAtualizar.Size = new System.Drawing.Size(99, 31);
-            this.btnAtualizar.TabIndex = 13;
+            this.btnAtualizar.TabIndex = 7;
             this.btnAtualizar.Text = "Atualizar";
             this.btnAtualizar.Click += new System.EventHandler(this.btnAtualizar_Click);
             // 
@@ -148,7 +148,7 @@
             this.btnExcluir.Location = new System.Drawing.Point(231, 531);
             this.btnExcluir.Name = "btnExcluir";
             this.btnExcluir.Size = new System.Drawing.Size(75, 31);
-            this.btnExcluir.TabIndex = 14;
+            this.btnExcluir.TabIndex = 8;
             this.btnExcluir.Text = "Excluir";
             this.btnExcluir.Click += new System.EventHandler(this.btnExcluir_Click);
             // 
@@ -164,7 +164,7 @@
             // txtTelefone
             // 
             this.txtTelefone.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtTelefone.Location = new System.Drawing.Point(12, 144);
+            this.txtTelefone.Location = new System.Drawing.Point(12, 149);
             this.txtTelefone.Mask = "(99) 00000-0000";
             this.txtTelefone.Name = "txtTelefone";
             this.txtTelefone.Size = new System.Drawing.Size(150, 27);

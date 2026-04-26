@@ -10,7 +10,7 @@ namespace DevBurguer
 {
     public partial class FormPedidos : Form
     {
-        private DataTable _produtosCache; // 🔥 cache para evitar buscar toda hora
+        private DataTable _produtosCache;
 
         public FormPedidos()
         {
@@ -19,6 +19,10 @@ namespace DevBurguer
 
         private async void FormPedidos_Load(object sender, EventArgs e)
         {
+            // ✅ BLOQUEIA PREÇO (É AQUI QUE VOCÊ COLOCA)
+            txtPreco.ReadOnly = true;
+            txtPreco.BackColor = System.Drawing.Color.LightGray;
+
             await CarregarProdutosAsync();
             await CarregarClientesAsync();
         }
@@ -75,32 +79,30 @@ namespace DevBurguer
 
                 if (row != null)
                 {
-                    txtPreco.Text = row["Preco"].ToString();
+                    txtPreco.Text = Convert.ToDecimal(row["Preco"]).ToString("F2");
                     txtIngredientes.Text = row["Ingredientes"].ToString();
                 }
             }
-            catch
-            {
-                // evita erro ao carregar combo
-            }
+            catch { }
         }
 
+        // ✅ CORRIGIDO (SEM ÍNDICE)
         private void CalcularTotal()
         {
             decimal total = 0;
 
             foreach (DataGridViewRow row in dgvItens.Rows)
             {
-                if (row.Cells[2].Value != null && row.Cells[1].Value != null)
+                if (row.Cells["Preco"].Value != null && row.Cells["Quantidade"].Value != null)
                 {
-                    decimal preco = Convert.ToDecimal(row.Cells[2].Value);
-                    int qtd = Convert.ToInt32(row.Cells[1].Value);
+                    decimal preco = Convert.ToDecimal(row.Cells["Preco"].Value);
+                    int qtd = Convert.ToInt32(row.Cells["Quantidade"].Value);
 
                     total += preco * qtd;
                 }
             }
 
-            lblTotal.Text = total.ToString("F2"); // 🔥 só número
+            lblTotal.Text = total.ToString("F2");
         }
 
         private void btnAdicionar_Click(object sender, EventArgs e)
@@ -111,15 +113,17 @@ namespace DevBurguer
                 return;
             }
 
+            // ✅ PEGA PREÇO DO CACHE (não do textbox)
+            var row = _produtosCache.Select($"Id = {cmbProdutos.SelectedValue}").FirstOrDefault();
+            decimal preco = Convert.ToDecimal(row["Preco"]);
+
             dgvItens.Rows.Add(
-                cmbProdutos.Text,
-                txtQuantidade.Text,
-                txtPreco.Text,
-                txtObservacao.Text,
-                cmbProdutos.SelectedValue
-
+                cmbProdutos.Text,                          // Produto
+                int.Parse(txtQuantidade.Text),             // Quantidade (INT)
+                decimal.Parse(txtPreco.Text),              // Preço (DECIMAL)
+                txtObservacao.Text,                        // Observação
+                Convert.ToInt32(cmbProdutos.SelectedValue) // ID
             );
-
 
             txtQuantidade.Clear();
             txtObservacao.Clear();
@@ -164,14 +168,14 @@ namespace DevBurguer
 
                 foreach (DataGridViewRow row in dgvItens.Rows)
                 {
-                    if (row.Cells[4].Value != null)
+                    if (row.Cells["IdProduto"].Value != null)
                     {
                         itens.Add(new OrderItem
                         {
-                            IdProduto = Convert.ToInt32(row.Cells[4].Value),
-                            Quantidade = Convert.ToInt32(row.Cells[1].Value),
-                            Observacao = row.Cells[3].Value?.ToString(),
-                            Preco = Convert.ToDecimal(row.Cells[2].Value)
+                            IdProduto = Convert.ToInt32(row.Cells["IdProduto"].Value),
+                            Quantidade = Convert.ToInt32(row.Cells["Quantidade"].Value),
+                            Observacao = row.Cells["Observacao"].Value?.ToString(),
+                            Preco = Convert.ToDecimal(row.Cells["Preco"].Value)
                         });
                     }
                 }
@@ -179,8 +183,7 @@ namespace DevBurguer
                 var repo = new DevBurguer.Data.PedidoRepository();
                 int idPedido = await repo.InsertPedidoAsync(idCliente, total, itens);
 
-
-                MessageBox.Show("Pedido salvo! Id: " + idPedido);
+                MessageBox.Show("Pedido Feito! ");
 
                 dgvItens.Rows.Clear();
                 lblTotal.Text = "0,00";

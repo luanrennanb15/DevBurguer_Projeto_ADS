@@ -52,7 +52,7 @@ namespace DevBurguer
             this.btnClientes.Location = new System.Drawing.Point(29, 90);
             this.btnClientes.Name = "btnClientes";
             this.btnClientes.Size = new System.Drawing.Size(192, 53);
-            this.btnClientes.TabIndex = 0;
+            this.btnClientes.TabIndex = 1;
             this.btnClientes.Text = "Cadastro de Clientes";
             this.btnClientes.UseVisualStyleBackColor = true;
             this.btnClientes.Click += new System.EventHandler(this.btnClientes_Click);
@@ -63,7 +63,7 @@ namespace DevBurguer
             this.btnProdutos.Location = new System.Drawing.Point(29, 31);
             this.btnProdutos.Name = "btnProdutos";
             this.btnProdutos.Size = new System.Drawing.Size(192, 53);
-            this.btnProdutos.TabIndex = 1;
+            this.btnProdutos.TabIndex = 0;
             this.btnProdutos.Text = "Cadastro de Produtos";
             this.btnProdutos.UseVisualStyleBackColor = true;
             this.btnProdutos.Click += new System.EventHandler(this.btnProdutos_Click);
@@ -74,7 +74,7 @@ namespace DevBurguer
             this.btnPedidos.Location = new System.Drawing.Point(29, 209);
             this.btnPedidos.Name = "btnPedidos";
             this.btnPedidos.Size = new System.Drawing.Size(192, 54);
-            this.btnPedidos.TabIndex = 2;
+            this.btnPedidos.TabIndex = 3;
             this.btnPedidos.Text = "Pedidos";
             this.btnPedidos.UseVisualStyleBackColor = true;
             this.btnPedidos.Click += new System.EventHandler(this.btnPedidos_Click);
@@ -85,7 +85,7 @@ namespace DevBurguer
             this.btnFaturamento.Location = new System.Drawing.Point(29, 329);
             this.btnFaturamento.Name = "btnFaturamento";
             this.btnFaturamento.Size = new System.Drawing.Size(192, 54);
-            this.btnFaturamento.TabIndex = 3;
+            this.btnFaturamento.TabIndex = 5;
             this.btnFaturamento.Text = "Faturamento da Lanchonete";
             this.btnFaturamento.UseVisualStyleBackColor = true;
             this.btnFaturamento.Click += new System.EventHandler(this.btnFaturamento_Click);
@@ -96,7 +96,7 @@ namespace DevBurguer
             this.btnSair.Location = new System.Drawing.Point(29, 764);
             this.btnSair.Name = "btnSair";
             this.btnSair.Size = new System.Drawing.Size(192, 54);
-            this.btnSair.TabIndex = 4;
+            this.btnSair.TabIndex = 8;
             this.btnSair.Text = "Sair";
             this.btnSair.UseVisualStyleBackColor = true;
             this.btnSair.Click += new System.EventHandler(this.btnSair_Click);
@@ -107,7 +107,7 @@ namespace DevBurguer
             this.btnRelatorioProdutos.Location = new System.Drawing.Point(29, 269);
             this.btnRelatorioProdutos.Name = "btnRelatorioProdutos";
             this.btnRelatorioProdutos.Size = new System.Drawing.Size(192, 54);
-            this.btnRelatorioProdutos.TabIndex = 5;
+            this.btnRelatorioProdutos.TabIndex = 4;
             this.btnRelatorioProdutos.Text = "Mais Vendidos";
             this.btnRelatorioProdutos.UseVisualStyleBackColor = true;
             this.btnRelatorioProdutos.Click += new System.EventHandler(this.btnRelatorioProdutos_Click);
@@ -130,7 +130,7 @@ namespace DevBurguer
             this.panelMenu.Location = new System.Drawing.Point(0, 0);
             this.panelMenu.Name = "panelMenu";
             this.panelMenu.Size = new System.Drawing.Size(250, 861);
-            this.panelMenu.TabIndex = 6;
+            this.panelMenu.TabIndex = 0;
             // 
             // btnPagmentoDeMotoboy
             // 
@@ -138,7 +138,7 @@ namespace DevBurguer
             this.btnPagmentoDeMotoboy.Location = new System.Drawing.Point(29, 449);
             this.btnPagmentoDeMotoboy.Name = "btnPagmentoDeMotoboy";
             this.btnPagmentoDeMotoboy.Size = new System.Drawing.Size(192, 54);
-            this.btnPagmentoDeMotoboy.TabIndex = 8;
+            this.btnPagmentoDeMotoboy.TabIndex = 7;
             this.btnPagmentoDeMotoboy.Text = "Pagamento dos Motoboy";
             this.btnPagmentoDeMotoboy.UseVisualStyleBackColor = true;
             this.btnPagmentoDeMotoboy.Click += new System.EventHandler(this.btnPagamentoDeMotoboy_Click);
@@ -149,7 +149,7 @@ namespace DevBurguer
             this.btnCadastroDeMotoboy.Location = new System.Drawing.Point(29, 149);
             this.btnCadastroDeMotoboy.Name = "btnCadastroDeMotoboy";
             this.btnCadastroDeMotoboy.Size = new System.Drawing.Size(192, 54);
-            this.btnCadastroDeMotoboy.TabIndex = 7;
+            this.btnCadastroDeMotoboy.TabIndex = 2;
             this.btnCadastroDeMotoboy.Text = "Cadastro De Motoboy";
             this.btnCadastroDeMotoboy.UseVisualStyleBackColor = true;
             this.btnCadastroDeMotoboy.Click += new System.EventHandler(this.btnCadastroDeMotoboy_Click);
@@ -183,7 +183,7 @@ namespace DevBurguer
             this.panelConteudo.Location = new System.Drawing.Point(250, 200);
             this.panelConteudo.Name = "panelConteudo";
             this.panelConteudo.Size = new System.Drawing.Size(1334, 661);
-            this.panelConteudo.TabIndex = 8;
+            this.panelConteudo.TabIndex = 1;
             // 
             // FormMenu
             // 
@@ -201,6 +201,7 @@ namespace DevBurguer
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "MENU";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
+            this.Load += new System.EventHandler(this.FormMenu_Load_1);
             this.panelMenu.ResumeLayout(false);
             this.ResumeLayout(false);
 

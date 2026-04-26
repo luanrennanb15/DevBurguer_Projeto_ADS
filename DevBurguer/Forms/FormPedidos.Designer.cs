@@ -42,63 +42,66 @@ namespace DevBurguer
             this.btnAdicionar = new System.Windows.Forms.Button();
             this.btnRemover = new System.Windows.Forms.Button();
             this.dgvItens = new System.Windows.Forms.DataGridView();
-            this.idProduto = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Produtos = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Quantidade = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Preço = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Observação = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lblTotal = new System.Windows.Forms.Label();
             this.btnFinalizar = new System.Windows.Forms.Button();
             this.cmbProdutos = new System.Windows.Forms.ComboBox();
             this.cmbClientes = new System.Windows.Forms.ComboBox();
             this.txtIngredientes = new System.Windows.Forms.TextBox();
             this.lblIgredientes = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.Produto = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Quantidade = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Preco = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Observacao = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.IdProduto = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dgvItens)).BeginInit();
             this.SuspendLayout();
             // 
             // txtQuantidade
             // 
             this.txtQuantidade.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtQuantidade.Location = new System.Drawing.Point(40, 205);
+            this.txtQuantidade.Location = new System.Drawing.Point(42, 205);
             this.txtQuantidade.Name = "txtQuantidade";
             this.txtQuantidade.Size = new System.Drawing.Size(76, 27);
-            this.txtQuantidade.TabIndex = 1;
+            this.txtQuantidade.TabIndex = 2;
             // 
             // txtPreco
             // 
             this.txtPreco.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtPreco.Location = new System.Drawing.Point(40, 387);
+            this.txtPreco.Location = new System.Drawing.Point(42, 387);
             this.txtPreco.Name = "txtPreco";
             this.txtPreco.Size = new System.Drawing.Size(123, 27);
-            this.txtPreco.TabIndex = 2;
+            this.txtPreco.TabIndex = 3;
+            this.txtPreco.Text = "00,00";
+            this.txtPreco.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // txtObservacao
             // 
             this.txtObservacao.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtObservacao.Location = new System.Drawing.Point(41, 442);
+            this.txtObservacao.Location = new System.Drawing.Point(42, 442);
             this.txtObservacao.Multiline = true;
             this.txtObservacao.Name = "txtObservacao";
             this.txtObservacao.Size = new System.Drawing.Size(331, 64);
-            this.txtObservacao.TabIndex = 3;
+            this.txtObservacao.TabIndex = 4;
             // 
             // lblProduto
             // 
             this.lblProduto.AutoSize = true;
             this.lblProduto.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblProduto.Location = new System.Drawing.Point(43, 124);
+            this.lblProduto.Location = new System.Drawing.Point(42, 124);
             this.lblProduto.Name = "lblProduto";
             this.lblProduto.Size = new System.Drawing.Size(73, 22);
-            this.lblProduto.TabIndex = 5;
+            this.lblProduto.TabIndex = 9;
             this.lblProduto.Text = "Produto";
             // 
             // lblQuantidade
             // 
             this.lblQuantidade.AutoSize = true;
             this.lblQuantidade.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblQuantidade.Location = new System.Drawing.Point(43, 180);
+            this.lblQuantidade.Location = new System.Drawing.Point(42, 180);
             this.lblQuantidade.Name = "lblQuantidade";
             this.lblQuantidade.Size = new System.Drawing.Size(103, 22);
-            this.lblQuantidade.TabIndex = 6;
+            this.lblQuantidade.TabIndex = 10;
             this.lblQuantidade.Text = "Quantidade";
             // 
             // lblPreco
@@ -108,17 +111,17 @@ namespace DevBurguer
             this.lblPreco.Location = new System.Drawing.Point(42, 362);
             this.lblPreco.Name = "lblPreco";
             this.lblPreco.Size = new System.Drawing.Size(57, 22);
-            this.lblPreco.TabIndex = 7;
+            this.lblPreco.TabIndex = 14;
             this.lblPreco.Text = "Preço";
             // 
             // lblObservacao
             // 
             this.lblObservacao.AutoSize = true;
             this.lblObservacao.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblObservacao.Location = new System.Drawing.Point(43, 417);
+            this.lblObservacao.Location = new System.Drawing.Point(42, 417);
             this.lblObservacao.Name = "lblObservacao";
             this.lblObservacao.Size = new System.Drawing.Size(107, 22);
-            this.lblObservacao.TabIndex = 8;
+            this.lblObservacao.TabIndex = 15;
             this.lblObservacao.Text = "Observação";
             // 
             // lblCliente
@@ -128,7 +131,7 @@ namespace DevBurguer
             this.lblCliente.Location = new System.Drawing.Point(42, 68);
             this.lblCliente.Name = "lblCliente";
             this.lblCliente.Size = new System.Drawing.Size(66, 22);
-            this.lblCliente.TabIndex = 9;
+            this.lblCliente.TabIndex = 8;
             this.lblCliente.Text = "Cliente";
             // 
             // btnAdicionar
@@ -137,7 +140,7 @@ namespace DevBurguer
             this.btnAdicionar.Location = new System.Drawing.Point(40, 523);
             this.btnAdicionar.Name = "btnAdicionar";
             this.btnAdicionar.Size = new System.Drawing.Size(169, 39);
-            this.btnAdicionar.TabIndex = 10;
+            this.btnAdicionar.TabIndex = 5;
             this.btnAdicionar.Text = "Adicionar Item";
             this.btnAdicionar.UseVisualStyleBackColor = true;
             this.btnAdicionar.Click += new System.EventHandler(this.btnAdicionar_Click);
@@ -145,10 +148,10 @@ namespace DevBurguer
             // btnRemover
             // 
             this.btnRemover.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRemover.Location = new System.Drawing.Point(232, 523);
+            this.btnRemover.Location = new System.Drawing.Point(229, 523);
             this.btnRemover.Name = "btnRemover";
-            this.btnRemover.Size = new System.Drawing.Size(162, 39);
-            this.btnRemover.TabIndex = 11;
+            this.btnRemover.Size = new System.Drawing.Size(169, 39);
+            this.btnRemover.TabIndex = 6;
             this.btnRemover.Text = "Remover Item";
             this.btnRemover.UseVisualStyleBackColor = true;
             this.btnRemover.Click += new System.EventHandler(this.btnRemover_Click);
@@ -158,28 +161,95 @@ namespace DevBurguer
             this.dgvItens.BackgroundColor = System.Drawing.Color.Tan;
             this.dgvItens.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvItens.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.idProduto,
-            this.Produtos,
+            this.Produto,
             this.Quantidade,
-            this.Preço,
-            this.Observação});
+            this.Preco,
+            this.Observacao,
+            this.IdProduto});
             this.dgvItens.Dock = System.Windows.Forms.DockStyle.Right;
-            this.dgvItens.Location = new System.Drawing.Point(812, 0);
+            this.dgvItens.Location = new System.Drawing.Point(790, 0);
             this.dgvItens.Name = "dgvItens";
-            this.dgvItens.Size = new System.Drawing.Size(506, 622);
-            this.dgvItens.TabIndex = 12;
+            this.dgvItens.ReadOnly = true;
+            this.dgvItens.Size = new System.Drawing.Size(528, 622);
+            this.dgvItens.TabIndex = 16;
             // 
-            // idProduto
+            // lblTotal
             // 
-            this.idProduto.HeaderText = "idProduto";
-            this.idProduto.Name = "idProduto";
-            this.idProduto.Visible = false;
+            this.lblTotal.AutoSize = true;
+            this.lblTotal.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTotal.Location = new System.Drawing.Point(702, 531);
+            this.lblTotal.Name = "lblTotal";
+            this.lblTotal.Size = new System.Drawing.Size(82, 31);
+            this.lblTotal.TabIndex = 11;
+            this.lblTotal.Text = "00,00";
             // 
-            // Produtos
+            // btnFinalizar
             // 
-            this.Produtos.HeaderText = "Produtos";
-            this.Produtos.Name = "Produtos";
-            this.Produtos.ReadOnly = true;
+            this.btnFinalizar.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnFinalizar.Location = new System.Drawing.Point(418, 523);
+            this.btnFinalizar.Name = "btnFinalizar";
+            this.btnFinalizar.Size = new System.Drawing.Size(169, 39);
+            this.btnFinalizar.TabIndex = 7;
+            this.btnFinalizar.Text = "Finalizar Pedido";
+            this.btnFinalizar.UseVisualStyleBackColor = true;
+            this.btnFinalizar.Click += new System.EventHandler(this.btnFinalizar_Click);
+            // 
+            // cmbProdutos
+            // 
+            this.cmbProdutos.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbProdutos.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cmbProdutos.FormattingEnabled = true;
+            this.cmbProdutos.Location = new System.Drawing.Point(42, 149);
+            this.cmbProdutos.Name = "cmbProdutos";
+            this.cmbProdutos.Size = new System.Drawing.Size(331, 28);
+            this.cmbProdutos.TabIndex = 1;
+            this.cmbProdutos.SelectedIndexChanged += new System.EventHandler(this.cmbProdutos_SelectedIndexChanged);
+            // 
+            // cmbClientes
+            // 
+            this.cmbClientes.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbClientes.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cmbClientes.FormattingEnabled = true;
+            this.cmbClientes.Location = new System.Drawing.Point(42, 93);
+            this.cmbClientes.Name = "cmbClientes";
+            this.cmbClientes.Size = new System.Drawing.Size(332, 28);
+            this.cmbClientes.TabIndex = 1;
+            // 
+            // txtIngredientes
+            // 
+            this.txtIngredientes.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtIngredientes.Location = new System.Drawing.Point(42, 260);
+            this.txtIngredientes.Multiline = true;
+            this.txtIngredientes.Name = "txtIngredientes";
+            this.txtIngredientes.ReadOnly = true;
+            this.txtIngredientes.Size = new System.Drawing.Size(332, 99);
+            this.txtIngredientes.TabIndex = 12;
+            // 
+            // lblIgredientes
+            // 
+            this.lblIgredientes.AutoSize = true;
+            this.lblIgredientes.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblIgredientes.Location = new System.Drawing.Point(42, 235);
+            this.lblIgredientes.Name = "lblIgredientes";
+            this.lblIgredientes.Size = new System.Drawing.Size(108, 22);
+            this.lblIgredientes.TabIndex = 13;
+            this.lblIgredientes.Text = "Ingredientes";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(607, 531);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(75, 31);
+            this.label1.TabIndex = 17;
+            this.label1.Text = "Total";
+            // 
+            // Produto
+            // 
+            this.Produto.HeaderText = "Produto";
+            this.Produto.Name = "Produto";
+            this.Produto.ReadOnly = true;
             // 
             // Quantidade
             // 
@@ -187,77 +257,24 @@ namespace DevBurguer
             this.Quantidade.Name = "Quantidade";
             this.Quantidade.ReadOnly = true;
             // 
-            // Preço
+            // Preco
             // 
-            this.Preço.HeaderText = "Preço";
-            this.Preço.Name = "Preço";
-            this.Preço.ReadOnly = true;
+            this.Preco.HeaderText = "Preço Unitário";
+            this.Preco.Name = "Preco";
+            this.Preco.ReadOnly = true;
             // 
-            // Observação
+            // Observacao
             // 
-            this.Observação.HeaderText = "Observação";
-            this.Observação.Name = "Observação";
-            this.Observação.ReadOnly = true;
+            this.Observacao.HeaderText = "Observação";
+            this.Observacao.Name = "Observacao";
+            this.Observacao.ReadOnly = true;
             // 
-            // lblTotal
+            // IdProduto
             // 
-            this.lblTotal.AutoSize = true;
-            this.lblTotal.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTotal.Location = new System.Drawing.Point(619, 529);
-            this.lblTotal.Name = "lblTotal";
-            this.lblTotal.Size = new System.Drawing.Size(51, 24);
-            this.lblTotal.TabIndex = 13;
-            this.lblTotal.Text = "Total";
-            // 
-            // btnFinalizar
-            // 
-            this.btnFinalizar.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnFinalizar.Location = new System.Drawing.Point(410, 523);
-            this.btnFinalizar.Name = "btnFinalizar";
-            this.btnFinalizar.Size = new System.Drawing.Size(168, 39);
-            this.btnFinalizar.TabIndex = 14;
-            this.btnFinalizar.Text = "Finalizar Pedido";
-            this.btnFinalizar.UseVisualStyleBackColor = true;
-            this.btnFinalizar.Click += new System.EventHandler(this.btnFinalizar_Click);
-            // 
-            // cmbProdutos
-            // 
-            this.cmbProdutos.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cmbProdutos.FormattingEnabled = true;
-            this.cmbProdutos.Location = new System.Drawing.Point(40, 149);
-            this.cmbProdutos.Name = "cmbProdutos";
-            this.cmbProdutos.Size = new System.Drawing.Size(169, 28);
-            this.cmbProdutos.TabIndex = 15;
-            this.cmbProdutos.SelectedIndexChanged += new System.EventHandler(this.cmbProdutos_SelectedIndexChanged);
-            // 
-            // cmbClientes
-            // 
-            this.cmbClientes.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cmbClientes.FormattingEnabled = true;
-            this.cmbClientes.Location = new System.Drawing.Point(40, 93);
-            this.cmbClientes.Name = "cmbClientes";
-            this.cmbClientes.Size = new System.Drawing.Size(332, 28);
-            this.cmbClientes.TabIndex = 16;
-            // 
-            // txtIngredientes
-            // 
-            this.txtIngredientes.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtIngredientes.Location = new System.Drawing.Point(40, 260);
-            this.txtIngredientes.Multiline = true;
-            this.txtIngredientes.Name = "txtIngredientes";
-            this.txtIngredientes.ReadOnly = true;
-            this.txtIngredientes.Size = new System.Drawing.Size(332, 99);
-            this.txtIngredientes.TabIndex = 17;
-            // 
-            // lblIgredientes
-            // 
-            this.lblIgredientes.AutoSize = true;
-            this.lblIgredientes.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblIgredientes.Location = new System.Drawing.Point(43, 235);
-            this.lblIgredientes.Name = "lblIgredientes";
-            this.lblIgredientes.Size = new System.Drawing.Size(108, 22);
-            this.lblIgredientes.TabIndex = 18;
-            this.lblIgredientes.Text = "Ingredientes";
+            this.IdProduto.HeaderText = "IdProduto";
+            this.IdProduto.Name = "IdProduto";
+            this.IdProduto.ReadOnly = true;
+            this.IdProduto.Visible = false;
             // 
             // FormPedidos
             // 
@@ -266,6 +283,7 @@ namespace DevBurguer
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1318, 622);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.lblIgredientes);
             this.Controls.Add(this.txtIngredientes);
             this.Controls.Add(this.cmbClientes);
@@ -312,10 +330,11 @@ namespace DevBurguer
         private System.Windows.Forms.ComboBox cmbClientes;
         private System.Windows.Forms.TextBox txtIngredientes;
         private System.Windows.Forms.Label lblIgredientes;
-        private System.Windows.Forms.DataGridViewTextBoxColumn idProduto;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Produtos;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Produto;
         private System.Windows.Forms.DataGridViewTextBoxColumn Quantidade;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Preço;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Observação;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Preco;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Observacao;
+        private System.Windows.Forms.DataGridViewTextBoxColumn IdProduto;
     }
 }
