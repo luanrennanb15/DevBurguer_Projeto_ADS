@@ -53,7 +53,7 @@ namespace DevBurguer
             novoForm.Show();
         }
 
-        // 🔥 RESETAR BOTÕES
+        // RESETAR BOTÕES
         private void ResetarBotoes()
         {
             foreach (Control c in panelMenu.Controls)
@@ -145,6 +145,11 @@ namespace DevBurguer
             {
                 Application.Exit();
             }
+        }
+
+        private void FormMenu_Load_1(object sender, EventArgs e)
+        {
+
         }
     }
 }

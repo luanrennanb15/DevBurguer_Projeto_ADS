@@ -57,7 +57,7 @@
             this.lblNome.Location = new System.Drawing.Point(70, 51);
             this.lblNome.Name = "lblNome";
             this.lblNome.Size = new System.Drawing.Size(57, 22);
-            this.lblNome.TabIndex = 5;
+            this.lblNome.TabIndex = 10;
             this.lblNome.Text = "Nome";
             // 
             // txtNome
@@ -66,7 +66,7 @@
             this.txtNome.Location = new System.Drawing.Point(70, 80);
             this.txtNome.Name = "txtNome";
             this.txtNome.Size = new System.Drawing.Size(285, 27);
-            this.txtNome.TabIndex = 4;
+            this.txtNome.TabIndex = 0;
             // 
             // lblEndereco
             // 
@@ -75,7 +75,7 @@
             this.lblEndereco.Location = new System.Drawing.Point(70, 303);
             this.lblEndereco.Name = "lblEndereco";
             this.lblEndereco.Size = new System.Drawing.Size(87, 22);
-            this.lblEndereco.TabIndex = 7;
+            this.lblEndereco.TabIndex = 14;
             this.lblEndereco.Text = "Endereço";
             // 
             // txtEndereco
@@ -84,7 +84,7 @@
             this.txtEndereco.Location = new System.Drawing.Point(70, 332);
             this.txtEndereco.Name = "txtEndereco";
             this.txtEndereco.Size = new System.Drawing.Size(285, 27);
-            this.txtEndereco.TabIndex = 6;
+            this.txtEndereco.TabIndex = 4;
             // 
             // lblTelefone1
             // 
@@ -93,7 +93,7 @@
             this.lblTelefone1.Location = new System.Drawing.Point(70, 114);
             this.lblTelefone1.Name = "lblTelefone1";
             this.lblTelefone1.Size = new System.Drawing.Size(121, 22);
-            this.lblTelefone1.TabIndex = 9;
+            this.lblTelefone1.TabIndex = 11;
             this.lblTelefone1.Text = "Tell (Pessoal)";
             // 
             // lblTell2
@@ -103,7 +103,7 @@
             this.lblTell2.Location = new System.Drawing.Point(70, 177);
             this.lblTell2.Name = "lblTell2";
             this.lblTell2.Size = new System.Drawing.Size(120, 22);
-            this.lblTell2.TabIndex = 11;
+            this.lblTell2.TabIndex = 12;
             this.lblTell2.Text = "Tell (Parente)";
             // 
             // lblCPF
@@ -122,7 +122,7 @@
             this.btnExcluir.Location = new System.Drawing.Point(328, 540);
             this.btnExcluir.Name = "btnExcluir";
             this.btnExcluir.Size = new System.Drawing.Size(93, 35);
-            this.btnExcluir.TabIndex = 16;
+            this.btnExcluir.TabIndex = 9;
             this.btnExcluir.Text = "Excluir";
             this.btnExcluir.UseVisualStyleBackColor = true;
             this.btnExcluir.Click += new System.EventHandler(this.btnExcluir_Click);
@@ -133,7 +133,7 @@
             this.lblAtualizar.Location = new System.Drawing.Point(198, 540);
             this.lblAtualizar.Name = "lblAtualizar";
             this.lblAtualizar.Size = new System.Drawing.Size(86, 35);
-            this.lblAtualizar.TabIndex = 15;
+            this.lblAtualizar.TabIndex = 8;
             this.lblAtualizar.Text = "Atualizar";
             this.lblAtualizar.UseVisualStyleBackColor = true;
             this.lblAtualizar.Click += new System.EventHandler(this.btnAtualizar_Click);
@@ -144,7 +144,7 @@
             this.btnSalvar.Location = new System.Drawing.Point(70, 540);
             this.btnSalvar.Name = "btnSalvar";
             this.btnSalvar.Size = new System.Drawing.Size(84, 35);
-            this.btnSalvar.TabIndex = 14;
+            this.btnSalvar.TabIndex = 7;
             this.btnSalvar.Text = "Salvar";
             this.btnSalvar.UseVisualStyleBackColor = true;
             this.btnSalvar.Click += new System.EventHandler(this.btnSalvar_Click);
@@ -166,7 +166,7 @@
             this.txtTelefone1.Mask = "(00) 00000-0000";
             this.txtTelefone1.Name = "txtTelefone1";
             this.txtTelefone1.Size = new System.Drawing.Size(120, 27);
-            this.txtTelefone1.TabIndex = 18;
+            this.txtTelefone1.TabIndex = 1;
             this.txtTelefone1.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // txtTelefone2
@@ -176,7 +176,7 @@
             this.txtTelefone2.Mask = "(00) 00000-0000";
             this.txtTelefone2.Name = "txtTelefone2";
             this.txtTelefone2.Size = new System.Drawing.Size(120, 27);
-            this.txtTelefone2.TabIndex = 19;
+            this.txtTelefone2.TabIndex = 2;
             this.txtTelefone2.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // txtCPF
@@ -186,7 +186,7 @@
             this.txtCPF.Mask = "000.000.000-00";
             this.txtCPF.Name = "txtCPF";
             this.txtCPF.Size = new System.Drawing.Size(127, 27);
-            this.txtCPF.TabIndex = 21;
+            this.txtCPF.TabIndex = 3;
             this.txtCPF.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // txtBairro
@@ -195,7 +195,7 @@
             this.txtBairro.Location = new System.Drawing.Point(70, 395);
             this.txtBairro.Name = "txtBairro";
             this.txtBairro.Size = new System.Drawing.Size(285, 27);
-            this.txtBairro.TabIndex = 22;
+            this.txtBairro.TabIndex = 5;
             // 
             // lblBairro
             // 
@@ -204,7 +204,7 @@
             this.lblBairro.Location = new System.Drawing.Point(70, 366);
             this.lblBairro.Name = "lblBairro";
             this.lblBairro.Size = new System.Drawing.Size(58, 22);
-            this.lblBairro.TabIndex = 23;
+            this.lblBairro.TabIndex = 15;
             this.lblBairro.Text = "Bairro";
             // 
             // lblNumero
@@ -214,7 +214,7 @@
             this.lblNumero.Location = new System.Drawing.Point(362, 395);
             this.lblNumero.Name = "lblNumero";
             this.lblNumero.Size = new System.Drawing.Size(30, 22);
-            this.lblNumero.TabIndex = 24;
+            this.lblNumero.TabIndex = 16;
             this.lblNumero.Text = "N°";
             // 
             // txtNumero
@@ -223,7 +223,7 @@
             this.txtNumero.Location = new System.Drawing.Point(398, 395);
             this.txtNumero.Name = "txtNumero";
             this.txtNumero.Size = new System.Drawing.Size(60, 27);
-            this.txtNumero.TabIndex = 25;
+            this.txtNumero.TabIndex = 6;
             this.txtNumero.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // FormMotoboy
@@ -255,8 +255,8 @@
             this.DoubleBuffered = true;
             this.Name = "FormMotoboy";
             this.Text = "FormMotoboy";
-            ((System.ComponentModel.ISupportInitialize)(this.dgvMotoboys)).EndInit();
             this.Load += new System.EventHandler(this.FormMotoboy_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvMotoboys)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
