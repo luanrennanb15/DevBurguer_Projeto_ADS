@@ -24,6 +24,12 @@ namespace DevBurguer.Data
                 throw;
             }
         }
+        public async Task<DataTable> GetAdicionaisAsync()
+        {
+            const string sql = "SELECT Id, Nome, Preco FROM Adicionais";
+
+            return await DbHelper.ExecuteDataTableAsync(sql);
+        }
 
         public async Task<DataTable> GetClientesSelectAsync()
         {

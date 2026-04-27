@@ -22,10 +22,44 @@ namespace DevBurguer
             // ✅ BLOQUEIA PREÇO (É AQUI QUE VOCÊ COLOCA)
             txtPreco.ReadOnly = true;
             txtPreco.BackColor = System.Drawing.Color.LightGray;
-
+            
             await CarregarProdutosAsync();
             await CarregarClientesAsync();
+            await CarregarAdicionaisAsync();
         }
+        private async Task CarregarAdicionaisAsync()
+        {
+            var repo = new DevBurguer.Data.PedidoRepository();
+            var dt = await repo.GetAdicionaisAsync();
+
+            clbAdicionais.DataSource = dt;
+            clbAdicionais.DisplayMember = "Nome";
+            clbAdicionais.ValueMember = "Id";
+        }
+        private void clbAdicionais_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            this.BeginInvoke((MethodInvoker)CalcularPrecoComAdicionais);
+        }
+        private void CalcularPrecoComAdicionais()
+        {
+            if (cmbProdutos.SelectedValue == null) return;
+
+            var row = _produtosCache.Select($"Id = {cmbProdutos.SelectedValue}").FirstOrDefault();
+
+            if (row == null) return;
+
+            decimal precoBase = Convert.ToDecimal(row["Preco"]);
+            decimal adicionais = 0;
+
+            foreach (DataRowView item in clbAdicionais.CheckedItems)
+            {
+                adicionais += Convert.ToDecimal(item["Preco"]);
+            }
+
+            txtPreco.Text = (precoBase + adicionais).ToString("F2");
+        }
+
+
 
         private async Task CarregarProdutosAsync()
         {
@@ -113,30 +147,56 @@ namespace DevBurguer
                 return;
             }
 
-            // ✅ PEGA PREÇO DO CACHE (não do textbox)
             var row = _produtosCache.Select($"Id = {cmbProdutos.SelectedValue}").FirstOrDefault();
-            decimal preco = Convert.ToDecimal(row["Preco"]);
+            if (row == null) return;
+
+            decimal precoBase = Convert.ToDecimal(row["Preco"]);
+            decimal adicionaisValor = 0;
+
+            List<string> adicionaisNomes = new List<string>();
+
+            foreach (DataRowView item in clbAdicionais.CheckedItems)
+            {
+                adicionaisValor += Convert.ToDecimal(item["Preco"]);
+                adicionaisNomes.Add(item["Nome"].ToString());
+            }
+
+            decimal precoFinal = precoBase + adicionaisValor;
+
+            string adicionaisTexto = adicionaisNomes.Count > 0
+                ? "Extra: " + string.Join(", ", adicionaisNomes)
+                : "";
 
             dgvItens.Rows.Add(
-                cmbProdutos.Text,                          // Produto
-                int.Parse(txtQuantidade.Text),             // Quantidade (INT)
-                decimal.Parse(txtPreco.Text),              // Preço (DECIMAL)
-                txtObservacao.Text,                        // Observação
-                Convert.ToInt32(cmbProdutos.SelectedValue) // ID
+                cmbProdutos.Text,
+                int.Parse(txtQuantidade.Text),
+                precoFinal,
+                txtObservacao.Text + " " + adicionaisTexto,
+                cmbProdutos.SelectedValue
             );
 
+            // 🔥 limpa campos
             txtQuantidade.Clear();
             txtObservacao.Clear();
 
+            // 🔥 desmarca adicionais
+            for (int i = 0; i < clbAdicionais.Items.Count; i++)
+            {
+                clbAdicionais.SetItemChecked(i, false);
+            }
+
             CalcularTotal();
         }
-
         private void btnRemover_Click(object sender, EventArgs e)
         {
             if (dgvItens.SelectedRows.Count > 0)
             {
                 dgvItens.Rows.RemoveAt(dgvItens.SelectedRows[0].Index);
                 CalcularTotal();
+            }
+            else
+            {
+                MessageBox.Show("Selecione um item para remover!");
             }
         }
 

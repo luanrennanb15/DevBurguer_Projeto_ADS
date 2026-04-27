@@ -42,6 +42,11 @@ namespace DevBurguer
             this.btnAdicionar = new System.Windows.Forms.Button();
             this.btnRemover = new System.Windows.Forms.Button();
             this.dgvItens = new System.Windows.Forms.DataGridView();
+            this.Produto = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Quantidade = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Preco = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Observacao = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.IdProduto = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lblTotal = new System.Windows.Forms.Label();
             this.btnFinalizar = new System.Windows.Forms.Button();
             this.cmbProdutos = new System.Windows.Forms.ComboBox();
@@ -49,11 +54,7 @@ namespace DevBurguer
             this.txtIngredientes = new System.Windows.Forms.TextBox();
             this.lblIgredientes = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.Produto = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Quantidade = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Preco = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Observacao = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.IdProduto = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.clbAdicionais = new System.Windows.Forms.CheckedListBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvItens)).BeginInit();
             this.SuspendLayout();
             // 
@@ -70,6 +71,7 @@ namespace DevBurguer
             this.txtPreco.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtPreco.Location = new System.Drawing.Point(42, 387);
             this.txtPreco.Name = "txtPreco";
+            this.txtPreco.ReadOnly = true;
             this.txtPreco.Size = new System.Drawing.Size(123, 27);
             this.txtPreco.TabIndex = 3;
             this.txtPreco.Text = "00,00";
@@ -173,6 +175,37 @@ namespace DevBurguer
             this.dgvItens.Size = new System.Drawing.Size(528, 622);
             this.dgvItens.TabIndex = 16;
             // 
+            // Produto
+            // 
+            this.Produto.HeaderText = "Produto";
+            this.Produto.Name = "Produto";
+            this.Produto.ReadOnly = true;
+            // 
+            // Quantidade
+            // 
+            this.Quantidade.HeaderText = "Quantidade";
+            this.Quantidade.Name = "Quantidade";
+            this.Quantidade.ReadOnly = true;
+            // 
+            // Preco
+            // 
+            this.Preco.HeaderText = "Preço Unitário";
+            this.Preco.Name = "Preco";
+            this.Preco.ReadOnly = true;
+            // 
+            // Observacao
+            // 
+            this.Observacao.HeaderText = "Observação";
+            this.Observacao.Name = "Observacao";
+            this.Observacao.ReadOnly = true;
+            // 
+            // IdProduto
+            // 
+            this.IdProduto.HeaderText = "IdProduto";
+            this.IdProduto.Name = "IdProduto";
+            this.IdProduto.ReadOnly = true;
+            this.IdProduto.Visible = false;
+            // 
             // lblTotal
             // 
             this.lblTotal.AutoSize = true;
@@ -245,36 +278,14 @@ namespace DevBurguer
             this.label1.TabIndex = 17;
             this.label1.Text = "Total";
             // 
-            // Produto
+            // clbAdicionais
             // 
-            this.Produto.HeaderText = "Produto";
-            this.Produto.Name = "Produto";
-            this.Produto.ReadOnly = true;
-            // 
-            // Quantidade
-            // 
-            this.Quantidade.HeaderText = "Quantidade";
-            this.Quantidade.Name = "Quantidade";
-            this.Quantidade.ReadOnly = true;
-            // 
-            // Preco
-            // 
-            this.Preco.HeaderText = "Preço Unitário";
-            this.Preco.Name = "Preco";
-            this.Preco.ReadOnly = true;
-            // 
-            // Observacao
-            // 
-            this.Observacao.HeaderText = "Observação";
-            this.Observacao.Name = "Observacao";
-            this.Observacao.ReadOnly = true;
-            // 
-            // IdProduto
-            // 
-            this.IdProduto.HeaderText = "IdProduto";
-            this.IdProduto.Name = "IdProduto";
-            this.IdProduto.ReadOnly = true;
-            this.IdProduto.Visible = false;
+            this.clbAdicionais.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.clbAdicionais.FormattingEnabled = true;
+            this.clbAdicionais.Location = new System.Drawing.Point(418, 217);
+            this.clbAdicionais.Name = "clbAdicionais";
+            this.clbAdicionais.Size = new System.Drawing.Size(264, 290);
+            this.clbAdicionais.TabIndex = 18;
             // 
             // FormPedidos
             // 
@@ -283,6 +294,7 @@ namespace DevBurguer
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1318, 622);
+            this.Controls.Add(this.clbAdicionais);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.lblIgredientes);
             this.Controls.Add(this.txtIngredientes);
@@ -336,5 +348,6 @@ namespace DevBurguer
         private System.Windows.Forms.DataGridViewTextBoxColumn Preco;
         private System.Windows.Forms.DataGridViewTextBoxColumn Observacao;
         private System.Windows.Forms.DataGridViewTextBoxColumn IdProduto;
+        private System.Windows.Forms.CheckedListBox clbAdicionais;
     }
 }
