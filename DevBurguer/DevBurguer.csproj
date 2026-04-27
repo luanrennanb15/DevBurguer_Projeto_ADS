@@ -76,6 +76,12 @@
     <Compile Include="Forms\FormDashboard.Designer.cs">
       <DependentUpon>FormDashboard.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\FormEnderecoEntrega.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FormEnderecoEntrega.Designer.cs">
+      <DependentUpon>FormEnderecoEntrega.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\FormFaturamentoMotoboy.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -138,6 +144,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormClientes.resx">
       <DependentUpon>FormClientes.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FormEnderecoEntrega.resx">
+      <DependentUpon>FormEnderecoEntrega.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormFaturamentoMotoboy.resx">
       <DependentUpon>FormFaturamentoMotoboy.cs</DependentUpon>
