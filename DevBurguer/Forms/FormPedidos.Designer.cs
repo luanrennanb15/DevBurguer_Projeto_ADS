@@ -42,6 +42,12 @@ namespace DevBurguer
             this.btnAdicionar = new System.Windows.Forms.Button();
             this.btnRemover = new System.Windows.Forms.Button();
             this.dgvItens = new System.Windows.Forms.DataGridView();
+            this.Produto = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Quantidade = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Preco = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Observacao = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Adicionais = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.IdProduto = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lblTotal = new System.Windows.Forms.Label();
             this.btnFinalizar = new System.Windows.Forms.Button();
             this.cmbProdutos = new System.Windows.Forms.ComboBox();
@@ -50,29 +56,11 @@ namespace DevBurguer
             this.lblIgredientes = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.clbAdicionais = new System.Windows.Forms.CheckedListBox();
-            this.Produto = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Quantidade = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Preco = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Observacao = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Adicionais = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.IdProduto = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.rbEntrega = new System.Windows.Forms.RadioButton();
             this.rbRetirada = new System.Windows.Forms.RadioButton();
+            this.lblTaxa = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvItens)).BeginInit();
             this.SuspendLayout();
-            // rbEntrega
-            this.rbEntrega.AutoSize = true;
-            this.rbEntrega.Location = new System.Drawing.Point(42, 520);
-            this.rbEntrega.Name = "rbEntrega";
-            this.rbEntrega.Size = new System.Drawing.Size(70, 17);
-            this.rbEntrega.Text = "Entrega";
-
-            // rbRetirada
-            this.rbRetirada.AutoSize = true;
-            this.rbRetirada.Location = new System.Drawing.Point(120, 520);
-            this.rbRetirada.Name = "rbRetirada";
-            this.rbRetirada.Size = new System.Drawing.Size(72, 17);
-            this.rbRetirada.Text = "Retirada";
             // 
             // txtQuantidade
             // 
@@ -176,7 +164,7 @@ namespace DevBurguer
             // 
             // dgvItens
             // 
-            this.dgvItens.BackgroundColor = System.Drawing.Color.Tan;
+            this.dgvItens.BackgroundColor = System.Drawing.Color.Chocolate;
             this.dgvItens.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvItens.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Produto,
@@ -192,11 +180,50 @@ namespace DevBurguer
             this.dgvItens.Size = new System.Drawing.Size(620, 622);
             this.dgvItens.TabIndex = 16;
             // 
+            // Produto
+            // 
+            this.Produto.HeaderText = "Produto";
+            this.Produto.Name = "Produto";
+            this.Produto.ReadOnly = true;
+            // 
+            // Quantidade
+            // 
+            this.Quantidade.HeaderText = "Quantidade";
+            this.Quantidade.Name = "Quantidade";
+            this.Quantidade.ReadOnly = true;
+            this.Quantidade.Width = 65;
+            // 
+            // Preco
+            // 
+            this.Preco.HeaderText = "Preço Unitário";
+            this.Preco.Name = "Preco";
+            this.Preco.ReadOnly = true;
+            // 
+            // Observacao
+            // 
+            this.Observacao.HeaderText = "Observação";
+            this.Observacao.Name = "Observacao";
+            this.Observacao.ReadOnly = true;
+            // 
+            // Adicionais
+            // 
+            this.Adicionais.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Adicionais.HeaderText = "Adicionais";
+            this.Adicionais.Name = "Adicionais";
+            this.Adicionais.ReadOnly = true;
+            // 
+            // IdProduto
+            // 
+            this.IdProduto.HeaderText = "IdProduto";
+            this.IdProduto.Name = "IdProduto";
+            this.IdProduto.ReadOnly = true;
+            this.IdProduto.Visible = false;
+            // 
             // lblTotal
             // 
             this.lblTotal.AutoSize = true;
             this.lblTotal.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTotal.Location = new System.Drawing.Point(1074, 517);
+            this.lblTotal.Location = new System.Drawing.Point(1196, 522);
             this.lblTotal.Name = "lblTotal";
             this.lblTotal.Size = new System.Drawing.Size(82, 31);
             this.lblTotal.TabIndex = 11;
@@ -258,7 +285,7 @@ namespace DevBurguer
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(993, 517);
+            this.label1.Location = new System.Drawing.Point(1115, 522);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(75, 31);
             this.label1.TabIndex = 17;
@@ -273,50 +300,11 @@ namespace DevBurguer
             this.clbAdicionais.Size = new System.Drawing.Size(295, 422);
             this.clbAdicionais.TabIndex = 18;
             // 
-            // Produto
-            // 
-            this.Produto.HeaderText = "Produto";
-            this.Produto.Name = "Produto";
-            this.Produto.ReadOnly = true;
-            // 
-            // Quantidade
-            // 
-            this.Quantidade.HeaderText = "Quantidade";
-            this.Quantidade.Name = "Quantidade";
-            this.Quantidade.ReadOnly = true;
-            this.Quantidade.Width = 65;
-            // 
-            // Preco
-            // 
-            this.Preco.HeaderText = "Preço Unitário";
-            this.Preco.Name = "Preco";
-            this.Preco.ReadOnly = true;
-            // 
-            // Observacao
-            // 
-            this.Observacao.HeaderText = "Observação";
-            this.Observacao.Name = "Observacao";
-            this.Observacao.ReadOnly = true;
-            // 
-            // Adicionais
-            // 
-            this.Adicionais.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Adicionais.HeaderText = "Adicionais";
-            this.Adicionais.Name = "Adicionais";
-            this.Adicionais.ReadOnly = true;
-            // 
-            // IdProduto
-            // 
-            this.IdProduto.HeaderText = "IdProduto";
-            this.IdProduto.Name = "IdProduto";
-            this.IdProduto.ReadOnly = true;
-            this.IdProduto.Visible = false;
-            // 
             // rbEntrega
             // 
             this.rbEntrega.AutoSize = true;
             this.rbEntrega.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.rbEntrega.Location = new System.Drawing.Point(813, 522);
+            this.rbEntrega.Location = new System.Drawing.Point(935, 527);
             this.rbEntrega.Name = "rbEntrega";
             this.rbEntrega.Size = new System.Drawing.Size(91, 26);
             this.rbEntrega.TabIndex = 19;
@@ -328,13 +316,23 @@ namespace DevBurguer
             // 
             this.rbRetirada.AutoSize = true;
             this.rbRetirada.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.rbRetirada.Location = new System.Drawing.Point(711, 522);
+            this.rbRetirada.Location = new System.Drawing.Point(833, 527);
             this.rbRetirada.Name = "rbRetirada";
             this.rbRetirada.Size = new System.Drawing.Size(96, 26);
             this.rbRetirada.TabIndex = 20;
             this.rbRetirada.TabStop = true;
             this.rbRetirada.Text = "Retirada";
             this.rbRetirada.UseVisualStyleBackColor = true;
+            // 
+            // lblTaxa
+            // 
+            this.lblTaxa.AutoSize = true;
+            this.lblTaxa.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTaxa.Location = new System.Drawing.Point(931, 565);
+            this.lblTaxa.Name = "lblTaxa";
+            this.lblTaxa.Size = new System.Drawing.Size(103, 22);
+            this.lblTaxa.TabIndex = 21;
+            this.lblTaxa.Text = "TAXA: 6,00";
             // 
             // FormPedidos
             // 
@@ -343,6 +341,7 @@ namespace DevBurguer
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1318, 622);
+            this.Controls.Add(this.lblTaxa);
             this.Controls.Add(this.rbRetirada);
             this.Controls.Add(this.rbEntrega);
             this.Controls.Add(this.clbAdicionais);
@@ -403,5 +402,6 @@ namespace DevBurguer
         private System.Windows.Forms.DataGridViewTextBoxColumn IdProduto;
         private System.Windows.Forms.RadioButton rbEntrega;
         private System.Windows.Forms.RadioButton rbRetirada;
+        private System.Windows.Forms.Label lblTaxa;
     }
 }

@@ -10,7 +10,9 @@ namespace DevBurguer
 {
     public partial class FormPedidos : Form
     {
+        private const decimal TAXA_ENTREGA = 6.00m;
         private DataTable _produtosCache;
+
 
         public FormPedidos()
         {
@@ -19,6 +21,8 @@ namespace DevBurguer
 
         private async void FormPedidos_Load(object sender, EventArgs e)
         {
+            rbEntrega.CheckedChanged += rbEntrega_CheckedChanged;
+            rbRetirada.CheckedChanged += rbRetirada_CheckedChanged;
             txtPreco.ReadOnly = true;
             txtPreco.BackColor = System.Drawing.Color.LightGray;
 
@@ -42,7 +46,6 @@ namespace DevBurguer
                 e.Value = $"{row["Nome"]} - R$ {row["Preco"]}";
             };
 
-            // 🔥 GARANTE QUE O EVENTO FUNCIONE
             clbAdicionais.ItemCheck += clbAdicionais_ItemCheck;
         }
 
@@ -107,8 +110,6 @@ namespace DevBurguer
             if (row != null)
             {
                 txtIngredientes.Text = row["Ingredientes"].ToString();
-
-                // 🔥 ESSENCIAL
                 CalcularPrecoComAdicionais();
             }
         }
@@ -127,7 +128,22 @@ namespace DevBurguer
                 }
             }
 
+            // 🔥 adiciona taxa se for entrega
+            if (rbEntrega.Checked)
+            {
+                total += TAXA_ENTREGA;
+            }
+
             lblTotal.Text = total.ToString("F2");
+        }
+        private void rbEntrega_CheckedChanged(object sender, EventArgs e)
+        {
+            CalcularTotal();
+        }
+
+        private void rbRetirada_CheckedChanged(object sender, EventArgs e)
+        {
+            CalcularTotal();
         }
 
         private void btnAdicionar_Click(object sender, EventArgs e)
@@ -146,12 +162,11 @@ namespace DevBurguer
                 .Select(x => x["Nome"].ToString())
             );
 
-            // 🔥 LOOP PARA GERAR EFEITO CASCATA
             for (int i = 0; i < quantidade; i++)
             {
                 dgvItens.Rows.Add(
                     cmbProdutos.Text,
-                    1, // cada linha é 1 unidade
+                    1,
                     decimal.Parse(txtPreco.Text),
                     txtObservacao.Text,
                     adicionaisTexto,
@@ -159,7 +174,6 @@ namespace DevBurguer
                 );
             }
 
-            // limpa adicionais
             for (int i = 0; i < clbAdicionais.Items.Count; i++)
                 clbAdicionais.SetItemChecked(i, false);
 
@@ -178,7 +192,7 @@ namespace DevBurguer
             }
             else
             {
-                MessageBox.Show("Selecione um item para remover!");
+                MessageBox.Show("Selecione um item!");
             }
         }
 
@@ -192,7 +206,7 @@ namespace DevBurguer
 
             if (cmbClientes.SelectedValue == null)
             {
-                MessageBox.Show("Selecione um cliente!");
+                MessageBox.Show("Selecione cliente!");
                 return;
             }
 
@@ -225,23 +239,48 @@ namespace DevBurguer
                 }
             }
 
-            // 🔥 CONTROLE DE ENTREGA
+            string formaPagamento = "";
+            decimal troco = 0;
+
+            // 🔥 ENTREGA
             if (rbEntrega.Checked)
             {
-                var telaEndereco = new DevBurguer.Forms.FormEnderecoEntrega(idCliente);
-                telaEndereco.ShowDialog();
+                var tela = new DevBurguer.Forms.FormEnderecoEntrega(idCliente);
 
-                if (!telaEndereco.PedidoConfirmado)
+                // ✅ PASSA O TOTAL
+                tela.SetTotal(total);
+
+                tela.ShowDialog();
+
+                if (!tela.PedidoConfirmado)
                 {
                     MessageBox.Show("Pedido cancelado!");
                     return;
                 }
+
+                formaPagamento = tela.FormaPagamento;
+                troco = tela.TrocoPara;
+            }
+
+            // 🔥 RETIRADA
+            if (rbRetirada.Checked)
+            {
+                var tela = new DevBurguer.Forms.FormPagamento();
+                tela.ShowDialog();
+
+                if (!tela.PagamentoConfirmado)
+                {
+                    MessageBox.Show("Pedido cancelado!");
+                    return;
+                }
+
+                formaPagamento = tela.FormaPagamento;
             }
 
             var repo = new DevBurguer.Data.PedidoRepository();
             await repo.InsertPedidoAsync(idCliente, total, itens);
 
-            MessageBox.Show("Pedido Feito!");
+            MessageBox.Show($"Pedido feito!\nPagamento: {formaPagamento}\nTroco Para: {troco:F2}");
 
             dgvItens.Rows.Clear();
             lblTotal.Text = "0,00";
