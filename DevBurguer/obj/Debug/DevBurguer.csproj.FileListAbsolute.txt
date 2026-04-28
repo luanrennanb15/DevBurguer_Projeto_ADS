@@ -20,3 +20,5 @@ C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\obj\Debug\DevBurgu
 C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\obj\Debug\DevBurguer.FormFaturamentoMotoboy.resources
 C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\bin\Debug\Sql\PagamentoMotoboy\SelectMotoboys.sql
 C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\bin\Debug\Sql\PagamentoMotoboy\SelectPagamentos.sql
+C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\obj\Debug\DevBurguer.Forms.FormEnderecoEntrega.resources
+C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\obj\Debug\DevBurguer.Forms.FormPagamento.resources

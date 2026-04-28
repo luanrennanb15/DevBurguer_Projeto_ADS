@@ -24,6 +24,12 @@ namespace DevBurguer.Data
                 throw;
             }
         }
+        public async Task<DataTable> GetAdicionaisAsync()
+        {
+            const string sql = "SELECT Id, Nome, Preco FROM Adicionais";
+
+            return await DbHelper.ExecuteDataTableAsync(sql);
+        }
 
         public async Task<DataTable> GetClientesSelectAsync()
         {
@@ -36,6 +42,47 @@ namespace DevBurguer.Data
             {
                 ExceptionLogger.Log(ex, "PedidoRepository.GetClientesSelectAsync");
                 throw;
+            }
+        }
+        public async Task<string> GetEnderecoClienteAsync(int idCliente)
+        {
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+
+                var cmd = new SqlCommand(@"
+            SELECT Endereco + ', ' + Numero + ' - ' + Bairro 
+            FROM Clientes 
+            WHERE Id = @id", conn);
+
+                cmd.Parameters.AddWithValue("@id", idCliente);
+
+                var result = await cmd.ExecuteScalarAsync();
+
+                return result?.ToString() ?? "";
+            }
+        }
+        public async Task<DataRow> GetDadosClienteAsync(int idCliente)
+        {
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+
+                var cmd = new SqlCommand(@"
+            SELECT Endereco, Numero, Bairro, Telefone 
+            FROM Clientes 
+            WHERE Id = @Id", conn);
+
+                cmd.Parameters.AddWithValue("@Id", idCliente);
+
+                var dt = new DataTable();
+
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    dt.Load(reader);
+                }
+
+                return dt.Rows.Count > 0 ? dt.Rows[0] : null;
             }
         }
 

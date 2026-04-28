@@ -76,6 +76,12 @@
     <Compile Include="Forms\FormDashboard.Designer.cs">
       <DependentUpon>FormDashboard.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\FormEnderecoEntrega.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FormEnderecoEntrega.Designer.cs">
+      <DependentUpon>FormEnderecoEntrega.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\FormFaturamentoMotoboy.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -99,6 +105,12 @@
     </Compile>
     <Compile Include="Forms\FormMotoboy.Designer.cs">
       <DependentUpon>FormMotoboy.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\FormPagamento.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FormPagamento.Designer.cs">
+      <DependentUpon>FormPagamento.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\FormPagamentoMotoboy.cs">
       <SubType>Form</SubType>
@@ -139,6 +151,9 @@
     <EmbeddedResource Include="Forms\FormClientes.resx">
       <DependentUpon>FormClientes.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FormEnderecoEntrega.resx">
+      <DependentUpon>FormEnderecoEntrega.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormFaturamentoMotoboy.resx">
       <DependentUpon>FormFaturamentoMotoboy.cs</DependentUpon>
     </EmbeddedResource>
@@ -150,6 +165,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormMotoboy.resx">
       <DependentUpon>FormMotoboy.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FormPagamento.resx">
+      <DependentUpon>FormPagamento.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormPagamentoMotoboy.resx">
       <DependentUpon>FormPagamentoMotoboy.cs</DependentUpon>

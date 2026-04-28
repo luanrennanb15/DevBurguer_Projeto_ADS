@@ -11,12 +11,16 @@
       "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formpedidos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\forms\\formmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\forms\\formenderecoentrega.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formenderecoentrega.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|c:\\users\\pc\\onedrive\\\u00E1rea de trabalho\\estoy louco\\devburguer\\forms\\formpedidos.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formpedidos.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|c:\\users\\pc\\onedrive\\\u00E1rea de trabalho\\estoy louco\\devburguer\\forms\\formenderecoentrega.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formenderecoentrega.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|c:\\users\\pc\\onedrive\\\u00E1rea de trabalho\\estoy louco\\devburguer\\forms\\formpagamento.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formpagamento.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -26,7 +30,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -38,28 +42,16 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "FormPedidos.Designer.cs",
-              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormPedidos.Designer.cs",
-              "RelativeDocumentMoniker": "Forms\\FormPedidos.Designer.cs",
-              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormPedidos.Designer.cs",
-              "RelativeToolTip": "Forms\\FormPedidos.Designer.cs",
-              "ViewState": "AgIAAJAAAAAAAAAAAAAjwKAAAAAaAAAAAAAAAA==",
+              "DocumentIndex": 4,
+              "Title": "FormPagamento.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormPagamento.Designer.cs",
+              "RelativeDocumentMoniker": "Forms\\FormPagamento.Designer.cs",
+              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormPagamento.Designer.cs",
+              "RelativeToolTip": "Forms\\FormPagamento.Designer.cs",
+              "ViewState": "AgIAAEgAAAAAAAAAAAAAwGcAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-26T04:01:24.173Z",
+              "WhenOpened": "2026-04-28T02:50:32.223Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "FormMenu.cs [Design]",
-              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormMenu.cs",
-              "RelativeDocumentMoniker": "Forms\\FormMenu.cs",
-              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormMenu.cs [Design]",
-              "RelativeToolTip": "Forms\\FormMenu.cs [Design]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-25T23:03:48.162Z",
-              "EditorCaption": " [Design]"
             },
             {
               "$type": "Document",
@@ -67,11 +59,11 @@
               "Title": "FormPedidos.cs",
               "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormPedidos.cs",
               "RelativeDocumentMoniker": "Forms\\FormPedidos.cs",
-              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormPedidos.cs",
-              "RelativeToolTip": "Forms\\FormPedidos.cs",
-              "ViewState": "AgIAAK0AAAAAAAAAAAAMwLkAAAAuAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormPedidos.cs*",
+              "RelativeToolTip": "Forms\\FormPedidos.cs*",
+              "ViewState": "AgIAAAIBAAAAAAAAAAAAwA4BAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-26T02:41:03.115Z",
+              "WhenOpened": "2026-04-28T02:11:46.431Z",
               "EditorCaption": ""
             },
             {
@@ -80,10 +72,35 @@
               "Title": "FormPedidos.cs [Design]",
               "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormPedidos.cs",
               "RelativeDocumentMoniker": "Forms\\FormPedidos.cs",
-              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormPedidos.cs [Design]",
-              "RelativeToolTip": "Forms\\FormPedidos.cs [Design]",
+              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormPedidos.cs [Design]*",
+              "RelativeToolTip": "Forms\\FormPedidos.cs [Design]*",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-26T02:35:24.599Z",
+              "WhenOpened": "2026-04-28T02:11:40.103Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "FormEnderecoEntrega.cs",
+              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormEnderecoEntrega.cs",
+              "RelativeDocumentMoniker": "Forms\\FormEnderecoEntrega.cs",
+              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormEnderecoEntrega.cs",
+              "RelativeToolTip": "Forms\\FormEnderecoEntrega.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAkwBEAAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T02:10:40.793Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "FormEnderecoEntrega.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormEnderecoEntrega.cs",
+              "RelativeDocumentMoniker": "Forms\\FormEnderecoEntrega.cs",
+              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormEnderecoEntrega.cs [Design]",
+              "RelativeToolTip": "Forms\\FormEnderecoEntrega.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-27T18:09:55.608Z",
               "EditorCaption": " [Design]"
             }
           ]

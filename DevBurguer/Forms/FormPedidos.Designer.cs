@@ -42,6 +42,12 @@ namespace DevBurguer
             this.btnAdicionar = new System.Windows.Forms.Button();
             this.btnRemover = new System.Windows.Forms.Button();
             this.dgvItens = new System.Windows.Forms.DataGridView();
+            this.Produto = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Quantidade = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Preco = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Observacao = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Adicionais = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.IdProduto = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lblTotal = new System.Windows.Forms.Label();
             this.btnFinalizar = new System.Windows.Forms.Button();
             this.cmbProdutos = new System.Windows.Forms.ComboBox();
@@ -49,11 +55,10 @@ namespace DevBurguer
             this.txtIngredientes = new System.Windows.Forms.TextBox();
             this.lblIgredientes = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.Produto = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Quantidade = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Preco = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Observacao = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.IdProduto = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.clbAdicionais = new System.Windows.Forms.CheckedListBox();
+            this.rbEntrega = new System.Windows.Forms.RadioButton();
+            this.rbRetirada = new System.Windows.Forms.RadioButton();
+            this.lblTaxa = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvItens)).BeginInit();
             this.SuspendLayout();
             // 
@@ -70,6 +75,7 @@ namespace DevBurguer
             this.txtPreco.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtPreco.Location = new System.Drawing.Point(42, 387);
             this.txtPreco.Name = "txtPreco";
+            this.txtPreco.ReadOnly = true;
             this.txtPreco.Size = new System.Drawing.Size(123, 27);
             this.txtPreco.TabIndex = 3;
             this.txtPreco.Text = "00,00";
@@ -158,26 +164,66 @@ namespace DevBurguer
             // 
             // dgvItens
             // 
-            this.dgvItens.BackgroundColor = System.Drawing.Color.Tan;
+            this.dgvItens.BackgroundColor = System.Drawing.Color.Chocolate;
             this.dgvItens.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvItens.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Produto,
             this.Quantidade,
             this.Preco,
             this.Observacao,
+            this.Adicionais,
             this.IdProduto});
             this.dgvItens.Dock = System.Windows.Forms.DockStyle.Right;
-            this.dgvItens.Location = new System.Drawing.Point(790, 0);
+            this.dgvItens.Location = new System.Drawing.Point(698, 0);
             this.dgvItens.Name = "dgvItens";
             this.dgvItens.ReadOnly = true;
-            this.dgvItens.Size = new System.Drawing.Size(528, 622);
+            this.dgvItens.Size = new System.Drawing.Size(620, 622);
             this.dgvItens.TabIndex = 16;
+            // 
+            // Produto
+            // 
+            this.Produto.HeaderText = "Produto";
+            this.Produto.Name = "Produto";
+            this.Produto.ReadOnly = true;
+            // 
+            // Quantidade
+            // 
+            this.Quantidade.HeaderText = "Quantidade";
+            this.Quantidade.Name = "Quantidade";
+            this.Quantidade.ReadOnly = true;
+            this.Quantidade.Width = 65;
+            // 
+            // Preco
+            // 
+            this.Preco.HeaderText = "Preço Unitário";
+            this.Preco.Name = "Preco";
+            this.Preco.ReadOnly = true;
+            // 
+            // Observacao
+            // 
+            this.Observacao.HeaderText = "Observação";
+            this.Observacao.Name = "Observacao";
+            this.Observacao.ReadOnly = true;
+            // 
+            // Adicionais
+            // 
+            this.Adicionais.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Adicionais.HeaderText = "Adicionais";
+            this.Adicionais.Name = "Adicionais";
+            this.Adicionais.ReadOnly = true;
+            // 
+            // IdProduto
+            // 
+            this.IdProduto.HeaderText = "IdProduto";
+            this.IdProduto.Name = "IdProduto";
+            this.IdProduto.ReadOnly = true;
+            this.IdProduto.Visible = false;
             // 
             // lblTotal
             // 
             this.lblTotal.AutoSize = true;
             this.lblTotal.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTotal.Location = new System.Drawing.Point(702, 531);
+            this.lblTotal.Location = new System.Drawing.Point(1196, 522);
             this.lblTotal.Name = "lblTotal";
             this.lblTotal.Size = new System.Drawing.Size(82, 31);
             this.lblTotal.TabIndex = 11;
@@ -201,7 +247,7 @@ namespace DevBurguer
             this.cmbProdutos.FormattingEnabled = true;
             this.cmbProdutos.Location = new System.Drawing.Point(42, 149);
             this.cmbProdutos.Name = "cmbProdutos";
-            this.cmbProdutos.Size = new System.Drawing.Size(331, 28);
+            this.cmbProdutos.Size = new System.Drawing.Size(356, 28);
             this.cmbProdutos.TabIndex = 1;
             this.cmbProdutos.SelectedIndexChanged += new System.EventHandler(this.cmbProdutos_SelectedIndexChanged);
             // 
@@ -212,7 +258,7 @@ namespace DevBurguer
             this.cmbClientes.FormattingEnabled = true;
             this.cmbClientes.Location = new System.Drawing.Point(42, 93);
             this.cmbClientes.Name = "cmbClientes";
-            this.cmbClientes.Size = new System.Drawing.Size(332, 28);
+            this.cmbClientes.Size = new System.Drawing.Size(356, 28);
             this.cmbClientes.TabIndex = 1;
             // 
             // txtIngredientes
@@ -239,42 +285,54 @@ namespace DevBurguer
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(607, 531);
+            this.label1.Location = new System.Drawing.Point(1115, 522);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(75, 31);
             this.label1.TabIndex = 17;
             this.label1.Text = "Total";
             // 
-            // Produto
+            // clbAdicionais
             // 
-            this.Produto.HeaderText = "Produto";
-            this.Produto.Name = "Produto";
-            this.Produto.ReadOnly = true;
+            this.clbAdicionais.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.clbAdicionais.FormattingEnabled = true;
+            this.clbAdicionais.Location = new System.Drawing.Point(404, 84);
+            this.clbAdicionais.Name = "clbAdicionais";
+            this.clbAdicionais.Size = new System.Drawing.Size(295, 422);
+            this.clbAdicionais.TabIndex = 18;
             // 
-            // Quantidade
+            // rbEntrega
             // 
-            this.Quantidade.HeaderText = "Quantidade";
-            this.Quantidade.Name = "Quantidade";
-            this.Quantidade.ReadOnly = true;
+            this.rbEntrega.AutoSize = true;
+            this.rbEntrega.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.rbEntrega.Location = new System.Drawing.Point(935, 527);
+            this.rbEntrega.Name = "rbEntrega";
+            this.rbEntrega.Size = new System.Drawing.Size(91, 26);
+            this.rbEntrega.TabIndex = 19;
+            this.rbEntrega.TabStop = true;
+            this.rbEntrega.Text = "Entrega";
+            this.rbEntrega.UseVisualStyleBackColor = true;
             // 
-            // Preco
+            // rbRetirada
             // 
-            this.Preco.HeaderText = "Preço Unitário";
-            this.Preco.Name = "Preco";
-            this.Preco.ReadOnly = true;
+            this.rbRetirada.AutoSize = true;
+            this.rbRetirada.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.rbRetirada.Location = new System.Drawing.Point(833, 527);
+            this.rbRetirada.Name = "rbRetirada";
+            this.rbRetirada.Size = new System.Drawing.Size(96, 26);
+            this.rbRetirada.TabIndex = 20;
+            this.rbRetirada.TabStop = true;
+            this.rbRetirada.Text = "Retirada";
+            this.rbRetirada.UseVisualStyleBackColor = true;
             // 
-            // Observacao
+            // lblTaxa
             // 
-            this.Observacao.HeaderText = "Observação";
-            this.Observacao.Name = "Observacao";
-            this.Observacao.ReadOnly = true;
-            // 
-            // IdProduto
-            // 
-            this.IdProduto.HeaderText = "IdProduto";
-            this.IdProduto.Name = "IdProduto";
-            this.IdProduto.ReadOnly = true;
-            this.IdProduto.Visible = false;
+            this.lblTaxa.AutoSize = true;
+            this.lblTaxa.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTaxa.Location = new System.Drawing.Point(931, 565);
+            this.lblTaxa.Name = "lblTaxa";
+            this.lblTaxa.Size = new System.Drawing.Size(103, 22);
+            this.lblTaxa.TabIndex = 21;
+            this.lblTaxa.Text = "TAXA: 6,00";
             // 
             // FormPedidos
             // 
@@ -283,6 +341,10 @@ namespace DevBurguer
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1318, 622);
+            this.Controls.Add(this.lblTaxa);
+            this.Controls.Add(this.rbRetirada);
+            this.Controls.Add(this.rbEntrega);
+            this.Controls.Add(this.clbAdicionais);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.lblIgredientes);
             this.Controls.Add(this.txtIngredientes);
@@ -331,10 +393,15 @@ namespace DevBurguer
         private System.Windows.Forms.TextBox txtIngredientes;
         private System.Windows.Forms.Label lblIgredientes;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.CheckedListBox clbAdicionais;
         private System.Windows.Forms.DataGridViewTextBoxColumn Produto;
         private System.Windows.Forms.DataGridViewTextBoxColumn Quantidade;
         private System.Windows.Forms.DataGridViewTextBoxColumn Preco;
         private System.Windows.Forms.DataGridViewTextBoxColumn Observacao;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Adicionais;
         private System.Windows.Forms.DataGridViewTextBoxColumn IdProduto;
+        private System.Windows.Forms.RadioButton rbEntrega;
+        private System.Windows.Forms.RadioButton rbRetirada;
+        private System.Windows.Forms.Label lblTaxa;
     }
 }

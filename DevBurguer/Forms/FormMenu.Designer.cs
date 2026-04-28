@@ -192,6 +192,7 @@ namespace DevBurguer
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1584, 861);
+            this.ControlBox = false;
             this.Controls.Add(this.panelConteudo);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panelMenu);
