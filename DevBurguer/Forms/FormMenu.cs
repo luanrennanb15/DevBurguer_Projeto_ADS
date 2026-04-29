@@ -1,4 +1,5 @@
 ﻿using DevBurguer.Banco;
+using DevBurguer.Forms;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
@@ -14,46 +15,36 @@ namespace DevBurguer
             InitializeComponent();
         }
 
-        private void FormMenu_Load(object sender, EventArgs e)
+        private void FormMenu_Load_1(object sender, EventArgs e)
         {
             AtivarBotao(btnPedidos);
             AbrirForm(new FormPedidos());
         }
 
-        // 🔥 ABRIR FORM DENTRO DO PAINEL
+        // ── Abre form dentro do painel central ───────────────────
         private void AbrirForm(Form novoForm)
         {
-            if (formAtivo != null)
-                formAtivo.Close();
-
-            formAtivo = novoForm;
-            novoForm.TopLevel = false;
-            novoForm.FormBorderStyle = FormBorderStyle.None;
-            novoForm.Dock = DockStyle.Fill;
-
-            panelConteudo.Controls.Clear();
-            panelConteudo.Controls.Add(novoForm);
-
-            // animação suave
-            novoForm.Opacity = 0;
-
-            Timer t = new Timer();
-            t.Interval = 10;
-
-            t.Tick += (s, e) =>
+            try
             {
-                if (novoForm.Opacity < 1)
-                    novoForm.Opacity += 0.1;
-                else
-                    t.Stop();
-            };
-
-            t.Start();
-
-            novoForm.Show();
+                if (formAtivo != null)
+                {
+                    panelConteudo.Controls.Remove(formAtivo);
+                    formAtivo.Dispose();
+                }
+                formAtivo = novoForm;
+                novoForm.TopLevel = false;
+                novoForm.FormBorderStyle = FormBorderStyle.None;
+                novoForm.Dock = DockStyle.Fill;
+                panelConteudo.Controls.Clear();
+                panelConteudo.Controls.Add(novoForm);
+                novoForm.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
-        // RESETAR BOTÕES
         private void ResetarBotoes()
         {
             foreach (Control c in panelMenu.Controls)
@@ -66,17 +57,14 @@ namespace DevBurguer
             }
         }
 
-        // 🔥 ATIVAR BOTÃO
         private void AtivarBotao(Button botao)
         {
             ResetarBotoes();
-
             botao.BackColor = Color.FromArgb(60, 60, 60);
             botao.ForeColor = Color.White;
         }
 
-        // 👇 BOTÕES
-
+        // ── Botões ───────────────────────────────────────────────
         private void btnProdutos_Click(object sender, EventArgs e)
         {
             AtivarBotao(btnProdutos);
@@ -95,22 +83,18 @@ namespace DevBurguer
             AbrirForm(new FormPedidos());
         }
 
+        // ✅ CORRIGIDO: agora abre FormMaisVendidos em vez de FormRelatorio("ProdutosMaisVendidos")
         private void btnRelatorioProdutos_Click(object sender, EventArgs e)
         {
             AtivarBotao(btnRelatorioProdutos);
-            // abrir relatório de produtos mais vendidos
-            var frm = new FormRelatorio();
-            frm.Tag = "ProdutosMaisVendidos"; // indica tipo de relatório
-            AbrirForm(frm);
+            AbrirForm(new FormMaisVendidos());
         }
 
+        // ✅ CORRIGIDO: agora abre FormRelatorioFaturamento em vez de FormRelatorio("Faturamento")
         private void btnFaturamento_Click(object sender, EventArgs e)
         {
             AtivarBotao(btnFaturamento);
-            // abrir relatório de faturamento
-            var frm = new FormRelatorio();
-            frm.Tag = "Faturamento";
-            AbrirForm(frm);
+            AbrirForm(new FormRelatorioFaturamento());
         }
 
         private void btnFaturamentoMotoboy_Click(object sender, EventArgs e)
@@ -131,7 +115,6 @@ namespace DevBurguer
             AbrirForm(new FormPagamentoMotoboy());
         }
 
-        // 🔥 BOTÃO SAIR
         private void btnSair_Click(object sender, EventArgs e)
         {
             DialogResult res = MessageBox.Show(
@@ -140,16 +123,8 @@ namespace DevBurguer
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question
             );
-
             if (res == DialogResult.Yes)
-            {
                 Application.Exit();
-            }
-        }
-
-        private void FormMenu_Load_1(object sender, EventArgs e)
-        {
-
         }
     }
 }

@@ -10,7 +10,6 @@ namespace DevBurguer.Data
 {
     public class PedidoRepository
     {
-        // ✅ CORRIGIDO: agora traz Ingredientes
         public async Task<DataTable> GetProdutosSelectAsync()
         {
             const string sql = "SELECT Id, Nome, Preco, Ingredientes FROM Produtos";
@@ -24,10 +23,10 @@ namespace DevBurguer.Data
                 throw;
             }
         }
+
         public async Task<DataTable> GetAdicionaisAsync()
         {
             const string sql = "SELECT Id, Nome, Preco FROM Adicionais";
-
             return await DbHelper.ExecuteDataTableAsync(sql);
         }
 
@@ -44,49 +43,41 @@ namespace DevBurguer.Data
                 throw;
             }
         }
+
         public async Task<string> GetEnderecoClienteAsync(int idCliente)
         {
             using (var conn = DevBurguer.Banco.Conexao.GetConnection())
             {
                 await conn.OpenAsync();
-
                 var cmd = new SqlCommand(@"
-            SELECT Endereco + ', ' + Numero + ' - ' + Bairro 
-            FROM Clientes 
-            WHERE Id = @id", conn);
-
+                    SELECT Endereco + ', ' + Numero + ' - ' + Bairro 
+                    FROM Clientes 
+                    WHERE Id = @id", conn);
                 cmd.Parameters.AddWithValue("@id", idCliente);
-
                 var result = await cmd.ExecuteScalarAsync();
-
                 return result?.ToString() ?? "";
             }
         }
+
         public async Task<DataRow> GetDadosClienteAsync(int idCliente)
         {
             using (var conn = DevBurguer.Banco.Conexao.GetConnection())
             {
                 await conn.OpenAsync();
-
                 var cmd = new SqlCommand(@"
-            SELECT Endereco, Numero, Bairro, Telefone 
-            FROM Clientes 
-            WHERE Id = @Id", conn);
-
+                    SELECT Endereco, Numero, Bairro, Telefone 
+                    FROM Clientes 
+                    WHERE Id = @Id", conn);
                 cmd.Parameters.AddWithValue("@Id", idCliente);
-
                 var dt = new DataTable();
-
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     dt.Load(reader);
                 }
-
                 return dt.Rows.Count > 0 ? dt.Rows[0] : null;
             }
         }
 
-        // ✅ CORRIGIDO: remove ConfigureAwait + segurança no preço
         public async Task<int> InsertPedidoAsync(int idCliente, decimal total, List<OrderItem> itens)
         {
             try
@@ -101,7 +92,7 @@ namespace DevBurguer.Data
                     {
                         try
                         {
-                            // 🔥 INSERE PEDIDO
+                            // Insere o pedido principal
                             using (SqlCommand cmdPedido = new SqlCommand(
                                 "INSERT INTO Pedidos (IdCliente, Total) OUTPUT INSERTED.Id VALUES (@c,@t)",
                                 conn, tran))
@@ -113,44 +104,28 @@ namespace DevBurguer.Data
                                     Scale = 2,
                                     Value = total
                                 });
-
                                 idPedido = (int)await cmdPedido.ExecuteScalarAsync();
                             }
 
-                            // 🔥 INSERE ITENS
+                            // ✅ BUG 2 CORRIGIDO: usa item.Preco que já inclui adicionais calculados na tela
+                            // ✅ Coluna Adicionais adicionada para registrar histórico completo do pedido
                             foreach (var item in itens)
                             {
-                                // ✅ SEGURANÇA: pega preço direto do banco
-                                decimal precoBanco = 0;
-
-                                using (SqlCommand cmdPreco = new SqlCommand(
-                                    "SELECT Preco FROM Produtos WHERE Id=@id",
-                                    conn, tran))
-                                {
-                                    cmdPreco.Parameters.AddWithValue("@id", item.IdProduto);
-                                    precoBanco = (decimal)await cmdPreco.ExecuteScalarAsync();
-                                }
-
                                 using (SqlCommand cmdItem = new SqlCommand(
-                                    "INSERT INTO ItensPedido (IdPedido, IdProduto, Quantidade, Observacao, Preco) VALUES (@p,@prod,@q,@obs,@preco)",
+                                    "INSERT INTO ItensPedido (IdPedido, IdProduto, Quantidade, Observacao, Adicionais, Preco) VALUES (@p,@prod,@q,@obs,@adic,@preco)",
                                     conn, tran))
                                 {
                                     cmdItem.Parameters.Add(new SqlParameter("@p", SqlDbType.Int) { Value = idPedido });
                                     cmdItem.Parameters.Add(new SqlParameter("@prod", SqlDbType.Int) { Value = item.IdProduto });
                                     cmdItem.Parameters.Add(new SqlParameter("@q", SqlDbType.Int) { Value = item.Quantidade });
-                                    cmdItem.Parameters.Add(new SqlParameter("@obs", SqlDbType.NVarChar, -1)
-                                    {
-                                        Value = (object)item.Observacao ?? string.Empty
-                                    });
-
-                                    // 🔥 usa preço do banco
+                                    cmdItem.Parameters.Add(new SqlParameter("@obs", SqlDbType.NVarChar, 200) { Value = (object)item.Observacao ?? string.Empty });
+                                    cmdItem.Parameters.Add(new SqlParameter("@adic", SqlDbType.NVarChar, 300) { Value = (object)item.Adicionais ?? string.Empty });
                                     cmdItem.Parameters.Add(new SqlParameter("@preco", SqlDbType.Decimal)
                                     {
                                         Precision = 18,
                                         Scale = 2,
-                                        Value = precoBanco
+                                        Value = item.Preco  // ✅ preço com adicionais inclusos
                                     });
-
                                     await cmdItem.ExecuteNonQueryAsync();
                                 }
                             }
