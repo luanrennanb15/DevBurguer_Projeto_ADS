@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
-using System.Windows.Forms;
 using System.Drawing;
+using System.Windows.Forms;
 using DevBurguer.Banco;
 
 namespace DevBurguer
@@ -26,18 +26,14 @@ namespace DevBurguer
                 using (SqlConnection conn = Conexao.GetConnection())
                 {
                     conn.Open();
-
                     SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM Clientes", conn);
                     DataTable dt = new DataTable();
                     da.Fill(dt);
-
                     dgvClientes.DataSource = dt;
                 }
-
                 dgvClientes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 dgvClientes.Font = new Font("Arial", 12);
                 dgvClientes.ColumnHeadersDefaultCellStyle.Font = new Font("Arial", 12, FontStyle.Bold);
-
                 if (dgvClientes.Columns["Id"] != null)
                     dgvClientes.Columns["Id"].Visible = false;
             }
@@ -51,34 +47,33 @@ namespace DevBurguer
         {
             try
             {
-                if (txtNome.Text == "" || txtTelefone.Text == "" || txtEndereco.Text == "")
+                // ✅ BUG 8 CORRIGIDO: validação inclui Numero e Bairro
+                if (string.IsNullOrWhiteSpace(txtNome.Text) ||
+                    string.IsNullOrWhiteSpace(txtTelefone.Text) ||
+                    string.IsNullOrWhiteSpace(txtEndereco.Text) ||
+                    string.IsNullOrWhiteSpace(txtNumero.Text) ||
+                    string.IsNullOrWhiteSpace(txtBairro.Text))
                 {
-                    MessageBox.Show("Preencha todos os campos!");
+                    MessageBox.Show("Preencha todos os campos obrigatórios!");
                     return;
                 }
 
                 using (SqlConnection conn = Conexao.GetConnection())
                 {
                     conn.Open();
-
                     string sql = @"INSERT INTO Clientes 
                     (Nome, Telefone, Endereco, Numero, Bairro, CPF) 
                     VALUES (@n,@t,@e,@num,@b,@cpf)";
-
                     SqlCommand cmd = new SqlCommand(sql, conn);
-
                     cmd.Parameters.AddWithValue("@n", txtNome.Text);
                     cmd.Parameters.AddWithValue("@t", txtTelefone.Text);
                     cmd.Parameters.AddWithValue("@e", txtEndereco.Text);
                     cmd.Parameters.AddWithValue("@num", txtNumero.Text);
                     cmd.Parameters.AddWithValue("@b", txtBairro.Text);
                     cmd.Parameters.AddWithValue("@cpf", txtCPF.Text);
-
                     cmd.ExecuteNonQuery();
                 }
-
                 MessageBox.Show("Cliente cadastrado!");
-
                 LimparCampos();
                 CarregarClientes();
             }
@@ -98,18 +93,25 @@ namespace DevBurguer
                     return;
                 }
 
-                int id = Convert.ToInt32(dgvClientes.CurrentRow.Cells["Id"].Value);
+                // ✅ BUG 8 CORRIGIDO: mesma validação completa no Atualizar
+                if (string.IsNullOrWhiteSpace(txtNome.Text) ||
+                    string.IsNullOrWhiteSpace(txtTelefone.Text) ||
+                    string.IsNullOrWhiteSpace(txtEndereco.Text) ||
+                    string.IsNullOrWhiteSpace(txtNumero.Text) ||
+                    string.IsNullOrWhiteSpace(txtBairro.Text))
+                {
+                    MessageBox.Show("Preencha todos os campos obrigatórios!");
+                    return;
+                }
 
+                int id = Convert.ToInt32(dgvClientes.CurrentRow.Cells["Id"].Value);
                 using (SqlConnection conn = Conexao.GetConnection())
                 {
                     conn.Open();
-
                     string sql = @"UPDATE Clientes 
                     SET Nome=@n, Telefone=@t, Endereco=@e, Numero=@num, Bairro=@b, CPF=@cpf 
                     WHERE Id=@id";
-
                     SqlCommand cmd = new SqlCommand(sql, conn);
-
                     cmd.Parameters.AddWithValue("@n", txtNome.Text);
                     cmd.Parameters.AddWithValue("@t", txtTelefone.Text);
                     cmd.Parameters.AddWithValue("@e", txtEndereco.Text);
@@ -117,12 +119,9 @@ namespace DevBurguer
                     cmd.Parameters.AddWithValue("@b", txtBairro.Text);
                     cmd.Parameters.AddWithValue("@cpf", txtCPF.Text);
                     cmd.Parameters.AddWithValue("@id", id);
-
                     cmd.ExecuteNonQuery();
                 }
-
                 MessageBox.Show("Cliente atualizado!");
-
                 LimparCampos();
                 CarregarClientes();
             }
@@ -142,20 +141,23 @@ namespace DevBurguer
                     return;
                 }
 
-                int id = Convert.ToInt32(dgvClientes.CurrentRow.Cells["Id"].Value);
+                var confirmar = MessageBox.Show(
+                    "Tem certeza que deseja excluir este cliente?",
+                    "Confirmação",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
 
+                if (confirmar != DialogResult.Yes) return;
+
+                int id = Convert.ToInt32(dgvClientes.CurrentRow.Cells["Id"].Value);
                 using (SqlConnection conn = Conexao.GetConnection())
                 {
                     conn.Open();
-
                     SqlCommand cmd = new SqlCommand("DELETE FROM Clientes WHERE Id=@id", conn);
                     cmd.Parameters.AddWithValue("@id", id);
-
                     cmd.ExecuteNonQuery();
                 }
-
                 MessageBox.Show("Cliente excluído!");
-
                 LimparCampos();
                 CarregarClientes();
             }

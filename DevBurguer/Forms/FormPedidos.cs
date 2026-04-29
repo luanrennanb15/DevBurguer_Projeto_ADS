@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DevBurguer.Models;
@@ -12,7 +12,6 @@ namespace DevBurguer
     {
         private const decimal TAXA_ENTREGA = 6.00m;
         private DataTable _produtosCache;
-
 
         public FormPedidos()
         {
@@ -60,7 +59,6 @@ namespace DevBurguer
                 return;
 
             var row = _produtosCache.Select($"Id = {cmbProdutos.SelectedValue}").FirstOrDefault();
-
             if (row == null) return;
 
             decimal precoBase = Convert.ToDecimal(row["Preco"]);
@@ -106,7 +104,6 @@ namespace DevBurguer
                 return;
 
             var row = _produtosCache.Select($"Id = {id}").FirstOrDefault();
-
             if (row != null)
             {
                 txtIngredientes.Text = row["Ingredientes"].ToString();
@@ -128,38 +125,34 @@ namespace DevBurguer
                 }
             }
 
-            // 🔥 adiciona taxa se for entrega
             if (rbEntrega.Checked)
-            {
                 total += TAXA_ENTREGA;
-            }
 
             lblTotal.Text = total.ToString("F2");
         }
-        private void rbEntrega_CheckedChanged(object sender, EventArgs e)
-        {
-            CalcularTotal();
-        }
 
-        private void rbRetirada_CheckedChanged(object sender, EventArgs e)
-        {
-            CalcularTotal();
-        }
+        private void rbEntrega_CheckedChanged(object sender, EventArgs e) => CalcularTotal();
+        private void rbRetirada_CheckedChanged(object sender, EventArgs e) => CalcularTotal();
 
         private void btnAdicionar_Click(object sender, EventArgs e)
         {
-            if (cmbProdutos.SelectedValue == null || txtQuantidade.Text == "")
+            if (cmbProdutos.SelectedValue == null)
             {
-                MessageBox.Show("Selecione produto e quantidade!");
+                MessageBox.Show("Selecione um produto!");
                 return;
             }
 
-            int quantidade = int.Parse(txtQuantidade.Text);
+            // ✅ BUG 6 CORRIGIDO: TryParse evita exceção se usuário digitar letras ou deixar vazio
+            if (!int.TryParse(txtQuantidade.Text, out int quantidade) || quantidade <= 0)
+            {
+                MessageBox.Show("Quantidade inválida! Digite um número maior que zero.");
+                return;
+            }
 
             string adicionaisTexto = string.Join(", ",
                 clbAdicionais.CheckedItems
-                .Cast<DataRowView>()
-                .Select(x => x["Nome"].ToString())
+                    .Cast<DataRowView>()
+                    .Select(x => x["Nome"].ToString())
             );
 
             for (int i = 0; i < quantidade; i++)
@@ -179,7 +172,6 @@ namespace DevBurguer
 
             txtQuantidade.Clear();
             txtObservacao.Clear();
-
             CalcularTotal();
         }
 
@@ -242,14 +234,13 @@ namespace DevBurguer
             string formaPagamento = "";
             decimal troco = 0;
 
-            // 🔥 ENTREGA
             if (rbEntrega.Checked)
             {
                 var tela = new DevBurguer.Forms.FormEnderecoEntrega(idCliente);
 
-                // ✅ PASSA O TOTAL
+                // ✅ BUG 7 CORRIGIDO: SetTotal chamado ANTES do ShowDialog
+                // ShowDialog dispara o Load imediatamente, então o total precisa estar definido antes
                 tela.SetTotal(total);
-
                 tela.ShowDialog();
 
                 if (!tela.PedidoConfirmado)
@@ -262,7 +253,6 @@ namespace DevBurguer
                 troco = tela.TrocoPara;
             }
 
-            // 🔥 RETIRADA
             if (rbRetirada.Checked)
             {
                 var tela = new DevBurguer.Forms.FormPagamento();
