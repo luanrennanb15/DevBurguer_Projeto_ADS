@@ -38,6 +38,7 @@ namespace DevBurguer
             this.btnSair = new System.Windows.Forms.Button();
             this.btnRelatorioProdutos = new System.Windows.Forms.Button();
             this.panelMenu = new System.Windows.Forms.Panel();
+            this.btnEscalaMotoboy = new System.Windows.Forms.Button();
             this.btnPagmentoDeMotoboy = new System.Windows.Forms.Button();
             this.btnCadastroDeMotoboy = new System.Windows.Forms.Button();
             this.btnFaturamentoMotoboy = new System.Windows.Forms.Button();
@@ -49,7 +50,7 @@ namespace DevBurguer
             // btnClientes
             // 
             this.btnClientes.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnClientes.Location = new System.Drawing.Point(29, 90);
+            this.btnClientes.Location = new System.Drawing.Point(29, 441);
             this.btnClientes.Name = "btnClientes";
             this.btnClientes.Size = new System.Drawing.Size(192, 53);
             this.btnClientes.TabIndex = 1;
@@ -60,7 +61,7 @@ namespace DevBurguer
             // btnProdutos
             // 
             this.btnProdutos.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnProdutos.Location = new System.Drawing.Point(29, 31);
+            this.btnProdutos.Location = new System.Drawing.Point(29, 382);
             this.btnProdutos.Name = "btnProdutos";
             this.btnProdutos.Size = new System.Drawing.Size(192, 53);
             this.btnProdutos.TabIndex = 0;
@@ -71,7 +72,7 @@ namespace DevBurguer
             // btnPedidos
             // 
             this.btnPedidos.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnPedidos.Location = new System.Drawing.Point(29, 209);
+            this.btnPedidos.Location = new System.Drawing.Point(29, 22);
             this.btnPedidos.Name = "btnPedidos";
             this.btnPedidos.Size = new System.Drawing.Size(192, 54);
             this.btnPedidos.TabIndex = 3;
@@ -82,7 +83,7 @@ namespace DevBurguer
             // btnFaturamento
             // 
             this.btnFaturamento.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnFaturamento.Location = new System.Drawing.Point(29, 329);
+            this.btnFaturamento.Location = new System.Drawing.Point(29, 142);
             this.btnFaturamento.Name = "btnFaturamento";
             this.btnFaturamento.Size = new System.Drawing.Size(192, 54);
             this.btnFaturamento.TabIndex = 5;
@@ -104,7 +105,7 @@ namespace DevBurguer
             // btnRelatorioProdutos
             // 
             this.btnRelatorioProdutos.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRelatorioProdutos.Location = new System.Drawing.Point(29, 269);
+            this.btnRelatorioProdutos.Location = new System.Drawing.Point(29, 82);
             this.btnRelatorioProdutos.Name = "btnRelatorioProdutos";
             this.btnRelatorioProdutos.Size = new System.Drawing.Size(192, 54);
             this.btnRelatorioProdutos.TabIndex = 4;
@@ -116,7 +117,9 @@ namespace DevBurguer
             // 
             this.panelMenu.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.panelMenu.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.panelMenu.Controls.Add(this.btnFaturamento);
             this.panelMenu.Controls.Add(this.btnPagmentoDeMotoboy);
+            this.panelMenu.Controls.Add(this.btnEscalaMotoboy);
             this.panelMenu.Controls.Add(this.btnCadastroDeMotoboy);
             this.panelMenu.Controls.Add(this.btnFaturamentoMotoboy);
             this.panelMenu.Controls.Add(this.btnClientes);
@@ -124,7 +127,6 @@ namespace DevBurguer
             this.panelMenu.Controls.Add(this.btnRelatorioProdutos);
             this.panelMenu.Controls.Add(this.btnProdutos);
             this.panelMenu.Controls.Add(this.btnPedidos);
-            this.panelMenu.Controls.Add(this.btnFaturamento);
             this.panelMenu.Dock = System.Windows.Forms.DockStyle.Left;
             this.panelMenu.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.panelMenu.Location = new System.Drawing.Point(0, 0);
@@ -132,10 +134,21 @@ namespace DevBurguer
             this.panelMenu.Size = new System.Drawing.Size(250, 861);
             this.panelMenu.TabIndex = 0;
             // 
+            // btnEscalaMotoboy
+            // 
+            this.btnEscalaMotoboy.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnEscalaMotoboy.Location = new System.Drawing.Point(29, 322);
+            this.btnEscalaMotoboy.Name = "btnEscalaMotoboy";
+            this.btnEscalaMotoboy.Size = new System.Drawing.Size(192, 54);
+            this.btnEscalaMotoboy.TabIndex = 9;
+            this.btnEscalaMotoboy.Text = "Escala Motoboy";
+            this.btnEscalaMotoboy.UseVisualStyleBackColor = true;
+            this.btnEscalaMotoboy.Click += new System.EventHandler(this.btnEscalaMotoboy_Click);
+            // 
             // btnPagmentoDeMotoboy
             // 
             this.btnPagmentoDeMotoboy.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnPagmentoDeMotoboy.Location = new System.Drawing.Point(29, 449);
+            this.btnPagmentoDeMotoboy.Location = new System.Drawing.Point(29, 202);
             this.btnPagmentoDeMotoboy.Name = "btnPagmentoDeMotoboy";
             this.btnPagmentoDeMotoboy.Size = new System.Drawing.Size(192, 54);
             this.btnPagmentoDeMotoboy.TabIndex = 7;
@@ -146,7 +159,7 @@ namespace DevBurguer
             // btnCadastroDeMotoboy
             // 
             this.btnCadastroDeMotoboy.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnCadastroDeMotoboy.Location = new System.Drawing.Point(29, 149);
+            this.btnCadastroDeMotoboy.Location = new System.Drawing.Point(29, 500);
             this.btnCadastroDeMotoboy.Name = "btnCadastroDeMotoboy";
             this.btnCadastroDeMotoboy.Size = new System.Drawing.Size(192, 54);
             this.btnCadastroDeMotoboy.TabIndex = 2;
@@ -157,7 +170,7 @@ namespace DevBurguer
             // btnFaturamentoMotoboy
             // 
             this.btnFaturamentoMotoboy.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnFaturamentoMotoboy.Location = new System.Drawing.Point(29, 389);
+            this.btnFaturamentoMotoboy.Location = new System.Drawing.Point(29, 262);
             this.btnFaturamentoMotoboy.Name = "btnFaturamentoMotoboy";
             this.btnFaturamentoMotoboy.Size = new System.Drawing.Size(192, 54);
             this.btnFaturamentoMotoboy.TabIndex = 6;
@@ -221,5 +234,6 @@ namespace DevBurguer
         private System.Windows.Forms.Button btnPagmentoDeMotoboy;
         private System.Windows.Forms.Button btnCadastroDeMotoboy;
         private System.Windows.Forms.Button btnFaturamentoMotoboy;
+        private System.Windows.Forms.Button btnEscalaMotoboy;
     }
 }

@@ -3,8 +3,11 @@
   "WorkspaceRootPath": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|c:\\users\\pc\\onedrive\\\u00E1rea de trabalho\\estoy louco\\devburguer\\interfaces\\ipagamentorepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:interfaces\\ipagamentorepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|c:\\users\\pc\\onedrive\\\u00E1rea de trabalho\\estoy louco\\devburguer\\forms\\formmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\PC\\Downloads\\FormEscalaMotoboy_10.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -27,14 +30,26 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "IPagamentoRepository.cs",
-              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Interfaces\\IPagamentoRepository.cs",
-              "RelativeDocumentMoniker": "Interfaces\\IPagamentoRepository.cs",
-              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Interfaces\\IPagamentoRepository.cs",
-              "RelativeToolTip": "Interfaces\\IPagamentoRepository.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
+              "Title": "FormMenu.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormMenu.cs",
+              "RelativeDocumentMoniker": "Forms\\FormMenu.cs",
+              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormMenu.cs [Design]",
+              "RelativeToolTip": "Forms\\FormMenu.cs [Design]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-29T15:39:08.341Z",
+              "WhenOpened": "2026-04-29T17:46:02.665Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "FormEscalaMotoboy_10.cs",
+              "DocumentMoniker": "C:\\Users\\PC\\Downloads\\FormEscalaMotoboy_10.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\Downloads\\FormEscalaMotoboy_10.cs",
+              "ToolTip": "C:\\Users\\PC\\Downloads\\FormEscalaMotoboy_10.cs",
+              "RelativeToolTip": "..\\..\\..\\..\\Downloads\\FormEscalaMotoboy_10.cs",
+              "ViewState": "AgIAAF0BAAAAAAAAAAAAwGEBAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-29T17:29:10.711Z",
               "EditorCaption": ""
             }
           ]

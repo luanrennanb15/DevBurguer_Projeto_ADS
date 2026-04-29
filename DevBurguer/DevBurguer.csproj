@@ -82,6 +82,12 @@
     <Compile Include="Forms\FormEnderecoEntrega.Designer.cs">
       <DependentUpon>FormEnderecoEntrega.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\FormEscalaMotoboy.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FormEscalaMotoboy.Designer.cs">
+      <DependentUpon>FormEscalaMotoboy.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\FormFaturamentoMotoboy.cs">
       <SubType>Form</SubType>
     </Compile>
