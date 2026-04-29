@@ -16,7 +16,6 @@ namespace DevBurguer.Forms
     {
         private readonly Color CAmbar = Color.FromArgb(220, 160, 30);
         private readonly Color CDourado = Color.FromArgb(255, 200, 60);
-        private readonly Color CVerde = Color.FromArgb(40, 160, 80);
         private readonly Color CVermelho = Color.FromArgb(180, 50, 40);
         private readonly Color CDark = Color.FromArgb(22, 18, 10);
         private readonly Color CDarkCard = Color.FromArgb(32, 26, 14);
@@ -29,15 +28,14 @@ namespace DevBurguer.Forms
             "Quinta-Feira",  "Sexta-Feira", "Sabado", "Domingo"
         };
 
-        // larguras das colunas — devem ser iguais no header e no grid
         private const int COL_NOME = 180;
         private const int COL_DIA = 145;
 
-        private Panel pnlTopo, pnlHeader, pnlEdicao;
         private DataGridView dgv;
         private ComboBox cmbMotoboy;
         private Button btnAdicionar, btnRemover;
         private Label lblStatus;
+        private Panel pnlHeader;
 
         private DataTable _motoboys;
         private HashSet<int> _naGrade = new HashSet<int>();
@@ -67,125 +65,188 @@ namespace DevBurguer.Forms
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  LAYOUT
+        //  LAYOUT com TableLayoutPanel — cada linha tem espaço fixo
+        //  Linha 0: Topo          34px
+        //  Linha 1: Cabeçalho     40px
+        //  Linha 2: Grade         Fill (resto)
+        //  Linha 3: Edição        54px
         // ═══════════════════════════════════════════════════════════
         private void ConstruirLayout()
         {
             this.BackColor = CDark;
             this.Font = new Font("Segoe UI", 9f);
 
-            // ── EDIÇÃO Bottom ─────────────────────────────────────
-            pnlEdicao = new Panel { Dock = DockStyle.Bottom, Height = 54, BackColor = CDarkPnl };
-            pnlEdicao.Controls.Add(new Label { Text = "Motoboy:", ForeColor = CMuted, AutoSize = true, Location = new Point(14, 6), Font = new Font("Segoe UI", 7.5f, FontStyle.Bold) });
-            cmbMotoboy = new ComboBox { Width = 210, Location = new Point(14, 22), FlatStyle = FlatStyle.Flat, BackColor = CDarkCard, ForeColor = CText, Font = new Font("Segoe UI", 9.5f), DropDownStyle = ComboBoxStyle.DropDownList };
-            pnlEdicao.Controls.Add(cmbMotoboy);
+            var tbl = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 4,
+                BackColor = CDark,
+                Padding = new Padding(0),
+                Margin = new Padding(0),
+                CellBorderStyle = TableLayoutPanelCellBorderStyle.None
+            };
+            tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 34)); // topo
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 46)); // cabeçalho
+            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // grade
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 54)); // edição
+            this.Controls.Add(tbl);
 
-            btnAdicionar = BtnAcao("+ Adicionar", 236, CAmbar);
-            btnRemover = BtnAcao("- Remover", 356, CVermelho);
-            btnAdicionar.Click += btnAdicionar_Click;
-            btnRemover.Click += btnRemover_Click;
-            pnlEdicao.Controls.AddRange(new Control[] { cmbMotoboy, btnAdicionar, btnRemover });
-
-            lblStatus = new Label { Text = "", ForeColor = CDourado, AutoSize = true, Location = new Point(476, 26), Font = new Font("Segoe UI Semibold", 8.5f) };
-            pnlEdicao.Controls.Add(lblStatus);
-            this.Controls.Add(pnlEdicao);
-
-            // ── TOPO Top ──────────────────────────────────────────
-            pnlTopo = new Panel { Dock = DockStyle.Top, Height = 34, BackColor = CDarkPnl };
+            // ── LINHA 0: TOPO ──────────────────────────────────────
+            var pnlTopo = new Panel { Dock = DockStyle.Fill, BackColor = CDarkPnl, Margin = new Padding(0) };
             pnlTopo.Paint += (s, e) =>
             {
                 using (var br = new LinearGradientBrush(new Point(0, 0), new Point(pnlTopo.Width, 0), CAmbar, CDourado))
                     e.Graphics.FillRectangle(br, 0, pnlTopo.Height - 3, pnlTopo.Width, 3);
             };
-            pnlTopo.Controls.Add(new Label { Text = "Escala Semanal de Motoboys", Font = new Font("Segoe UI Semibold", 11f), ForeColor = CText, AutoSize = true, Location = new Point(14, 6) });
-            this.Controls.Add(pnlTopo);
+            pnlTopo.Controls.Add(new Label
+            {
+                Text = "Escala Semanal de Motoboys",
+                Font = new Font("Segoe UI Semibold", 11f),
+                ForeColor = CText,
+                AutoSize = true,
+                Location = new Point(14, 7)
+            });
+            tbl.Controls.Add(pnlTopo, 0, 0);
 
-            // ── CABEÇALHO MANUAL Top ──────────────────────────────
-            // Painel desenhado à mão — independente do DataGridView
-            // Isso garante que o header aparece sempre, em qualquer resolução
-            pnlHeader = new Panel { Dock = DockStyle.Top, Height = 40, BackColor = Color.FromArgb(28, 22, 8) };
+            // ── LINHA 1: CABEÇALHO DOS DIAS ────────────────────────
+            pnlHeader = new Panel { Dock = DockStyle.Fill, BackColor = Color.FromArgb(28, 22, 8), Margin = new Padding(0) };
             pnlHeader.Paint += DesenharHeader;
-            this.Controls.Add(pnlHeader);
+            tbl.Controls.Add(pnlHeader, 0, 1);
 
-            // ── GRADE Fill ────────────────────────────────────────
+            // ── LINHA 2: GRADE ─────────────────────────────────────
             dgv = new DataGridView
             {
                 Dock = DockStyle.Fill,
+                Margin = new Padding(0),
                 BackgroundColor = CDarkCard,
                 GridColor = Color.FromArgb(50, 40, 15),
                 BorderStyle = BorderStyle.None,
                 CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal,
-                ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None,
-                ColumnHeadersVisible = false, // ← cabeçalho nativo OCULTO — usamos o painel manual
+                ColumnHeadersVisible = false,
                 RowHeadersVisible = false,
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
                 AllowUserToResizeRows = false,
                 ScrollBars = ScrollBars.Horizontal,
-                Font = new Font("Segoe UI", 9.5f),
+                Font = new Font("Segoe UI", 11f),
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 MultiSelect = false,
-                RowTemplate = { Height = 36 }
+                RowTemplate = { Height = 42 }
             };
             dgv.DefaultCellStyle.BackColor = CDarkCard;
             dgv.DefaultCellStyle.ForeColor = CText;
-            dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(70, 220, 160, 30);
+            dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(60, 220, 170, 40);
             dgv.DefaultCellStyle.SelectionForeColor = CText;
             dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(26, 20, 10);
-
             dgv.CurrentCellDirtyStateChanged += (s, e) =>
             {
-                if (dgv.IsCurrentCellDirty)
-                    dgv.CommitEdit(DataGridViewDataErrorContexts.Commit);
+                if (dgv.IsCurrentCellDirty) dgv.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            };
+
+            // ✅ Desenha checkboxes manualmente — muito mais visíveis
+            dgv.CellPainting += (s, e) =>
+            {
+                if (e.RowIndex < 0 || e.ColumnIndex < 2) return; // só colunas de dias
+                e.PaintBackground(e.CellBounds, true);
+
+                bool marcado = false;
+                if (e.Value != null) bool.TryParse(e.Value.ToString(), out marcado);
+
+                int sz = 20; // tamanho do quadrado
+                int cx = e.CellBounds.X + (e.CellBounds.Width - sz) / 2;
+                int cy = e.CellBounds.Y + (e.CellBounds.Height - sz) / 2;
+                var rect = new Rectangle(cx, cy, sz, sz);
+
+                if (marcado)
+                {
+                    // fundo verde quando marcado
+                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(40, 180, 90)), rect);
+                    e.Graphics.DrawRectangle(new Pen(Color.FromArgb(80, 220, 120), 2), rect);
+                    // checkmark branco
+                    using (var pen = new Pen(Color.White, 2.5f))
+                    {
+                        pen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+                        pen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+                        e.Graphics.DrawLine(pen, cx + 4, cy + 10, cx + 8, cy + 15);
+                        e.Graphics.DrawLine(pen, cx + 8, cy + 15, cx + 16, cy + 5);
+                    }
+                }
+                else
+                {
+                    // borda visível quando desmarcado
+                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(50, 40, 20)), rect);
+                    e.Graphics.DrawRectangle(new Pen(Color.FromArgb(160, 130, 60), 1.5f), rect);
+                }
+                e.Handled = true;
             };
             dgv.CellValueChanged += async (s, e) =>
             {
-                if (e.RowIndex >= 0 && e.ColumnIndex > 1)
-                    await SalvarAsync();
+                if (e.RowIndex >= 0 && e.ColumnIndex > 1) await SalvarAsync();
             };
-            // sincroniza scroll horizontal com o header
-            dgv.Scroll += (s, e) => pnlHeader.Invalidate();
-
             AtivarDB(dgv);
-            this.Controls.Add(dgv);
+            tbl.Controls.Add(dgv, 0, 2);
+
+            // ── LINHA 3: EDIÇÃO ────────────────────────────────────
+            var pnlEdicao = new Panel { Dock = DockStyle.Fill, BackColor = CDarkPnl, Margin = new Padding(0) };
+            pnlEdicao.Controls.Add(new Label
+            {
+                Text = "Motoboy:",
+                ForeColor = CMuted,
+                AutoSize = true,
+                Location = new Point(14, 6),
+                Font = new Font("Segoe UI", 7.5f, FontStyle.Bold)
+            });
+            cmbMotoboy = new ComboBox
+            {
+                Width = 210,
+                Location = new Point(14, 22),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = CDarkCard,
+                ForeColor = CText,
+                Font = new Font("Segoe UI", 10.5f),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            btnAdicionar = BtnAcao("+ Adicionar", 234, CAmbar);
+            btnRemover = BtnAcao("- Remover", 354, CVermelho);
+            btnAdicionar.Click += btnAdicionar_Click;
+            btnRemover.Click += btnRemover_Click;
+            lblStatus = new Label
+            {
+                Text = "",
+                ForeColor = CDourado,
+                AutoSize = true,
+                Location = new Point(474, 26),
+                Font = new Font("Segoe UI Semibold", 8.5f)
+            };
+            pnlEdicao.Controls.AddRange(new Control[] { cmbMotoboy, btnAdicionar, btnRemover, lblStatus });
+            tbl.Controls.Add(pnlEdicao, 0, 3);
 
             MontarColunas();
         }
 
-        // desenha o cabeçalho manualmente no painel
         private void DesenharHeader(object sender, PaintEventArgs e)
         {
             var g = e.Graphics;
-            var bounds = pnlHeader.ClientRectangle;
-
-            // fundo
-            g.FillRectangle(new SolidBrush(Color.FromArgb(28, 22, 8)), bounds);
-            // linha âmbar no topo
-            g.FillRectangle(new SolidBrush(CAmbar), 0, 0, bounds.Width, 3);
-
-            using (var br = new SolidBrush(CDourado))
-            using (var fnt = new Font("Segoe UI Semibold", 9f))
+            var w = pnlHeader.Width;
+            var h = pnlHeader.Height;
+            g.FillRectangle(new SolidBrush(Color.FromArgb(28, 22, 8)), 0, 0, w, h);
+            using (var br = new LinearGradientBrush(new Point(0, 0), new Point(w, 0), CAmbar, CDourado))
+                g.FillRectangle(br, 0, 0, w, 3);
+            using (var txtBr = new SolidBrush(CDourado))
+            using (var fnt = new Font("Segoe UI Semibold", 10f))
             {
-                var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-
-                // coluna Nome
-                var rNome = new Rectangle(0, 3, COL_NOME, bounds.Height - 3);
-                fmt.Alignment = StringAlignment.Near;
-                g.DrawString("Motoboy", fnt, br, new Rectangle(rNome.X + 10, rNome.Y, rNome.Width, rNome.Height), fmt);
-                fmt.Alignment = StringAlignment.Center;
-
-                // separador
-                g.FillRectangle(new SolidBrush(Color.FromArgb(60, 40, 10)), COL_NOME, 3, 1, bounds.Height - 3);
-
-                // colunas dos dias
+                var fmtL = new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center };
+                var fmtC = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+                g.DrawString("Motoboy", fnt, txtBr, new Rectangle(10, 3, COL_NOME - 10, h - 3), fmtL);
+                g.FillRectangle(new SolidBrush(Color.FromArgb(60, 40, 10)), COL_NOME, 3, 1, h - 3);
                 for (int d = 0; d < DIAS.Length; d++)
                 {
                     int x = COL_NOME + 1 + d * COL_DIA;
-                    var rDia = new Rectangle(x, 3, COL_DIA, bounds.Height - 3);
-                    g.DrawString(DIAS[d], fnt, br, rDia, fmt);
-                    // separador
-                    g.FillRectangle(new SolidBrush(Color.FromArgb(60, 40, 10)), x + COL_DIA - 1, 3, 1, bounds.Height - 3);
+                    g.DrawString(DIAS[d], fnt, txtBr, new Rectangle(x, 3, COL_DIA, h - 3), fmtC);
+                    g.FillRectangle(new SolidBrush(Color.FromArgb(60, 40, 10)), x + COL_DIA - 1, 3, 1, h - 3);
                 }
             }
         }
@@ -193,9 +254,7 @@ namespace DevBurguer.Forms
         private void MontarColunas()
         {
             dgv.Columns.Clear();
-
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdMotoboy", Visible = false });
-
             var colNome = new DataGridViewTextBoxColumn
             {
                 HeaderText = "Motoboy",
@@ -206,11 +265,9 @@ namespace DevBurguer.Forms
             };
             colNome.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
             colNome.DefaultCellStyle.Padding = new Padding(10, 0, 0, 0);
-            colNome.DefaultCellStyle.Font = new Font("Segoe UI Semibold", 9.5f);
+            colNome.DefaultCellStyle.Font = new Font("Segoe UI Semibold", 11f);
             dgv.Columns.Add(colNome);
-
             foreach (var dia in DIAS)
-            {
                 dgv.Columns.Add(new DataGridViewCheckBoxColumn
                 {
                     HeaderText = dia,
@@ -222,7 +279,6 @@ namespace DevBurguer.Forms
                     IndeterminateValue = false,
                     Resizable = DataGridViewTriState.False
                 });
-            }
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -236,11 +292,10 @@ namespace DevBurguer.Forms
                 await Task.Run(() => { mb = BuscarMotoboys(); esc = BuscarEscala(); });
                 _motoboys = mb;
                 _naGrade.Clear();
+                dgv.Rows.Clear();
 
                 var idsEsc = new HashSet<int>();
                 foreach (DataRow r in esc.Rows) idsEsc.Add(Convert.ToInt32(r["IdMotoboy"]));
-
-                PreencherCombo();
 
                 foreach (var r in _motoboys.AsEnumerable()
                     .Where(r => idsEsc.Contains(Convert.ToInt32(r["Id"])))
@@ -254,12 +309,20 @@ namespace DevBurguer.Forms
                             dias.Add(Convert.ToInt32(er["DiaSemana"]));
                     AdicionarLinha(id, nm, dias);
                 }
+
+                PreencherCombo();
             }
             catch (Exception ex) { MessageBox.Show("Erro:\n" + ex.Message); }
         }
 
-        private DataTable BuscarMotoboys() { using (var c = Conexao.GetConnection()) { c.Open(); var da = new SqlDataAdapter("SELECT Id, Nome FROM Motoboys ORDER BY Nome", c); var dt = new DataTable(); da.Fill(dt); return dt; } }
-        private DataTable BuscarEscala() { using (var c = Conexao.GetConnection()) { c.Open(); var da = new SqlDataAdapter("SELECT IdMotoboy, DiaSemana FROM EscalaMotoboy WHERE Ativo=1", c); var dt = new DataTable(); da.Fill(dt); return dt; } }
+        private DataTable BuscarMotoboys()
+        {
+            using (var c = Conexao.GetConnection()) { c.Open(); var da = new SqlDataAdapter("SELECT Id, Nome FROM Motoboys ORDER BY Nome", c); var dt = new DataTable(); da.Fill(dt); return dt; }
+        }
+        private DataTable BuscarEscala()
+        {
+            using (var c = Conexao.GetConnection()) { c.Open(); var da = new SqlDataAdapter("SELECT IdMotoboy, DiaSemana FROM EscalaMotoboy WHERE Ativo=1", c); var dt = new DataTable(); da.Fill(dt); return dt; }
+        }
 
         private void PreencherCombo()
         {
@@ -306,10 +369,8 @@ namespace DevBurguer.Forms
                 {
                     int idM = Convert.ToInt32(row.Cells["IdMotoboy"].Value);
                     for (int d = 0; d < DIAS.Length; d++)
-                    {
                         if (Convert.ToBoolean(row.Cells["D_" + DIAS[d]].Value))
                             reg.Add((idM, d + 1));
-                    }
                 }
                 await Task.Run(() =>
                 {
@@ -323,7 +384,7 @@ namespace DevBurguer.Forms
                                 new SqlCommand("DELETE FROM EscalaMotoboy", conn, tr).ExecuteNonQuery();
                                 foreach (var (idM, dia) in reg)
                                 {
-                                    var cmd = new SqlCommand("INSERT INTO EscalaMotoboy(IdMotoboy,DiaSemana,Ativo) VALUES(@m,@d,1)", conn, tr);
+                                    var cmd = new SqlCommand("INSERT INTO EscalaMotoboy(IdMotoboy,DiaSemana,Ativo)VALUES(@m,@d,1)", conn, tr);
                                     cmd.Parameters.AddWithValue("@m", idM);
                                     cmd.Parameters.AddWithValue("@d", dia);
                                     cmd.ExecuteNonQuery();
@@ -339,9 +400,6 @@ namespace DevBurguer.Forms
             catch (Exception ex) { lblStatus.Text = "Erro: " + ex.Message; }
         }
 
-        // ═══════════════════════════════════════════════════════════
-        //  BOTÕES
-        // ═══════════════════════════════════════════════════════════
         private async void btnAdicionar_Click(object sender, EventArgs e)
         {
             if (cmbMotoboy.SelectedItem == null) return;
@@ -361,9 +419,7 @@ namespace DevBurguer.Forms
             string nm = row.Cells["Nome"].Value?.ToString() ?? "";
             dgv.Rows.Remove(row);
             _naGrade.Remove(id);
-            var itens = cmbMotoboy.Items.Cast<CI>().ToList();
-            itens.Add(new CI(id, nm));
-            itens = itens.OrderBy(x => x.Nome).ToList();
+            var itens = cmbMotoboy.Items.Cast<CI>().Concat(new[] { new CI(id, nm) }).OrderBy(x => x.Nome).ToList();
             cmbMotoboy.Items.Clear();
             foreach (var i in itens) cmbMotoboy.Items.Add(i);
             if (cmbMotoboy.Items.Count > 0) cmbMotoboy.SelectedIndex = 0;
@@ -381,11 +437,6 @@ namespace DevBurguer.Forms
             return b;
         }
 
-        private class CI
-        {
-            public int Id; public string Nome;
-            public CI(int id, string nome) { Id = id; Nome = nome; }
-            public override string ToString() => Nome;
-        }
+        private class CI { public int Id; public string Nome; public CI(int id, string nome) { Id = id; Nome = nome; } public override string ToString() => Nome; }
     }
 }
