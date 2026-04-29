@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace DevBurguer.Models
 {
@@ -12,5 +12,6 @@ namespace DevBurguer.Models
         public decimal ValorChegada { get; set; }
         public decimal TotalPagar { get; set; }
         public DateTime DataPagamento { get; set; }
+        public string Comentario { get; set; } // ✅ novo campo
     }
 }
