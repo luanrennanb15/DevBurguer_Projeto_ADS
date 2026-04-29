@@ -1,5 +1,5 @@
 # DevBurguer_Projeto_ADS
-Criando um sistema de lanchonete para apresentar no final do semestre da faculdade.
+Criando um sistema de lanchonete para apresentar no final do semestre da faculdade. \n
 Resumo de programa.
 C# · Windows Forms · .NET Framework 4.8 --> Em andamento
 Telas: Login :white_check_mark:
