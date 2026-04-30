@@ -2,7 +2,6 @@ C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\bin\Debug\DevBurgu
 C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\bin\Debug\DevBurguer.exe
 C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\bin\Debug\DevBurguer.pdb
 C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\obj\Debug\DevBurguer.csproj.AssemblyReference.cache
-C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\obj\Debug\DevBurguer.Form1.resources
 C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\obj\Debug\DevBurguer.Properties.Resources.resources
 C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\obj\Debug\DevBurguer.csproj.GenerateResource.cache
 C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\obj\Debug\DevBurguer.csproj.CoreCompileInputs.cache

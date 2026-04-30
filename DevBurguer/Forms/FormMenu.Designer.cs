@@ -31,6 +31,7 @@ namespace DevBurguer
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMenu));
+            this.btnDashboard = new System.Windows.Forms.Button();
             this.btnClientes = new System.Windows.Forms.Button();
             this.btnProdutos = new System.Windows.Forms.Button();
             this.btnPedidos = new System.Windows.Forms.Button();
@@ -38,20 +39,31 @@ namespace DevBurguer
             this.btnSair = new System.Windows.Forms.Button();
             this.btnRelatorioProdutos = new System.Windows.Forms.Button();
             this.panelMenu = new System.Windows.Forms.Panel();
+            this.btnProducao = new System.Windows.Forms.Button();
             this.btnPagmentoDeMotoboy = new System.Windows.Forms.Button();
             this.btnEscalaMotoboy = new System.Windows.Forms.Button();
             this.btnCadastroDeMotoboy = new System.Windows.Forms.Button();
             this.btnFaturamentoMotoboy = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
             this.panelConteudo = new System.Windows.Forms.Panel();
-            this.btnProducao = new System.Windows.Forms.Button();
             this.panelMenu.SuspendLayout();
             this.SuspendLayout();
+            // 
+            // btnDashboard
+            // 
+            this.btnDashboard.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDashboard.Location = new System.Drawing.Point(29, 23);
+            this.btnDashboard.Name = "btnDashboard";
+            this.btnDashboard.Size = new System.Drawing.Size(192, 54);
+            this.btnDashboard.TabIndex = 20;
+            this.btnDashboard.Text = "Dashboard";
+            this.btnDashboard.UseVisualStyleBackColor = true;
+            this.btnDashboard.Click += new System.EventHandler(this.btnDashboard_Click);
             // 
             // btnClientes
             // 
             this.btnClientes.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnClientes.Location = new System.Drawing.Point(29, 510);
+            this.btnClientes.Location = new System.Drawing.Point(29, 569);
             this.btnClientes.Name = "btnClientes";
             this.btnClientes.Size = new System.Drawing.Size(192, 54);
             this.btnClientes.TabIndex = 1;
@@ -62,7 +74,7 @@ namespace DevBurguer
             // btnProdutos
             // 
             this.btnProdutos.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnProdutos.Location = new System.Drawing.Point(29, 449);
+            this.btnProdutos.Location = new System.Drawing.Point(29, 508);
             this.btnProdutos.Name = "btnProdutos";
             this.btnProdutos.Size = new System.Drawing.Size(192, 54);
             this.btnProdutos.TabIndex = 0;
@@ -73,7 +85,7 @@ namespace DevBurguer
             // btnPedidos
             // 
             this.btnPedidos.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnPedidos.Location = new System.Drawing.Point(29, 22);
+            this.btnPedidos.Location = new System.Drawing.Point(29, 83);
             this.btnPedidos.Name = "btnPedidos";
             this.btnPedidos.Size = new System.Drawing.Size(192, 54);
             this.btnPedidos.TabIndex = 3;
@@ -84,7 +96,7 @@ namespace DevBurguer
             // btnFaturamento
             // 
             this.btnFaturamento.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnFaturamento.Location = new System.Drawing.Point(29, 205);
+            this.btnFaturamento.Location = new System.Drawing.Point(29, 264);
             this.btnFaturamento.Name = "btnFaturamento";
             this.btnFaturamento.Size = new System.Drawing.Size(192, 54);
             this.btnFaturamento.TabIndex = 5;
@@ -106,7 +118,7 @@ namespace DevBurguer
             // btnRelatorioProdutos
             // 
             this.btnRelatorioProdutos.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRelatorioProdutos.Location = new System.Drawing.Point(29, 144);
+            this.btnRelatorioProdutos.Location = new System.Drawing.Point(29, 203);
             this.btnRelatorioProdutos.Name = "btnRelatorioProdutos";
             this.btnRelatorioProdutos.Size = new System.Drawing.Size(192, 54);
             this.btnRelatorioProdutos.TabIndex = 4;
@@ -119,6 +131,7 @@ namespace DevBurguer
             this.panelMenu.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.panelMenu.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.panelMenu.Controls.Add(this.btnProducao);
+            this.panelMenu.Controls.Add(this.btnDashboard);
             this.panelMenu.Controls.Add(this.btnFaturamento);
             this.panelMenu.Controls.Add(this.btnPagmentoDeMotoboy);
             this.panelMenu.Controls.Add(this.btnEscalaMotoboy);
@@ -136,10 +149,21 @@ namespace DevBurguer
             this.panelMenu.Size = new System.Drawing.Size(250, 861);
             this.panelMenu.TabIndex = 0;
             // 
+            // btnProducao
+            // 
+            this.btnProducao.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnProducao.Location = new System.Drawing.Point(29, 143);
+            this.btnProducao.Name = "btnProducao";
+            this.btnProducao.Size = new System.Drawing.Size(192, 54);
+            this.btnProducao.TabIndex = 10;
+            this.btnProducao.Text = "Pedidos em Produção";
+            this.btnProducao.UseVisualStyleBackColor = true;
+            this.btnProducao.Click += new System.EventHandler(this.btnProducao_Click);
+            // 
             // btnPagmentoDeMotoboy
             // 
             this.btnPagmentoDeMotoboy.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnPagmentoDeMotoboy.Location = new System.Drawing.Point(29, 266);
+            this.btnPagmentoDeMotoboy.Location = new System.Drawing.Point(29, 325);
             this.btnPagmentoDeMotoboy.Name = "btnPagmentoDeMotoboy";
             this.btnPagmentoDeMotoboy.Size = new System.Drawing.Size(192, 54);
             this.btnPagmentoDeMotoboy.TabIndex = 7;
@@ -150,7 +174,7 @@ namespace DevBurguer
             // btnEscalaMotoboy
             // 
             this.btnEscalaMotoboy.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnEscalaMotoboy.Location = new System.Drawing.Point(29, 388);
+            this.btnEscalaMotoboy.Location = new System.Drawing.Point(29, 447);
             this.btnEscalaMotoboy.Name = "btnEscalaMotoboy";
             this.btnEscalaMotoboy.Size = new System.Drawing.Size(192, 54);
             this.btnEscalaMotoboy.TabIndex = 9;
@@ -161,7 +185,7 @@ namespace DevBurguer
             // btnCadastroDeMotoboy
             // 
             this.btnCadastroDeMotoboy.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnCadastroDeMotoboy.Location = new System.Drawing.Point(29, 571);
+            this.btnCadastroDeMotoboy.Location = new System.Drawing.Point(29, 630);
             this.btnCadastroDeMotoboy.Name = "btnCadastroDeMotoboy";
             this.btnCadastroDeMotoboy.Size = new System.Drawing.Size(192, 54);
             this.btnCadastroDeMotoboy.TabIndex = 2;
@@ -172,7 +196,7 @@ namespace DevBurguer
             // btnFaturamentoMotoboy
             // 
             this.btnFaturamentoMotoboy.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnFaturamentoMotoboy.Location = new System.Drawing.Point(29, 327);
+            this.btnFaturamentoMotoboy.Location = new System.Drawing.Point(29, 386);
             this.btnFaturamentoMotoboy.Name = "btnFaturamentoMotoboy";
             this.btnFaturamentoMotoboy.Size = new System.Drawing.Size(192, 54);
             this.btnFaturamentoMotoboy.TabIndex = 6;
@@ -199,17 +223,6 @@ namespace DevBurguer
             this.panelConteudo.Name = "panelConteudo";
             this.panelConteudo.Size = new System.Drawing.Size(1334, 661);
             this.panelConteudo.TabIndex = 1;
-            // 
-            // btnProducao
-            // 
-            this.btnProducao.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnProducao.Location = new System.Drawing.Point(29, 83);
-            this.btnProducao.Name = "btnProducao";
-            this.btnProducao.Size = new System.Drawing.Size(192, 54);
-            this.btnProducao.TabIndex = 10;
-            this.btnProducao.Text = "Pedidos em Produção";
-            this.btnProducao.UseVisualStyleBackColor = true;
-            this.btnProducao.Click += new System.EventHandler(this.btnProducao_Click);
             // 
             // FormMenu
             // 
@@ -248,6 +261,7 @@ namespace DevBurguer
         private System.Windows.Forms.Button btnCadastroDeMotoboy;
         private System.Windows.Forms.Button btnFaturamentoMotoboy;
         private System.Windows.Forms.Button btnEscalaMotoboy;
+        private System.Windows.Forms.Button btnDashboard;
         private System.Windows.Forms.Button btnProducao;
     }
 }
