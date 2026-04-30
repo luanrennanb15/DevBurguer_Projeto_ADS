@@ -26,6 +26,7 @@ namespace DevBurguer.Forms
 
         // labels dos cards
         private Label _lblFaturamento, _lblPedidos, _lblTicket, _lblEmProducao;
+        private Label _lblFinalizados;
         private Label _lblMaisVendido, _lblMotoboys, _lblCancelados, _lblHora;
         private System.Windows.Forms.Timer _timerRelogio;
 
@@ -179,7 +180,7 @@ namespace DevBurguer.Forms
             var c5 = CriarCard("MAIS VENDIDO HOJE", "-", CAmbar, "", out _lblMaisVendido);
             var c6 = CriarCard("MOTOBOYS NA ESCALA", "-", CAzul, "", out _lblMotoboys);
             var c7 = CriarCard("PEDIDOS CANCELADOS", "-", Color.FromArgb(180, 50, 50), "#", out _lblCancelados);
-            var c8 = CriarCard("PEDIDOS FINALIZADOS", "-", CVerde, "#", out Label _);
+            var c8 = CriarCard("PEDIDOS FINALIZADOS", "-", CVerde, "#", out _lblFinalizados);
 
             gridCards.Controls.Add(c5, 0, 1);
             gridCards.Controls.Add(c6, 1, 1);
@@ -335,6 +336,7 @@ namespace DevBurguer.Forms
                 _lblMaisVendido.Text = maisV;
                 _lblMotoboys.Text = motos.ToString();
                 _lblCancelados.Text = cancel.ToString();
+                if (_lblFinalizados != null) _lblFinalizados.Text = final.ToString();
             }
             catch (Exception ex)
             {
