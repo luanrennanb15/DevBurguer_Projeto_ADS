@@ -12,7 +12,7 @@ Escala de motoboy :white_check_mark:<br>
 Cadastro de produtos :white_check_mark:<br>
 Cadastro de clientes :white_check_mark:<br>
 Cadastro de motoboy :white_check_mark:<br>
-Pedidos em produção<br>
+Pedidos em produção:white_check_mark:<br>
 Aceitar pedidos pelo site<br>
 
 <br>
