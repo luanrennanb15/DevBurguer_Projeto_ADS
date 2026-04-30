@@ -10,7 +10,11 @@ using DevBurguer.Banco;
 
 namespace DevBurguer.Forms
 {
-    public partial class FormDashboard : Form
+    /// <summary>
+    /// Dashboard principal — herda de FormBase e implementa CarregarAsync().
+    /// Demonstra polimorfismo: sobrescreve o método abstrato da classe base.
+    /// </summary>
+    public partial class FormDashboard : FormBase
     {
         // ── paleta ────────────────────────────────────────────────
         private readonly Color CDark = Color.FromArgb(16, 16, 22);
@@ -41,8 +45,6 @@ namespace DevBurguer.Forms
             this.ResumeLayout(false);
 
             ConstruirLayout();
-            this.Load += async (s, e) => await CarregarAsync();
-
             // relógio ao vivo
             _timerRelogio = new System.Windows.Forms.Timer { Interval = 1000 };
             _timerRelogio.Tick += (s, e) => AtualizarRelogio();
@@ -254,7 +256,11 @@ namespace DevBurguer.Forms
         // ═══════════════════════════════════════════════════════════
         //  DADOS
         // ═══════════════════════════════════════════════════════════
-        private async Task CarregarAsync()
+        /// <summary>
+        /// Implementação concreta do método abstrato de FormBase.
+        /// Carrega todos os indicadores do dia do banco de dados.
+        /// </summary>
+        protected override async Task CarregarAsync()
         {
             try
             {
@@ -340,8 +346,7 @@ namespace DevBurguer.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao carregar dashboard:\n" + ex.Message,
-                    "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                TratarErro(ex, "FormDashboard.CarregarAsync");
             }
         }
 

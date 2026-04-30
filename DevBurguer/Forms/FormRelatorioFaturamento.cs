@@ -9,7 +9,10 @@ using System.Windows.Forms.DataVisualization.Charting;
 
 namespace DevBurguer.Forms
 {
-    public partial class FormRelatorioFaturamento : Form
+    /// <summary>
+    /// Relatório de faturamento — herda de FormBase, demonstra polimorfismo.
+    /// </summary>
+    public partial class FormRelatorioFaturamento : FormBase
     {
         private const int AltTopo = 46;
         private const int AltCards = 90;
@@ -173,6 +176,12 @@ namespace DevBurguer.Forms
         private void FiltrarHoje() { dtpDe.Value = DateTime.Today; dtpAte.Value = DateTime.Today; Carregar(DateTime.Today, DateTime.Today.AddDays(1).AddTicks(-1)); }
         private void FiltrarSemana() { dtpDe.Value = DateTime.Today.AddDays(-6); dtpAte.Value = DateTime.Today; Carregar(dtpDe.Value.Date, DateTime.Today.AddDays(1).AddTicks(-1)); }
         private void FiltrarMes() { dtpDe.Value = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1); dtpAte.Value = DateTime.Today; Carregar(dtpDe.Value.Date, DateTime.Today.AddDays(1).AddTicks(-1)); }
+
+        /// <summary>Implementação concreta de CarregarAsync da FormBase.</summary>
+        protected override async System.Threading.Tasks.Task CarregarAsync()
+        {
+            await System.Threading.Tasks.Task.CompletedTask; // carregamento via filtros
+        }
 
         private void Carregar(DateTime inicio, DateTime fim)
         {

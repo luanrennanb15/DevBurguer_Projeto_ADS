@@ -58,6 +58,12 @@
     <Compile Include="Data\ProdutoRepository.cs" />
     <Compile Include="Data\RelatorioService.cs" />
     <Compile Include="Data\SqlLoader.cs" />
+    <Compile Include="Forms\FormBase.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FormBase.Designer.cs">
+      <DependentUpon>FormBase.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\FormClientes.cs">
       <SubType>Form</SubType>
     </Compile>
