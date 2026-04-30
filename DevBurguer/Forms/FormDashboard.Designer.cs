@@ -2,43 +2,22 @@ namespace DevBurguer.Forms
 {
     partial class FormDashboard
     {
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
-            {
                 components.Dispose();
-            }
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
-
-        /// <summary>
-        /// Required method for Designer support - do not modify the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
             this.SuspendLayout();
-            // 
-            // FormDashboard
-            // 
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(1334, 661);
             this.Name = "FormDashboard";
-            this.Text = "Dashboard";
-            this.Load += new System.EventHandler(this.FormDashboard_Load);
+            this.Text = "Dashboard - DevBurguer";
             this.ResumeLayout(false);
-
         }
-
-        #endregion
     }
 }

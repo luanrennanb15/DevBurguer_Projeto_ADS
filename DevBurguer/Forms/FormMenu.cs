@@ -1,5 +1,4 @@
-﻿using DevBurguer.Banco;
-using DevBurguer.Forms;
+﻿using DevBurguer.Forms;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
@@ -17,8 +16,9 @@ namespace DevBurguer
 
         private void FormMenu_Load_1(object sender, EventArgs e)
         {
-            AtivarBotao(btnPedidos);
-            AbrirForm(new FormPedidos());
+            // ✅ abre o Dashboard por padrão ao entrar no sistema
+            AtivarBotao(btnDashboard);
+            AbrirForm(new FormDashboard());
         }
 
         private void AbrirForm(Form novoForm)
@@ -61,28 +61,18 @@ namespace DevBurguer
             botao.ForeColor = Color.White;
         }
 
+        // ── navegação ─────────────────────────────────────────────
+        private void btnDashboard_Click(object sender, EventArgs e) { AtivarBotao(btnDashboard); AbrirForm(new FormDashboard()); }
         private void btnProdutos_Click(object sender, EventArgs e) { AtivarBotao(btnProdutos); AbrirForm(new FormProdutos()); }
         private void btnClientes_Click(object sender, EventArgs e) { AtivarBotao(btnClientes); AbrirForm(new FormClientes()); }
         private void btnPedidos_Click(object sender, EventArgs e) { AtivarBotao(btnPedidos); AbrirForm(new FormPedidos()); }
+        private void btnProducao_Click(object sender, EventArgs e) { AtivarBotao(btnProducao); AbrirForm(new FormProducao()); }
         private void btnRelatorioProdutos_Click(object sender, EventArgs e) { AtivarBotao(btnRelatorioProdutos); AbrirForm(new FormMaisVendidos()); }
         private void btnFaturamento_Click(object sender, EventArgs e) { AtivarBotao(btnFaturamento); AbrirForm(new FormRelatorioFaturamento()); }
         private void btnFaturamentoMotoboy_Click(object sender, EventArgs e) { AtivarBotao(btnFaturamentoMotoboy); AbrirForm(new FormFaturamentoMotoboy()); }
         private void btnCadastroDeMotoboy_Click(object sender, EventArgs e) { AtivarBotao(btnCadastroDeMotoboy); AbrirForm(new FormMotoboy()); }
         private void btnPagamentoDeMotoboy_Click(object sender, EventArgs e) { AtivarBotao(btnPagmentoDeMotoboy); AbrirForm(new FormPagamentoMotoboy()); }
-
-        // ✅ NOVO — Escala de Motoboy
-        private void btnEscalaMotoboy_Click(object sender, EventArgs e)
-        {
-            AtivarBotao(btnEscalaMotoboy);
-            AbrirForm(new FormEscalaMotoboy());
-        }
-
-        // ✅ NOVO — Pedidos em Producao
-        private void btnProducao_Click(object sender, EventArgs e)
-        {
-            AtivarBotao(btnProducao);
-            AbrirForm(new DevBurguer.Forms.FormProducao());
-        }
+        private void btnEscalaMotoboy_Click(object sender, EventArgs e) { AtivarBotao(btnEscalaMotoboy); AbrirForm(new FormEscalaMotoboy()); }
 
         private void btnSair_Click(object sender, EventArgs e)
         {
