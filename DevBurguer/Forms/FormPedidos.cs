@@ -24,7 +24,6 @@ namespace DevBurguer
             rbRetirada.CheckedChanged += rbRetirada_CheckedChanged;
             txtPreco.ReadOnly = true;
             txtPreco.BackColor = System.Drawing.Color.LightGray;
-
             await CarregarProdutosAsync();
             await CarregarClientesAsync();
             await CarregarAdicionaisAsync();
@@ -34,17 +33,14 @@ namespace DevBurguer
         {
             var repo = new DevBurguer.Data.PedidoRepository();
             var dt = await repo.GetAdicionaisAsync();
-
             clbAdicionais.DataSource = dt;
             clbAdicionais.DisplayMember = "Nome";
             clbAdicionais.ValueMember = "Id";
-
             clbAdicionais.Format += (s, e) =>
             {
                 DataRowView row = (DataRowView)e.ListItem;
                 e.Value = $"{row["Nome"]} - R$ {row["Preco"]}";
             };
-
             clbAdicionais.ItemCheck += clbAdicionais_ItemCheck;
         }
 
@@ -55,21 +51,16 @@ namespace DevBurguer
 
         private void CalcularPrecoComAdicionais()
         {
-            if (cmbProdutos.SelectedValue == null || _produtosCache == null)
-                return;
-
+            if (cmbProdutos.SelectedValue == null || _produtosCache == null) return;
             var row = _produtosCache.Select($"Id = {cmbProdutos.SelectedValue}").FirstOrDefault();
             if (row == null) return;
-
             decimal precoBase = Convert.ToDecimal(row["Preco"]);
             decimal adicionais = 0;
-
             foreach (var item in clbAdicionais.CheckedItems)
             {
                 var drv = item as DataRowView;
                 adicionais += Convert.ToDecimal(drv["Preco"]);
             }
-
             txtPreco.Text = (precoBase + adicionais).ToString("F2");
         }
 
@@ -77,7 +68,6 @@ namespace DevBurguer
         {
             var repo = new DevBurguer.Data.PedidoRepository();
             _produtosCache = await repo.GetProdutosSelectAsync();
-
             cmbProdutos.DataSource = _produtosCache;
             cmbProdutos.DisplayMember = "Nome";
             cmbProdutos.ValueMember = "Id";
@@ -88,7 +78,6 @@ namespace DevBurguer
         {
             var repo = new DevBurguer.Data.PedidoRepository();
             var dt = await repo.GetClientesSelectAsync();
-
             cmbClientes.DataSource = dt;
             cmbClientes.DisplayMember = "Nome";
             cmbClientes.ValueMember = "Id";
@@ -97,37 +86,19 @@ namespace DevBurguer
 
         private void cmbProdutos_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (cmbProdutos.SelectedValue == null || _produtosCache == null)
-                return;
-
-            if (!int.TryParse(cmbProdutos.SelectedValue.ToString(), out int id))
-                return;
-
+            if (cmbProdutos.SelectedValue == null || _produtosCache == null) return;
+            if (!int.TryParse(cmbProdutos.SelectedValue.ToString(), out int id)) return;
             var row = _produtosCache.Select($"Id = {id}").FirstOrDefault();
-            if (row != null)
-            {
-                txtIngredientes.Text = row["Ingredientes"].ToString();
-                CalcularPrecoComAdicionais();
-            }
+            if (row != null) { txtIngredientes.Text = row["Ingredientes"].ToString(); CalcularPrecoComAdicionais(); }
         }
 
         private void CalcularTotal()
         {
             decimal total = 0;
-
             foreach (DataGridViewRow row in dgvItens.Rows)
-            {
                 if (row.Cells["Preco"].Value != null && row.Cells["Quantidade"].Value != null)
-                {
-                    decimal preco = Convert.ToDecimal(row.Cells["Preco"].Value);
-                    int qtd = Convert.ToInt32(row.Cells["Quantidade"].Value);
-                    total += preco * qtd;
-                }
-            }
-
-            if (rbEntrega.Checked)
-                total += TAXA_ENTREGA;
-
+                    total += Convert.ToDecimal(row.Cells["Preco"].Value) * Convert.ToInt32(row.Cells["Quantidade"].Value);
+            if (rbEntrega.Checked) total += TAXA_ENTREGA;
             lblTotal.Text = total.ToString("F2");
         }
 
@@ -136,100 +107,49 @@ namespace DevBurguer
 
         private void btnAdicionar_Click(object sender, EventArgs e)
         {
-            if (cmbProdutos.SelectedValue == null)
-            {
-                MessageBox.Show("Selecione um produto!");
-                return;
-            }
-
-            // ✅ BUG 6 CORRIGIDO: TryParse evita exceção se usuário digitar letras ou deixar vazio
+            if (cmbProdutos.SelectedValue == null) { MessageBox.Show("Selecione um produto!"); return; }
             if (!int.TryParse(txtQuantidade.Text, out int quantidade) || quantidade <= 0)
-            {
-                MessageBox.Show("Quantidade inválida! Digite um número maior que zero.");
-                return;
-            }
+            { MessageBox.Show("Quantidade invalida!"); return; }
 
             string adicionaisTexto = string.Join(", ",
-                clbAdicionais.CheckedItems
-                    .Cast<DataRowView>()
-                    .Select(x => x["Nome"].ToString())
-            );
+                clbAdicionais.CheckedItems.Cast<DataRowView>().Select(x => x["Nome"].ToString()));
 
             for (int i = 0; i < quantidade; i++)
-            {
-                dgvItens.Rows.Add(
-                    cmbProdutos.Text,
-                    1,
-                    decimal.Parse(txtPreco.Text),
-                    txtObservacao.Text,
-                    adicionaisTexto,
-                    cmbProdutos.SelectedValue
-                );
-            }
+                dgvItens.Rows.Add(cmbProdutos.Text, 1, decimal.Parse(txtPreco.Text),
+                    txtObservacao.Text, adicionaisTexto, cmbProdutos.SelectedValue);
 
-            for (int i = 0; i < clbAdicionais.Items.Count; i++)
-                clbAdicionais.SetItemChecked(i, false);
-
-            txtQuantidade.Clear();
-            txtObservacao.Clear();
+            for (int i = 0; i < clbAdicionais.Items.Count; i++) clbAdicionais.SetItemChecked(i, false);
+            txtQuantidade.Clear(); txtObservacao.Clear();
             CalcularTotal();
         }
 
         private void btnRemover_Click(object sender, EventArgs e)
         {
-            if (dgvItens.SelectedRows.Count > 0)
-            {
-                dgvItens.Rows.RemoveAt(dgvItens.SelectedRows[0].Index);
-                CalcularTotal();
-            }
-            else
-            {
-                MessageBox.Show("Selecione um item!");
-            }
+            if (dgvItens.SelectedRows.Count > 0) { dgvItens.Rows.RemoveAt(dgvItens.SelectedRows[0].Index); CalcularTotal(); }
+            else MessageBox.Show("Selecione um item!");
         }
 
         private async void btnFinalizar_Click(object sender, EventArgs e)
         {
-            if (dgvItens.Rows.Count == 0)
-            {
-                MessageBox.Show("Adicione itens!");
-                return;
-            }
-
-            if (cmbClientes.SelectedValue == null)
-            {
-                MessageBox.Show("Selecione cliente!");
-                return;
-            }
-
-            if (!rbEntrega.Checked && !rbRetirada.Checked)
-            {
-                MessageBox.Show("Selecione Entrega ou Retirada!");
-                return;
-            }
-
-            if (!decimal.TryParse(lblTotal.Text, out decimal total))
-            {
-                MessageBox.Show("Erro no total!");
-                return;
-            }
+            if (dgvItens.Rows.Count == 0) { MessageBox.Show("Adicione itens!"); return; }
+            if (cmbClientes.SelectedValue == null) { MessageBox.Show("Selecione cliente!"); return; }
+            if (!rbEntrega.Checked && !rbRetirada.Checked) { MessageBox.Show("Selecione Entrega ou Retirada!"); return; }
+            if (!decimal.TryParse(lblTotal.Text, out decimal total)) { MessageBox.Show("Erro no total!"); return; }
 
             int idCliente = Convert.ToInt32(cmbClientes.SelectedValue);
+            string tipoEntrega = rbEntrega.Checked ? "Entrega" : "Retirada"; // ✅ captura tipo
             var itens = new List<OrderItem>();
 
             foreach (DataGridViewRow row in dgvItens.Rows)
-            {
                 if (row.Cells["IdProduto"].Value != null)
-                {
                     itens.Add(new OrderItem
                     {
                         IdProduto = Convert.ToInt32(row.Cells["IdProduto"].Value),
                         Quantidade = Convert.ToInt32(row.Cells["Quantidade"].Value),
                         Observacao = row.Cells["Observacao"].Value?.ToString(),
+                        Adicionais = row.Cells["Adicionais"].Value?.ToString(),
                         Preco = Convert.ToDecimal(row.Cells["Preco"].Value)
                     });
-                }
-            }
 
             string formaPagamento = "";
             decimal troco = 0;
@@ -237,18 +157,9 @@ namespace DevBurguer
             if (rbEntrega.Checked)
             {
                 var tela = new DevBurguer.Forms.FormEnderecoEntrega(idCliente);
-
-                // ✅ BUG 7 CORRIGIDO: SetTotal chamado ANTES do ShowDialog
-                // ShowDialog dispara o Load imediatamente, então o total precisa estar definido antes
                 tela.SetTotal(total);
                 tela.ShowDialog();
-
-                if (!tela.PedidoConfirmado)
-                {
-                    MessageBox.Show("Pedido cancelado!");
-                    return;
-                }
-
+                if (!tela.PedidoConfirmado) { MessageBox.Show("Pedido cancelado!"); return; }
                 formaPagamento = tela.FormaPagamento;
                 troco = tela.TrocoPara;
             }
@@ -257,21 +168,14 @@ namespace DevBurguer
             {
                 var tela = new DevBurguer.Forms.FormPagamento();
                 tela.ShowDialog();
-
-                if (!tela.PagamentoConfirmado)
-                {
-                    MessageBox.Show("Pedido cancelado!");
-                    return;
-                }
-
+                if (!tela.PagamentoConfirmado) { MessageBox.Show("Pedido cancelado!"); return; }
                 formaPagamento = tela.FormaPagamento;
             }
 
             var repo = new DevBurguer.Data.PedidoRepository();
-            await repo.InsertPedidoAsync(idCliente, total, itens);
+            await repo.InsertPedidoAsync(idCliente, total, itens, tipoEntrega, troco); // ✅ envia tipo e troco
 
             MessageBox.Show($"Pedido feito!\nPagamento: {formaPagamento}\nTroco Para: {troco:F2}");
-
             dgvItens.Rows.Clear();
             lblTotal.Text = "0,00";
         }

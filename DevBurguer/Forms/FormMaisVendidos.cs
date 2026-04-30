@@ -30,6 +30,7 @@ namespace DevBurguer.Forms
         private Button btnHoje, btnSemana, btnMes, btnBuscar;
         private Label lblCard1, lblCard2, lblCard3, lblCardReceita;
         private Label lblLoading; // ✅ indicador de carregamento
+        private bool _carregando = false;
 
         private readonly Color CVerde = Color.FromArgb(32, 178, 100);
         private readonly Color COuro = Color.FromArgb(255, 200, 50);
@@ -56,6 +57,8 @@ namespace DevBurguer.Forms
             {
                 ConstruirCards();
                 await FiltrarMesAsync();
+                // ✅ escuta pedidos finalizados no kanban
+                PedidoEventos.PedidoFinalizado += async (sender, args) => await FiltrarMesAsync();
             };
         }
 
@@ -78,7 +81,7 @@ namespace DevBurguer.Forms
             if (carregando)
             {
                 grid.DataSource = null;
-                chart.Series["Qtd"].Points.Clear();
+                if (chart?.Series["Qtd"] != null) chart.Series["Qtd"].Points.Clear();
             }
         }
 
@@ -214,6 +217,8 @@ namespace DevBurguer.Forms
         // ═══════════════════════════════════════════════════════════
         private async Task CarregarAsync(DateTime inicio, DateTime fim)
         {
+            if (_carregando) return;
+            _carregando = true;
             SetCarregando(true);
             try
             {
@@ -228,7 +233,8 @@ namespace DevBurguer.Forms
                     FROM ItensPedido i
                     JOIN Pedidos  ped ON ped.Id = i.IdPedido
                     JOIN Produtos p   ON p.Id   = i.IdProduto
-                    WHERE ped.Data BETWEEN @di AND @df
+                    WHERE ISNULL(ped.Data, GETDATE()) BETWEEN @di AND @df
+                      AND ISNULL(ped.Status, '') <> 'Cancelado'
                     GROUP BY p.Nome, p.Categoria
                     ORDER BY Qtd DESC", top);
 
@@ -269,7 +275,7 @@ namespace DevBurguer.Forms
                 if (grid.Columns["Receita"] != null) grid.Columns["Receita"].DefaultCellStyle.Format = "C2";
                 if (grid.Columns["#"] != null) { grid.Columns["#"].Width = 40; grid.Columns["#"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None; }
 
-                chart.Series["Qtd"].Points.Clear();
+                if (chart?.Series["Qtd"] != null) chart.Series["Qtd"].Points.Clear();
                 foreach (var r in dt.AsEnumerable().Take(5).Reverse().ToList())
                 {
                     string nome = r["Produto"].ToString();
@@ -288,6 +294,7 @@ namespace DevBurguer.Forms
             finally
             {
                 SetCarregando(false);
+                _carregando = false;
             }
         }
 

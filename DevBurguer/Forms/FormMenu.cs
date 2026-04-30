@@ -77,6 +77,13 @@ namespace DevBurguer
             AbrirForm(new FormEscalaMotoboy());
         }
 
+        // ✅ NOVO — Pedidos em Producao
+        private void btnProducao_Click(object sender, EventArgs e)
+        {
+            AtivarBotao(btnProducao);
+            AbrirForm(new DevBurguer.Forms.FormProducao());
+        }
+
         private void btnSair_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show("Deseja sair do sistema?", "Confirmação",
