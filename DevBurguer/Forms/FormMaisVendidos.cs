@@ -5,8 +5,10 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using DevBurguer.Banco;
 
 namespace DevBurguer.Forms
 {
@@ -27,6 +29,8 @@ namespace DevBurguer.Forms
         private NumericUpDown nudTop;
         private Button btnHoje, btnSemana, btnMes, btnBuscar;
         private Label lblCard1, lblCard2, lblCard3, lblCardReceita;
+        private Label lblLoading; // ✅ indicador de carregamento
+        private bool _carregando = false;
 
         private readonly Color CVerde = Color.FromArgb(32, 178, 100);
         private readonly Color COuro = Color.FromArgb(255, 200, 50);
@@ -47,19 +51,38 @@ namespace DevBurguer.Forms
             this.ResumeLayout(false);
 
             ConstruirLayout();
-            this.Load += (s, e) => { ConstruirCards(); FiltrarMes(); };
+
+            // ✅ Load agora usa async — não trava a UI
+            this.Load += async (s, e) =>
+            {
+                ConstruirCards();
+                await FiltrarMesAsync();
+                // ✅ escuta pedidos finalizados no kanban
+                PedidoEventos.PedidoFinalizado += async (sender, args) => await FiltrarMesAsync();
+            };
         }
 
-        // ── Ativa DoubleBuffer no DataGridView via reflection ─────
         private static void AtivarDoubleBuffer(DataGridView dgv)
         {
-            try
+            try { typeof(DataGridView).GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(dgv, true, null); } catch { }
+        }
+
+        // ✅ mostra/esconde o loading e desabilita botoes durante a query
+        private void SetCarregando(bool carregando)
+        {
+            lblLoading.Visible = carregando;
+            btnHoje.Enabled = !carregando;
+            btnSemana.Enabled = !carregando;
+            btnMes.Enabled = !carregando;
+            btnBuscar.Enabled = !carregando;
+            nudTop.Enabled = !carregando;
+            dtpDe.Enabled = !carregando;
+            dtpAte.Enabled = !carregando;
+            if (carregando)
             {
-                typeof(DataGridView)
-                    .GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic)
-                    ?.SetValue(dgv, true, null);
+                grid.DataSource = null;
+                if (chart?.Series["Qtd"] != null) chart.Series["Qtd"].Points.Clear();
             }
-            catch { }
         }
 
         private void ConstruirLayout()
@@ -67,7 +90,7 @@ namespace DevBurguer.Forms
             this.BackColor = CDark;
             this.Font = new Font("Segoe UI", 9f);
 
-            // ── GRID Bottom — declarado PRIMEIRO ──────────────────
+            // GRID Bottom — declarado PRIMEIRO
             grid = new DataGridView
             {
                 Dock = DockStyle.Bottom,
@@ -96,39 +119,39 @@ namespace DevBurguer.Forms
             grid.ColumnHeadersHeight = 32;
             grid.RowTemplate.Height = 32;
             grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(20, 28, 20);
-
-            // ✅ FIX: DoubleBuffer via reflection + Invalidate no scroll
             AtivarDoubleBuffer(grid);
             grid.Scroll += (s, e) => grid.Invalidate();
-
             this.Controls.Add(grid);
 
-            // ── SEPARADOR Bottom ──────────────────────────────────
             this.Controls.Add(new Panel { Dock = DockStyle.Bottom, Height = AltSep, BackColor = CDark });
 
-            // ── TOPO Top ──────────────────────────────────────────
+            // TOPO
             pnlTopo = new Panel { Dock = DockStyle.Top, Height = AltTopo, BackColor = CDarkPanel };
             pnlTopo.Paint += (s, e) =>
             {
-                using (var br = new LinearGradientBrush(
-                    new Point(0, 0), new Point(pnlTopo.Width, 0), CVerde, COuro))
+                using (var br = new LinearGradientBrush(new Point(0, 0), new Point(pnlTopo.Width, 0), CVerde, COuro))
                     e.Graphics.FillRectangle(br, 0, pnlTopo.Height - 3, pnlTopo.Width, 3);
             };
-            pnlTopo.Controls.Add(new Label
+            pnlTopo.Controls.Add(new Label { Text = "Produtos Mais Vendidos", Font = new Font("Segoe UI Semibold", 13f), ForeColor = CText, AutoSize = true, Location = new Point(16, 11) });
+
+            // ✅ label de loading no canto direito do topo
+            lblLoading = new Label
             {
-                Text = "Produtos Mais Vendidos",
-                Font = new Font("Segoe UI Semibold", 13f),
-                ForeColor = CText,
+                Text = "⏳ Carregando...",
+                Font = new Font("Segoe UI", 9f, FontStyle.Italic),
+                ForeColor = COuro,
                 AutoSize = true,
-                Location = new Point(16, 11)
-            });
+                Location = new Point(700, 14),
+                Visible = false
+            };
+            pnlTopo.Controls.Add(lblLoading);
             this.Controls.Add(pnlTopo);
 
-            // ── CARDS Top ─────────────────────────────────────────
+            // CARDS
             pnlCards = new Panel { Dock = DockStyle.Top, Height = AltCards, BackColor = CDark };
             this.Controls.Add(pnlCards);
 
-            // ── FILTROS Top ───────────────────────────────────────
+            // FILTROS
             pnlFiltros = new Panel { Dock = DockStyle.Top, Height = AltFiltros, BackColor = CDarkPanel };
             pnlFiltros.Controls.Add(new Label { Text = "De", ForeColor = CMuted, AutoSize = true, Location = new Point(12, -1) });
             pnlFiltros.Controls.Add(new Label { Text = "Ate", ForeColor = CMuted, AutoSize = true, Location = new Point(150, -1) });
@@ -140,19 +163,19 @@ namespace DevBurguer.Forms
             btnSemana = Btn("7 dias", 424, false);
             btnMes = Btn("Mes", 488, false);
             btnBuscar = Btn("Buscar", 554, true);
-            btnHoje.Click += (s, e) => FiltrarHoje();
-            btnSemana.Click += (s, e) => FiltrarSemana();
-            btnMes.Click += (s, e) => FiltrarMes();
-            btnBuscar.Click += (s, e) => Carregar(dtpDe.Value.Date, dtpAte.Value.Date.AddDays(1).AddTicks(-1));
+            btnHoje.Click += async (s, e) => await FiltrarHojeAsync();
+            btnSemana.Click += async (s, e) => await FiltrarSemanaAsync();
+            btnMes.Click += async (s, e) => await FiltrarMesAsync();
+            btnBuscar.Click += async (s, e) => await CarregarAsync(dtpDe.Value.Date, dtpAte.Value.Date.AddDays(1).AddTicks(-1));
             pnlFiltros.Controls.AddRange(new Control[] { dtpDe, dtpAte, nudTop, btnHoje, btnSemana, btnMes, btnBuscar });
             this.Controls.Add(pnlFiltros);
 
-            // ── TITULO SECAO Top ──────────────────────────────────
+            // TITULO SECAO
             var pnlSec = new Panel { Dock = DockStyle.Top, Height = AltSec, BackColor = CDark };
             pnlSec.Controls.Add(new Label { Text = "Produtos Mais Vendidos", Font = new Font("Segoe UI Semibold", 10f), ForeColor = CMuted, AutoSize = true, Location = new Point(12, 6) });
             this.Controls.Add(pnlSec);
 
-            // ── GRAFICO Top ───────────────────────────────────────
+            // GRAFICO
             var pnlChart = new Panel { Dock = DockStyle.Top, Height = AltGrafico, BackColor = CDarkCard };
             chart = new Chart { Dock = DockStyle.Fill, BackColor = CDarkCard };
             var area = new ChartArea("a") { BackColor = Color.Transparent, BorderColor = Color.Transparent };
@@ -166,17 +189,41 @@ namespace DevBurguer.Forms
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  DADOS
+        //  FILTROS — agora todos async
         // ═══════════════════════════════════════════════════════════
-        private void FiltrarHoje() { dtpDe.Value = DateTime.Today; dtpAte.Value = DateTime.Today; Carregar(DateTime.Today, DateTime.Today.AddDays(1).AddTicks(-1)); }
-        private void FiltrarSemana() { dtpDe.Value = DateTime.Today.AddDays(-6); dtpAte.Value = DateTime.Today; Carregar(dtpDe.Value.Date, DateTime.Today.AddDays(1).AddTicks(-1)); }
-        private void FiltrarMes() { dtpDe.Value = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1); dtpAte.Value = DateTime.Today; Carregar(dtpDe.Value.Date, DateTime.Today.AddDays(1).AddTicks(-1)); }
-
-        private void Carregar(DateTime inicio, DateTime fim)
+        private async Task FiltrarHojeAsync()
         {
+            dtpDe.Value = DateTime.Today;
+            dtpAte.Value = DateTime.Today;
+            await CarregarAsync(DateTime.Today, DateTime.Today.AddDays(1).AddTicks(-1));
+        }
+
+        private async Task FiltrarSemanaAsync()
+        {
+            dtpDe.Value = DateTime.Today.AddDays(-6);
+            dtpAte.Value = DateTime.Today;
+            await CarregarAsync(dtpDe.Value.Date, DateTime.Today.AddDays(1).AddTicks(-1));
+        }
+
+        private async Task FiltrarMesAsync()
+        {
+            dtpDe.Value = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            dtpAte.Value = DateTime.Today;
+            await CarregarAsync(dtpDe.Value.Date, DateTime.Today.AddDays(1).AddTicks(-1));
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        //  CARREGAR — async, não trava a UI
+        // ═══════════════════════════════════════════════════════════
+        private async Task CarregarAsync(DateTime inicio, DateTime fim)
+        {
+            if (_carregando) return;
+            _carregando = true;
+            SetCarregando(true);
             try
             {
                 int top = (int)nudTop.Value;
+
                 string sql = string.Format(@"
                     SELECT TOP {0}
                         p.Nome                      AS Produto,
@@ -186,17 +233,22 @@ namespace DevBurguer.Forms
                     FROM ItensPedido i
                     JOIN Pedidos  ped ON ped.Id = i.IdPedido
                     JOIN Produtos p   ON p.Id   = i.IdProduto
-                    WHERE ped.Data BETWEEN @di AND @df
+                    WHERE ISNULL(ped.Data, GETDATE()) BETWEEN @di AND @df
+                      AND ISNULL(ped.Status, '') <> 'Cancelado'
                     GROUP BY p.Nome, p.Categoria
                     ORDER BY Qtd DESC", top);
 
-                var p = new[] {
+                var parametros = new[]
+                {
                     new SqlParameter("@di", SqlDbType.DateTime) { Value = inicio },
                     new SqlParameter("@df", SqlDbType.DateTime) { Value = fim }
                 };
 
-                DataTable dtOrig = DevBurguer.Data.DbHelper.ExecuteDataTable(sql, p);
+                // ✅ query roda em background — UI continua responsiva
+                DataTable dtOrig = await Task.Run(() =>
+                    DevBurguer.Data.DbHelper.ExecuteDataTable(sql, parametros));
 
+                // monta DataTable com coluna # como string
                 DataTable dt = new DataTable();
                 dt.Columns.Add("#", typeof(string));
                 dt.Columns.Add("Produto", typeof(string));
@@ -208,28 +260,42 @@ namespace DevBurguer.Forms
                 for (int i = 0; i < dtOrig.Rows.Count; i++)
                 {
                     DataRow r = dtOrig.Rows[i];
-                    dt.Rows.Add(i < medalhas.Length ? medalhas[i] : (i + 1).ToString(),
-                        r["Produto"].ToString(), r["Categoria"].ToString(),
-                        Convert.ToInt32(r["Qtd"]), Convert.ToDecimal(r["Receita"]));
+                    dt.Rows.Add(
+                        i < medalhas.Length ? medalhas[i] : (i + 1).ToString(),
+                        r["Produto"].ToString(),
+                        r["Categoria"].ToString(),
+                        Convert.ToInt32(r["Qtd"]),
+                        Convert.ToDecimal(r["Receita"])
+                    );
                 }
 
+                // atualiza UI na thread principal
                 grid.DataSource = null;
                 grid.DataSource = dt;
                 if (grid.Columns["Receita"] != null) grid.Columns["Receita"].DefaultCellStyle.Format = "C2";
                 if (grid.Columns["#"] != null) { grid.Columns["#"].Width = 40; grid.Columns["#"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None; }
 
-                chart.Series["Qtd"].Points.Clear();
+                if (chart?.Series["Qtd"] != null) chart.Series["Qtd"].Points.Clear();
                 foreach (var r in dt.AsEnumerable().Take(5).Reverse().ToList())
                 {
                     string nome = r["Produto"].ToString();
                     if (nome.Length > 20) nome = nome.Substring(0, 18) + "..";
                     var pt = chart.Series["Qtd"].Points.Add(Convert.ToDouble(r["Qtd"]));
-                    pt.AxisLabel = nome; pt.Label = r["Qtd"].ToString();
+                    pt.AxisLabel = nome;
+                    pt.Label = r["Qtd"].ToString();
                 }
 
                 AtualizarCards(dt);
             }
-            catch (Exception ex) { MessageBox.Show("Erro:\n" + ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro:\n" + ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                SetCarregando(false);
+                _carregando = false;
+            }
         }
 
         private void AtualizarCards(DataTable dt)

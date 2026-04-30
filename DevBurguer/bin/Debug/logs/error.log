@@ -3090,3 +3090,123 @@ System.IO.FileNotFoundException: Arquivo SQL não encontrado. Procurados: C:\Use
    em System.Runtime.CompilerServices.TaskAwaiter.GetResult()
    em DevBurguer.FormPagamentoMotoboy.<btnRemover_Click>d__39.MoveNext() na C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\Forms\FormPagamentoMotoboy.cs:linha 317
 
+2026-04-29T20:10:12 | DbHelper.ExecuteDataTableAsync
+System.Data.SqlClient.SqlException (0x80131904): Tempo Limite de Execução Expirado.  O período de tempo limite terminou antes da conclusão da operação ou o servidor não está respondendo. ---> System.ComponentModel.Win32Exception (0x80004005): O tempo limite de espera foi atingido
+   em System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   em System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   em System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   em System.Data.SqlClient.SqlCommand.InternalEndExecuteReader(IAsyncResult asyncResult, String endMethod, Boolean isInternal)
+   em System.Data.SqlClient.SqlCommand.EndExecuteReaderInternal(IAsyncResult asyncResult)
+   em System.Data.SqlClient.SqlCommand.EndExecuteReaderAsync(IAsyncResult asyncResult)
+   em System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endFunction, Action`1 endAction, Task`1 promise, Boolean requiresSynchronization)
+--- Fim do rastreamento de pilha do local anterior onde a exceção foi gerada ---
+   em System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   em System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   em System.Runtime.CompilerServices.TaskAwaiter`1.GetResult()
+   em DevBurguer.Data.DbHelper.<ExecuteDataTableAsync>d__2.MoveNext() na C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\Data\DbHelper.cs:linha 77
+ClientConnectionId:e1a96df6-d92f-436e-bd5b-a8d1f1e0a230
+Error Number:-2,State:0,Class:11
+
+2026-04-29T20:26:22 | DbHelper.ExecuteDataTableAsync
+System.Data.SqlClient.SqlException (0x80131904): Tempo Limite de Execução Expirado.  O período de tempo limite terminou antes da conclusão da operação ou o servidor não está respondendo. ---> System.ComponentModel.Win32Exception (0x80004005): O tempo limite de espera foi atingido
+   em System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   em System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   em System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   em System.Data.SqlClient.SqlCommand.InternalEndExecuteReader(IAsyncResult asyncResult, String endMethod, Boolean isInternal)
+   em System.Data.SqlClient.SqlCommand.EndExecuteReaderInternal(IAsyncResult asyncResult)
+   em System.Data.SqlClient.SqlCommand.EndExecuteReaderAsync(IAsyncResult asyncResult)
+   em System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endFunction, Action`1 endAction, Task`1 promise, Boolean requiresSynchronization)
+--- Fim do rastreamento de pilha do local anterior onde a exceção foi gerada ---
+   em System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   em System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   em System.Runtime.CompilerServices.TaskAwaiter`1.GetResult()
+   em DevBurguer.Data.DbHelper.<ExecuteDataTableAsync>d__2.MoveNext() na C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\Data\DbHelper.cs:linha 77
+ClientConnectionId:a88e4672-5c29-4dc5-bc6a-c36a5206110f
+Error Number:-2,State:0,Class:11
+
+2026-04-29T20:27:39 | DbHelper.ExecuteDataTableAsync
+System.Data.SqlClient.SqlException (0x80131904): Tempo Limite de Execução Expirado.  O período de tempo limite terminou antes da conclusão da operação ou o servidor não está respondendo. ---> System.ComponentModel.Win32Exception (0x80004005): O tempo limite de espera foi atingido
+   em System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   em System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   em System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   em System.Data.SqlClient.SqlCommand.InternalEndExecuteReader(IAsyncResult asyncResult, String endMethod, Boolean isInternal)
+   em System.Data.SqlClient.SqlCommand.EndExecuteReaderInternal(IAsyncResult asyncResult)
+   em System.Data.SqlClient.SqlCommand.EndExecuteReaderAsync(IAsyncResult asyncResult)
+   em System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endFunction, Action`1 endAction, Task`1 promise, Boolean requiresSynchronization)
+--- Fim do rastreamento de pilha do local anterior onde a exceção foi gerada ---
+   em System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   em System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   em System.Runtime.CompilerServices.TaskAwaiter`1.GetResult()
+   em DevBurguer.Data.DbHelper.<ExecuteDataTableAsync>d__2.MoveNext() na C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\Data\DbHelper.cs:linha 77
+ClientConnectionId:28c578c2-dc3c-4232-a6e6-607e4b448eae
+Error Number:-2,State:0,Class:11
+
+2026-04-29T20:27:41 | DbHelper.ExecuteDataTableAsync
+System.Data.SqlClient.SqlException (0x80131904): Tempo Limite de Execução Expirado.  O período de tempo limite terminou antes da conclusão da operação ou o servidor não está respondendo. ---> System.ComponentModel.Win32Exception (0x80004005): O tempo limite de espera foi atingido
+   em System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   em System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   em System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   em System.Data.SqlClient.SqlCommand.InternalEndExecuteReader(IAsyncResult asyncResult, String endMethod, Boolean isInternal)
+   em System.Data.SqlClient.SqlCommand.EndExecuteReaderInternal(IAsyncResult asyncResult)
+   em System.Data.SqlClient.SqlCommand.EndExecuteReaderAsync(IAsyncResult asyncResult)
+   em System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endFunction, Action`1 endAction, Task`1 promise, Boolean requiresSynchronization)
+--- Fim do rastreamento de pilha do local anterior onde a exceção foi gerada ---
+   em System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   em System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   em System.Runtime.CompilerServices.TaskAwaiter`1.GetResult()
+   em DevBurguer.Data.DbHelper.<ExecuteDataTableAsync>d__2.MoveNext() na C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\Data\DbHelper.cs:linha 77
+ClientConnectionId:a88e4672-5c29-4dc5-bc6a-c36a5206110f
+Error Number:-2,State:0,Class:11
+
+2026-04-29T20:27:43 | DbHelper.ExecuteDataTableAsync
+System.Data.SqlClient.SqlException (0x80131904): Tempo Limite de Execução Expirado.  O período de tempo limite terminou antes da conclusão da operação ou o servidor não está respondendo. ---> System.ComponentModel.Win32Exception (0x80004005): O tempo limite de espera foi atingido
+   em System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   em System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   em System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   em System.Data.SqlClient.SqlCommand.InternalEndExecuteReader(IAsyncResult asyncResult, String endMethod, Boolean isInternal)
+   em System.Data.SqlClient.SqlCommand.EndExecuteReaderInternal(IAsyncResult asyncResult)
+   em System.Data.SqlClient.SqlCommand.EndExecuteReaderAsync(IAsyncResult asyncResult)
+   em System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endFunction, Action`1 endAction, Task`1 promise, Boolean requiresSynchronization)
+--- Fim do rastreamento de pilha do local anterior onde a exceção foi gerada ---
+   em System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   em System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   em System.Runtime.CompilerServices.TaskAwaiter`1.GetResult()
+   em DevBurguer.Data.DbHelper.<ExecuteDataTableAsync>d__2.MoveNext() na C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\Data\DbHelper.cs:linha 77
+ClientConnectionId:0710d25f-a69e-4ccc-b2b9-284e75eca291
+Error Number:-2,State:0,Class:11
+
+2026-04-29T20:27:52 | DbHelper.ExecuteDataTableAsync
+System.Data.SqlClient.SqlException (0x80131904): Tempo Limite de Execução Expirado.  O período de tempo limite terminou antes da conclusão da operação ou o servidor não está respondendo. ---> System.ComponentModel.Win32Exception (0x80004005): O tempo limite de espera foi atingido
+   em System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   em System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   em System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   em System.Data.SqlClient.SqlCommand.InternalEndExecuteReader(IAsyncResult asyncResult, String endMethod, Boolean isInternal)
+   em System.Data.SqlClient.SqlCommand.EndExecuteReaderInternal(IAsyncResult asyncResult)
+   em System.Data.SqlClient.SqlCommand.EndExecuteReaderAsync(IAsyncResult asyncResult)
+   em System.Threading.Tasks.TaskFactory`1.FromAsyncCoreLogic(IAsyncResult iar, Func`2 endFunction, Action`1 endAction, Task`1 promise, Boolean requiresSynchronization)
+--- Fim do rastreamento de pilha do local anterior onde a exceção foi gerada ---
+   em System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   em System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   em System.Runtime.CompilerServices.TaskAwaiter`1.GetResult()
+   em DevBurguer.Data.DbHelper.<ExecuteDataTableAsync>d__2.MoveNext() na C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\Data\DbHelper.cs:linha 77
+ClientConnectionId:8b05cdf5-b0ef-4f39-8e39-611d22dbd9dd
+Error Number:-2,State:0,Class:11
+
+2026-04-29T23:14:53 | CarregarCategoriasAsync
+System.ArgumentOutOfRangeException: InvalidArgument=Value '0' não é um valor válido para 'SelectedIndex'.
+Nome do parâmetro: SelectedIndex
+   em System.Windows.Forms.ComboBox.set_SelectedIndex(Int32 value)
+   em DevBurguer.FormProdutos.<CarregarCategoriasAsync>d__4.MoveNext() na C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\Forms\FormProdutos.cs:linha 50
+
+2026-04-29T23:14:59 | CarregarCategoriasAsync
+System.ArgumentOutOfRangeException: InvalidArgument=Value '0' não é um valor válido para 'SelectedIndex'.
+Nome do parâmetro: SelectedIndex
+   em System.Windows.Forms.ComboBox.set_SelectedIndex(Int32 value)
+   em DevBurguer.FormProdutos.<CarregarCategoriasAsync>d__4.MoveNext() na C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\Forms\FormProdutos.cs:linha 50
+
+2026-04-29T23:15:11 | CarregarCategoriasAsync
+System.ArgumentOutOfRangeException: InvalidArgument=Value '0' não é um valor válido para 'SelectedIndex'.
+Nome do parâmetro: SelectedIndex
+   em System.Windows.Forms.ComboBox.set_SelectedIndex(Int32 value)
+   em DevBurguer.FormProdutos.<CarregarCategoriasAsync>d__4.MoveNext() na C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer\Forms\FormProdutos.cs:linha 50
+

@@ -45,7 +45,13 @@ namespace DevBurguer.Forms
             this.ResumeLayout(false);
 
             ConstruirLayout();
-            this.Load += (s, e) => { ConstruirCards(); FiltrarMes(); };
+            this.Load += (s, e) =>
+            {
+                ConstruirCards();
+                FiltrarMes();
+                // ✅ escuta pedidos finalizados no kanban
+                PedidoEventos.PedidoFinalizado += (sender, args) => FiltrarMes();
+            };
         }
 
         // ── Ativa DoubleBuffer no DataGridView via reflection ─────
@@ -174,13 +180,14 @@ namespace DevBurguer.Forms
             {
                 string sql = @"
                     SELECT
-                        CONVERT(date, Data) AS Dia,
-                        COUNT(Id)           AS Pedidos,
-                        SUM(Total)          AS Faturamento,
-                        AVG(Total)          AS TicketMedio
+                        CONVERT(date, ISNULL(Data, GETDATE())) AS Dia,
+                        COUNT(Id)                              AS Pedidos,
+                        SUM(Total)                             AS Faturamento,
+                        AVG(Total)                             AS TicketMedio
                     FROM Pedidos
-                    WHERE Data BETWEEN @di AND @df
-                    GROUP BY CONVERT(date, Data)
+                    WHERE ISNULL(Data, GETDATE()) BETWEEN @di AND @df
+                      AND ISNULL(Status, '') <> 'Cancelado'
+                    GROUP BY CONVERT(date, ISNULL(Data, GETDATE()))
                     ORDER BY Dia DESC";
 
                 var p = new[] {
