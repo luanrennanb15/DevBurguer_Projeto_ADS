@@ -13,6 +13,8 @@ Cadastro de produtos :white_check_mark:<br>
 Cadastro de clientes :white_check_mark:<br>
 Cadastro de motoboy :white_check_mark:<br>
 Pedidos em produção :white_check_mark:<br>
+Previsão :white_check_mark:<br>
+Configuração :white_check_mark:<br>
 Dashboard :white_check_mark:<br>
 Aceitar pedidos pelo site<br>
 
