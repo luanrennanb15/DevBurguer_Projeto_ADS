@@ -19,6 +19,6 @@ Dashboard :white_check_mark:<br>
 Aceitar pedidos pelo site<br>
 
 <br>
-banco de dados: SQL SERVER :white_check_mark:<br>
+banco de dados: SQL SERVER local :white_check_mark:<br>
 Site: HTML5 CSS JS<br>
 API<br>
