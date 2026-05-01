@@ -235,6 +235,7 @@ namespace DevBurguer.Forms
                     JOIN Produtos p   ON p.Id   = i.IdProduto
                     WHERE ISNULL(ped.Data, GETDATE()) BETWEEN @di AND @df
                       AND ISNULL(ped.Status, '') <> 'Cancelado'
+                      AND p.Categoria IN ('Lanche Tradicional', 'Lanche Gourmet', 'Combo')
                     GROUP BY p.Nome, p.Categoria
                     ORDER BY Qtd DESC", top);
 

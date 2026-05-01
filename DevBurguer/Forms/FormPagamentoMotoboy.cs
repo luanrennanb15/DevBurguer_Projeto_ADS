@@ -25,7 +25,11 @@ namespace DevBurguer
         private readonly BindingSource _motBind = new BindingSource();
 
         // ── controles ─────────────────────────────────────────────
-        private Panel pnlTopo, pnlForm;
+        private Panel pnlTopo, pnlForm, pnlFiltro;
+        private DateTimePicker dtpFiltroData;
+        private ComboBox cmbFiltroMotoboy;
+        private Button btnPesquisar, btnLimparFiltro;
+        private CheckBox chkFiltroData;
         private DataGridView dgvPagamentos;
         private ComboBox cmbMotoboy;
         private TextBox txtQtd, txtValorTotalEntregas, txtChegada, txtTotal, txtComentario;
@@ -55,6 +59,7 @@ namespace DevBurguer
 
             ConstruirLayout();
 
+            ConstruirPainelFiltro();
             this.Load += FormPagamentoMotoboy_Load;
             txtQtd.TextChanged += txtQtd_TextChanged;
             txtValorTotalEntregas.TextChanged += CalcularTotal;
@@ -72,6 +77,140 @@ namespace DevBurguer
         }
 
         // ── parse decimal tolerante (aceita 100 / 100.00 / 100,00) ─
+        // ✅ Diálogos com dark theme roxo
+        private void Msg(string texto, string titulo = "Aviso", bool erro = false)
+        {
+            using (var dlg = new Form())
+            {
+                dlg.BackColor = Color.FromArgb(20, 14, 32);
+                dlg.ClientSize = new System.Drawing.Size(420, 160);
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
+                dlg.Text = titulo;
+                dlg.Font = new Font("Segoe UI", 9f);
+
+                var cor = erro ? Color.FromArgb(200, 60, 60) : CRoxo;
+
+                var pnlTop = new Panel { Dock = DockStyle.Top, Height = 4, BackColor = cor };
+                dlg.Controls.Add(pnlTop);
+
+                var ico = new Label
+                {
+                    Text = erro ? "✕" : "✓",
+                    Font = new Font("Segoe UI", 18f, FontStyle.Bold),
+                    ForeColor = cor,
+                    AutoSize = true,
+                    Location = new Point(20, 24)
+                };
+                dlg.Controls.Add(ico);
+
+                var lbl = new Label
+                {
+                    Text = texto,
+                    Font = new Font("Segoe UI", 10f),
+                    ForeColor = Color.FromArgb(230, 220, 255),
+                    AutoSize = false,
+                    Location = new Point(60, 22),
+                    Width = 340,
+                    Height = 60,
+                    TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+                };
+                dlg.Controls.Add(lbl);
+
+                var btn = new Button
+                {
+                    Text = "OK",
+                    Width = 100,
+                    Height = 32,
+                    Location = new Point(160, 106),
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = cor,
+                    ForeColor = Color.White,
+                    Font = new Font("Segoe UI Semibold", 9f),
+                    DialogResult = DialogResult.OK,
+                    Cursor = Cursors.Hand
+                };
+                btn.FlatAppearance.BorderSize = 0;
+                dlg.Controls.Add(btn);
+                dlg.AcceptButton = btn;
+                dlg.ShowDialog(this);
+            }
+        }
+
+        private bool Confirmar(string texto, string titulo = "Confirmar")
+        {
+            using (var dlg = new Form())
+            {
+                dlg.BackColor = Color.FromArgb(20, 14, 32);
+                dlg.ClientSize = new System.Drawing.Size(420, 160);
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
+                dlg.Text = titulo;
+                dlg.Font = new Font("Segoe UI", 9f);
+
+                var pnlTop = new Panel { Dock = DockStyle.Top, Height = 4, BackColor = CLilas };
+                dlg.Controls.Add(pnlTop);
+
+                var ico = new Label
+                {
+                    Text = "?",
+                    Font = new Font("Segoe UI", 18f, FontStyle.Bold),
+                    ForeColor = CLilas,
+                    AutoSize = true,
+                    Location = new Point(20, 24)
+                };
+                dlg.Controls.Add(ico);
+
+                var lbl = new Label
+                {
+                    Text = texto,
+                    Font = new Font("Segoe UI", 10f),
+                    ForeColor = Color.FromArgb(230, 220, 255),
+                    AutoSize = false,
+                    Location = new Point(60, 22),
+                    Width = 340,
+                    Height = 60,
+                    TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+                };
+                dlg.Controls.Add(lbl);
+
+                var btnSim = new Button
+                {
+                    Text = "Sim",
+                    Width = 100,
+                    Height = 32,
+                    Location = new Point(110, 106),
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = CRoxo,
+                    ForeColor = Color.White,
+                    Font = new Font("Segoe UI Semibold", 9f),
+                    DialogResult = DialogResult.Yes,
+                    Cursor = Cursors.Hand
+                };
+                btnSim.FlatAppearance.BorderSize = 0;
+
+                var btnNao = new Button
+                {
+                    Text = "Nao",
+                    Width = 100,
+                    Height = 32,
+                    Location = new Point(220, 106),
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = Color.FromArgb(50, 35, 80),
+                    ForeColor = Color.FromArgb(180, 150, 220),
+                    Font = new Font("Segoe UI", 9f),
+                    DialogResult = DialogResult.No,
+                    Cursor = Cursors.Hand
+                };
+                btnNao.FlatAppearance.BorderColor = Color.FromArgb(80, 50, 120);
+
+                dlg.Controls.Add(btnSim); dlg.Controls.Add(btnNao);
+                return dlg.ShowDialog(this) == DialogResult.Yes;
+            }
+        }
+
         private static bool TryParseDecimal(string texto, out decimal resultado)
         {
             texto = texto?.Trim() ?? "";
@@ -134,7 +273,7 @@ namespace DevBurguer
                     e.Graphics.FillRectangle(br, 0, pnlTopo.Height - 3, pnlTopo.Width, 3);
             };
             pnlTopo.Controls.Add(new Label { Text = "Pagamento dos Motoboys", Font = new Font("Segoe UI Semibold", 13f), ForeColor = CText, AutoSize = true, Location = new Point(16, 11) });
-            this.Controls.Add(pnlTopo);
+            // pnlTopo adicionado por último em ConstruirPainelFiltro para ficar acima do filtro
 
             // ── FORMULARIO Top ────────────────────────────────────
             pnlForm = new Panel { Dock = DockStyle.Top, Height = 295, BackColor = CDarkPanel };
@@ -199,13 +338,165 @@ namespace DevBurguer
         // ═══════════════════════════════════════════════════════════
         //  LOGICA
         // ═══════════════════════════════════════════════════════════
+        private void ConstruirPainelFiltro()
+        {
+            // ✅ Dock=Top — encaixa automaticamente entre pnlTopo e pnlForm
+            pnlFiltro = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 46,
+                BackColor = Color.FromArgb(20, 16, 32)
+            };
+            pnlFiltro.Paint += (s, e) =>
+            {
+                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(50, 30, 80)), 0, 0, pnlFiltro.Width, 1);
+                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(50, 30, 80)), 0, 45, pnlFiltro.Width, 1);
+            };
+
+            int x = 14;
+
+            pnlFiltro.Controls.Add(new Label
+            {
+                Text = "Pesquisar:",
+                Font = new Font("Segoe UI", 8f, FontStyle.Bold),
+                ForeColor = CMuted,
+                AutoSize = true,
+                Location = new Point(x, 15)
+            }); x += 76;
+
+            // checkbox data
+            chkFiltroData = new CheckBox
+            {
+                Text = "Data:",
+                Font = new Font("Segoe UI", 9f),
+                ForeColor = CText,
+                Location = new Point(x, 13),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            pnlFiltro.Controls.Add(chkFiltroData); x += 60;
+
+            // datepicker
+            dtpFiltroData = new DateTimePicker
+            {
+                Format = DateTimePickerFormat.Short,
+                Value = DateTime.Today,
+                Location = new Point(x, 11),
+                Width = 110
+            };
+            pnlFiltro.Controls.Add(dtpFiltroData); x += 122;
+
+            // label motoboy
+            pnlFiltro.Controls.Add(new Label
+            {
+                Text = "Motoboy:",
+                Font = new Font("Segoe UI", 9f, FontStyle.Bold),
+                ForeColor = CText,
+                AutoSize = true,
+                Location = new Point(x, 15)
+            }); x += 70;
+
+            // combobox motoboys
+            cmbFiltroMotoboy = new ComboBox
+            {
+                Width = 220,
+                Location = new Point(x, 11),
+                BackColor = Color.FromArgb(30, 22, 50),
+                ForeColor = CText,
+                FlatStyle = FlatStyle.Flat,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 10f)
+            };
+            pnlFiltro.Controls.Add(cmbFiltroMotoboy); x += 232;
+
+            // botão pesquisar
+            btnPesquisar = new Button
+            {
+                Text = "Pesquisar",
+                Width = 90,
+                Height = 28,
+                Location = new Point(x, 9),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = CRoxo,
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI Semibold", 8.5f),
+                Cursor = Cursors.Hand
+            };
+            btnPesquisar.FlatAppearance.BorderSize = 0;
+            btnPesquisar.Click += async (s, e) => await AplicarFiltroAsync();
+            pnlFiltro.Controls.Add(btnPesquisar); x += 100;
+
+            // botão limpar
+            btnLimparFiltro = new Button
+            {
+                Text = "Limpar",
+                Width = 70,
+                Height = 28,
+                Location = new Point(x, 9),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(40, 30, 60),
+                ForeColor = CMuted,
+                Font = new Font("Segoe UI", 8.5f),
+                Cursor = Cursors.Hand
+            };
+            btnLimparFiltro.FlatAppearance.BorderColor = Color.FromArgb(60, 40, 100);
+            btnLimparFiltro.Click += async (s, e) =>
+            {
+                chkFiltroData.Checked = false;
+                cmbFiltroMotoboy.SelectedIndex = 0;
+                await CarregarGrid();
+            };
+            pnlFiltro.Controls.Add(btnLimparFiltro);
+
+            this.Controls.Add(pnlFiltro);
+            // ✅ pnlTopo adicionado por último = aparece no topo com Dock=Top
+            this.Controls.Add(pnlTopo);
+        }
+
+        private async Task AplicarFiltroAsync()
+        {
+            try
+            {
+                DateTime? data = chkFiltroData.Checked ? dtpFiltroData.Value.Date : (DateTime?)null;
+                // pega nome selecionado — item 0 = "Todos"
+                string nome = cmbFiltroMotoboy.SelectedIndex > 0
+                    ? cmbFiltroMotoboy.SelectedItem.ToString()
+                    : "";
+
+                List<PagamentoMotoboy> lista = await _repo.BuscarAsync(data, nome) ?? new List<PagamentoMotoboy>();
+                _pagBind.DataSource = lista;
+                dgvPagamentos.DataSource = _pagBind;
+                dgvPagamentos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                if (dgvPagamentos.Columns["Id"] != null) dgvPagamentos.Columns["Id"].Visible = false;
+                if (dgvPagamentos.Columns["IdMotoboy"] != null) dgvPagamentos.Columns["IdMotoboy"].Visible = false;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "AplicarFiltroAsync");
+                Msg("Erro ao pesquisar:\n" + ex.Message, "Erro", true);
+            }
+        }
+
         private async void FormPagamentoMotoboy_Load(object sender, EventArgs e)
         {
             // ✅ inicializa chegada com R$70 padrão
             txtChegada.Text = CHEGADA_PADRAO.ToString("F2");
             txtTotal.Text = "0,00";
-            try { await CarregarMotoboys(); await CarregarGrid(); }
-            catch (Exception ex) { ExceptionLogger.Log(ex, "FormPagamentoMotoboy_Load"); MessageBox.Show("Erro ao iniciar."); }
+            try
+            {
+                await CarregarMotoboys();
+                await CarregarGrid();
+                // ✅ popula combobox de filtro com os motoboys cadastrados
+                cmbFiltroMotoboy.Items.Clear();
+                cmbFiltroMotoboy.Items.Add("Todos");
+                foreach (var item in cmbMotoboy.Items)
+                {
+                    var mb = item as DevBurguer.Models.Motoboy;
+                    if (mb != null) cmbFiltroMotoboy.Items.Add(mb.Nome);
+                }
+                cmbFiltroMotoboy.SelectedIndex = 0;
+            }
+            catch (Exception ex) { ExceptionLogger.Log(ex, "FormPagamentoMotoboy_Load"); Msg("Erro ao iniciar:\n" + ex.Message, "Erro", true); }
         }
 
         // ✅ quando muda quantidade, calcula valor total automaticamente (Qtd * R$6)
@@ -242,7 +533,7 @@ namespace DevBurguer
                 cmbMotoboy.ValueMember = "Id";
                 cmbMotoboy.SelectedIndex = -1;
             }
-            catch (Exception ex) { ExceptionLogger.Log(ex, "CarregarMotoboys"); MessageBox.Show("Erro ao carregar motoboys."); }
+            catch (Exception ex) { ExceptionLogger.Log(ex, "CarregarMotoboys"); Msg("Erro ao carregar motoboys.", "Erro", true); }
         }
 
         private async Task CarregarGrid()
@@ -255,7 +546,7 @@ namespace DevBurguer
                 idSelecionado = 0;
                 LimparCampos();
             }
-            catch (Exception ex) { ExceptionLogger.Log(ex, "CarregarGrid"); MessageBox.Show("Erro ao carregar pagamentos."); }
+            catch (Exception ex) { ExceptionLogger.Log(ex, "CarregarGrid"); Msg("Erro ao carregar pagamentos.", "Erro", true); }
         }
 
         private async void btnSalvar_Click(object sender, EventArgs e)
@@ -264,61 +555,60 @@ namespace DevBurguer
             {
                 if (cmbMotoboy.SelectedValue == null ||
                     !int.TryParse(cmbMotoboy.SelectedValue.ToString(), out int idMotoboy))
-                { MessageBox.Show("Selecione um motoboy valido."); return; }
+                { Msg("Selecione um motoboy valido.", "Aviso", true); return; }
 
                 if (!int.TryParse(txtQtd.Text.Trim(), out int qtd))
-                { MessageBox.Show("Quantidade invalida."); return; }
+                { Msg("Quantidade invalida.", "Aviso", true); return; }
 
                 if (!TryParseDecimal(txtValorTotalEntregas.Text, out decimal valorTotal))
-                { MessageBox.Show("Valor total invalido. Use: 100 ou 100,00 ou 100.00"); return; }
+                { Msg("Valor total invalido.\nUse: 100 ou 100,00 ou 100.00", "Aviso", true); return; }
 
                 if (!TryParseDecimal(txtChegada.Text, out decimal chegada))
-                { MessageBox.Show("Chegada invalida. Use: 70 ou 70,00 ou 70.00"); return; }
+                { Msg("Chegada invalida.\nUse: 70 ou 70,00 ou 70.00", "Aviso", true); return; }
 
                 string comentario = txtComentario.Text.Trim();
 
                 await _repo.InsertAsync(idMotoboy, qtd, valorTotal, chegada, dtpData.Value, comentario);
                 await CarregarGrid();
-                MessageBox.Show("Pagamento salvo com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Msg("Pagamento salvo com sucesso!", "Sucesso");
             }
-            catch (Exception ex) { ExceptionLogger.Log(ex, "btnSalvar_Click"); MessageBox.Show("Erro ao salvar: " + ex.Message); }
+            catch (Exception ex) { ExceptionLogger.Log(ex, "btnSalvar_Click"); Msg("Erro ao salvar:\n" + ex.Message, "Erro", true); }
         }
 
         private async void btnAtualizar_Click(object sender, EventArgs e)
         {
-            if (idSelecionado == 0) { MessageBox.Show("Selecione um registro!"); return; }
+            if (idSelecionado == 0) { Msg("Selecione um registro para editar.", "Aviso", true); return; }
             try
             {
                 if (!TryParseDecimal(txtValorTotalEntregas.Text, out decimal valorTotal))
-                { MessageBox.Show("Valor total invalido."); return; }
+                { Msg("Valor total invalido.", "Aviso", true); return; }
 
                 if (!TryParseDecimal(txtChegada.Text, out decimal chegada))
-                { MessageBox.Show("Chegada invalida."); return; }
+                { Msg("Chegada invalida.", "Aviso", true); return; }
 
                 if (!int.TryParse(txtQtd.Text.Trim(), out int qtd))
-                { MessageBox.Show("Quantidade invalida."); return; }
+                { Msg("Quantidade invalida.", "Aviso", true); return; }
 
                 string comentario = txtComentario.Text.Trim();
 
                 await _repo.UpdateAsync(idSelecionado, qtd, valorTotal, chegada, dtpData.Value, comentario);
                 await CarregarGrid();
-                MessageBox.Show("Pagamento atualizado com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Msg("Pagamento atualizado com sucesso!", "Sucesso");
             }
-            catch (Exception ex) { ExceptionLogger.Log(ex, "btnAtualizar_Click"); MessageBox.Show("Erro ao atualizar: " + ex.Message); }
+            catch (Exception ex) { ExceptionLogger.Log(ex, "btnAtualizar_Click"); Msg("Erro ao atualizar:\n" + ex.Message, "Erro", true); }
         }
 
         private async void btnRemover_Click(object sender, EventArgs e)
         {
-            if (idSelecionado == 0) { MessageBox.Show("Selecione um registro!"); return; }
-            if (MessageBox.Show("Confirma exclusao deste pagamento?", "Confirmar",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+            if (idSelecionado == 0) { Msg("Selecione um registro para editar.", "Aviso", true); return; }
+            if (!Confirmar("Confirma exclusao deste pagamento?")) return;
             try
             {
                 await _repo.DeleteAsync(idSelecionado);
                 await CarregarGrid();
-                MessageBox.Show("Pagamento removido!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Msg("Pagamento removido com sucesso!", "Sucesso");
             }
-            catch (Exception ex) { ExceptionLogger.Log(ex, "btnRemover_Click"); MessageBox.Show("Erro ao remover: " + ex.Message); }
+            catch (Exception ex) { ExceptionLogger.Log(ex, "btnRemover_Click"); Msg("Erro ao remover:\n" + ex.Message, "Erro", true); }
         }
 
         private void PreencherCampos()

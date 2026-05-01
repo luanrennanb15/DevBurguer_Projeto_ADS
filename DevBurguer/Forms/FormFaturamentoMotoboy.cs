@@ -315,7 +315,7 @@ namespace DevBurguer
             pnlCards.Controls.Clear();
             int w = Math.Max(150, (pnlCards.Width - 60) / 4);
 
-            string[] titulos = { "TOTAL PAGO NO PERIODO", "TOTAL DE ENTREGAS", "MAIS RECEBEU", "DIAS DO MAIS RECEBEU" };
+            string[] titulos = { "TOTAL PAGO NO PERIODO", "TOTAL DE ENTREGAS", "MAIS RECEBEU", "TOTAL DIAS TRABALHADOS" };
             Color[] cores = { CAzul, CCiano, Color.FromArgb(255, 180, 50), Color.FromArgb(100, 210, 150) };
             string[] tags = { "total", "entregas", "melhor", "dias" };
 

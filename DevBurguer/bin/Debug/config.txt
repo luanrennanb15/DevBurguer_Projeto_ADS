@@ -1,0 +1,1 @@
+Server=DESKTOP-N98DB69;Database=DevBurguerDB;Trusted_Connection=True;Connection Timeout=120;

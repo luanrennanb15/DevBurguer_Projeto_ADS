@@ -29,19 +29,35 @@ namespace DevBurguer
             await CarregarAdicionaisAsync();
         }
 
+        // ✅ Items.Add com classe própria — exibe Nome + Preço
         private async Task CarregarAdicionaisAsync()
         {
             var repo = new DevBurguer.Data.PedidoRepository();
             var dt = await repo.GetAdicionaisAsync();
-            clbAdicionais.DataSource = dt;
-            clbAdicionais.DisplayMember = "Nome";
-            clbAdicionais.ValueMember = "Id";
-            clbAdicionais.Format += (s, e) =>
+
+            clbAdicionais.Items.Clear();
+            foreach (System.Data.DataRow row in dt.Rows)
             {
-                DataRowView row = (DataRowView)e.ListItem;
-                e.Value = $"{row["Nome"]} - R$ {row["Preco"]}";
-            };
+                decimal prec = System.Convert.ToDecimal(row["Preco"]);
+                clbAdicionais.Items.Add(new AdicionalItem
+                {
+                    Id = System.Convert.ToInt32(row["Id"]),
+                    Nome = row["Nome"].ToString(),
+                    Preco = prec,
+                    Label = row["Nome"].ToString() + "  -  R$ " + prec.ToString("F2")
+                });
+            }
             clbAdicionais.ItemCheck += clbAdicionais_ItemCheck;
+        }
+
+        // classe auxiliar para exibir nome + preço no CheckedListBox
+        private class AdicionalItem
+        {
+            public int Id { get; set; }
+            public string Nome { get; set; }
+            public decimal Preco { get; set; }
+            public string Label { get; set; }
+            public override string ToString() => Label;
         }
 
         private void clbAdicionais_ItemCheck(object sender, ItemCheckEventArgs e)
@@ -58,8 +74,8 @@ namespace DevBurguer
             decimal adicionais = 0;
             foreach (var item in clbAdicionais.CheckedItems)
             {
-                var drv = item as DataRowView;
-                adicionais += Convert.ToDecimal(drv["Preco"]);
+                if (item is AdicionalItem adic)
+                    adicionais += adic.Preco;
             }
             txtPreco.Text = (precoBase + adicionais).ToString("F2");
         }
@@ -100,6 +116,13 @@ namespace DevBurguer
                     total += Convert.ToDecimal(row.Cells["Preco"].Value) * Convert.ToInt32(row.Cells["Quantidade"].Value);
             if (rbEntrega.Checked) total += TAXA_ENTREGA;
             lblTotal.Text = total.ToString("F2");
+
+            // ✅ bloqueia cliente e produto enquanto há itens no grid
+            bool temItens = dgvItens.Rows.Count > 0;
+            cmbClientes.Enabled = !temItens;
+            cmbClientes.BackColor = temItens
+                ? System.Drawing.Color.FromArgb(18, 18, 28)
+                : System.Drawing.Color.FromArgb(26, 26, 38);
         }
 
         private void rbEntrega_CheckedChanged(object sender, EventArgs e) => CalcularTotal();
@@ -112,7 +135,7 @@ namespace DevBurguer
             { MessageBox.Show("Quantidade invalida!"); return; }
 
             string adicionaisTexto = string.Join(", ",
-                clbAdicionais.CheckedItems.Cast<DataRowView>().Select(x => x["Nome"].ToString()));
+                clbAdicionais.CheckedItems.Cast<AdicionalItem>().Select(x => x.Nome));
 
             for (int i = 0; i < quantidade; i++)
                 dgvItens.Rows.Add(cmbProdutos.Text, 1, decimal.Parse(txtPreco.Text),
@@ -178,6 +201,10 @@ namespace DevBurguer
             MessageBox.Show($"Pedido feito!\nPagamento: {formaPagamento}\nTroco Para: {troco:F2}");
             dgvItens.Rows.Clear();
             lblTotal.Text = "0,00";
+            // ✅ destravar cliente para novo pedido
+            cmbClientes.Enabled = true;
+            cmbClientes.BackColor = System.Drawing.Color.FromArgb(26, 26, 38);
+            cmbClientes.SelectedIndex = -1;
         }
     }
 }
