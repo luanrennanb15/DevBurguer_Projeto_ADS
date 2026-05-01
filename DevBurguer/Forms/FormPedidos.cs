@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -13,6 +14,12 @@ namespace DevBurguer
         private const decimal TAXA_ENTREGA = 6.00m;
         private DataTable _produtosCache;
 
+        // ── cores para dialogo dark ───────────────────────────────
+        private readonly Color _cLaranj = Color.FromArgb(220, 130, 30);
+        private readonly Color _cVerm = Color.FromArgb(200, 60, 60);
+        private readonly Color _cDark = Color.FromArgb(16, 16, 22);
+        private readonly Color _cText = Color.FromArgb(230, 230, 245);
+
         public FormPedidos()
         {
             InitializeComponent();
@@ -23,25 +30,24 @@ namespace DevBurguer
             rbEntrega.CheckedChanged += rbEntrega_CheckedChanged;
             rbRetirada.CheckedChanged += rbRetirada_CheckedChanged;
             txtPreco.ReadOnly = true;
-            txtPreco.BackColor = System.Drawing.Color.LightGray;
+            txtPreco.BackColor = System.Drawing.Color.FromArgb(22, 22, 34);
             await CarregarProdutosAsync();
             await CarregarClientesAsync();
             await CarregarAdicionaisAsync();
         }
 
-        // ✅ Items.Add com classe própria — exibe Nome + Preço
+        // ── carregamentos ─────────────────────────────────────────
         private async Task CarregarAdicionaisAsync()
         {
             var repo = new DevBurguer.Data.PedidoRepository();
             var dt = await repo.GetAdicionaisAsync();
-
             clbAdicionais.Items.Clear();
-            foreach (System.Data.DataRow row in dt.Rows)
+            foreach (DataRow row in dt.Rows)
             {
-                decimal prec = System.Convert.ToDecimal(row["Preco"]);
+                decimal prec = Convert.ToDecimal(row["Preco"]);
                 clbAdicionais.Items.Add(new AdicionalItem
                 {
-                    Id = System.Convert.ToInt32(row["Id"]),
+                    Id = Convert.ToInt32(row["Id"]),
                     Nome = row["Nome"].ToString(),
                     Preco = prec,
                     Label = row["Nome"].ToString() + "  -  R$ " + prec.ToString("F2")
@@ -50,7 +56,6 @@ namespace DevBurguer
             clbAdicionais.ItemCheck += clbAdicionais_ItemCheck;
         }
 
-        // classe auxiliar para exibir nome + preço no CheckedListBox
         private class AdicionalItem
         {
             public int Id { get; set; }
@@ -73,10 +78,7 @@ namespace DevBurguer
             decimal precoBase = Convert.ToDecimal(row["Preco"]);
             decimal adicionais = 0;
             foreach (var item in clbAdicionais.CheckedItems)
-            {
-                if (item is AdicionalItem adic)
-                    adicionais += adic.Preco;
-            }
+                if (item is AdicionalItem adic) adicionais += adic.Preco;
             txtPreco.Text = (precoBase + adicionais).ToString("F2");
         }
 
@@ -100,6 +102,7 @@ namespace DevBurguer
             cmbClientes.SelectedIndex = -1;
         }
 
+        // ── eventos ───────────────────────────────────────────────
         private void cmbProdutos_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbProdutos.SelectedValue == null || _produtosCache == null) return;
@@ -117,7 +120,7 @@ namespace DevBurguer
             if (rbEntrega.Checked) total += TAXA_ENTREGA;
             lblTotal.Text = total.ToString("F2");
 
-            // ✅ bloqueia cliente e produto enquanto há itens no grid
+            // bloqueia cliente enquanto há itens no grid
             bool temItens = dgvItens.Rows.Count > 0;
             cmbClientes.Enabled = !temItens;
             cmbClientes.BackColor = temItens
@@ -128,17 +131,24 @@ namespace DevBurguer
         private void rbEntrega_CheckedChanged(object sender, EventArgs e) => CalcularTotal();
         private void rbRetirada_CheckedChanged(object sender, EventArgs e) => CalcularTotal();
 
+        // ── botões ────────────────────────────────────────────────
         private void btnAdicionar_Click(object sender, EventArgs e)
         {
-            if (cmbProdutos.SelectedValue == null) { MessageBox.Show("Selecione um produto!"); return; }
+            if (cmbProdutos.SelectedValue == null)
+            { Msg("Selecione um produto!", "Aviso", true); return; }
+
             if (!int.TryParse(txtQuantidade.Text, out int quantidade) || quantidade <= 0)
-            { MessageBox.Show("Quantidade invalida!"); return; }
+            { Msg("Quantidade invalida! Digite um numero maior que zero.", "Aviso", true); return; }
+
+            // ✅ TryParse — não quebra se txtPreco estiver vazio
+            if (!decimal.TryParse(txtPreco.Text, out decimal precoItem) || precoItem <= 0)
+            { Msg("Preco invalido! Selecione um produto primeiro.", "Aviso", true); return; }
 
             string adicionaisTexto = string.Join(", ",
                 clbAdicionais.CheckedItems.Cast<AdicionalItem>().Select(x => x.Nome));
 
             for (int i = 0; i < quantidade; i++)
-                dgvItens.Rows.Add(cmbProdutos.Text, 1, decimal.Parse(txtPreco.Text),
+                dgvItens.Rows.Add(cmbProdutos.Text, 1, precoItem,
                     txtObservacao.Text, adicionaisTexto, cmbProdutos.SelectedValue);
 
             for (int i = 0; i < clbAdicionais.Items.Count; i++) clbAdicionais.SetItemChecked(i, false);
@@ -148,63 +158,141 @@ namespace DevBurguer
 
         private void btnRemover_Click(object sender, EventArgs e)
         {
-            if (dgvItens.SelectedRows.Count > 0) { dgvItens.Rows.RemoveAt(dgvItens.SelectedRows[0].Index); CalcularTotal(); }
-            else MessageBox.Show("Selecione um item!");
+            if (dgvItens.SelectedRows.Count > 0)
+            { dgvItens.Rows.RemoveAt(dgvItens.SelectedRows[0].Index); CalcularTotal(); }
+            else Msg("Selecione um item para remover!", "Aviso", true);
         }
 
         private async void btnFinalizar_Click(object sender, EventArgs e)
         {
-            if (dgvItens.Rows.Count == 0) { MessageBox.Show("Adicione itens!"); return; }
-            if (cmbClientes.SelectedValue == null) { MessageBox.Show("Selecione cliente!"); return; }
-            if (!rbEntrega.Checked && !rbRetirada.Checked) { MessageBox.Show("Selecione Entrega ou Retirada!"); return; }
-            if (!decimal.TryParse(lblTotal.Text, out decimal total)) { MessageBox.Show("Erro no total!"); return; }
+            // ✅ validações antes do try
+            if (dgvItens.Rows.Count == 0)
+            { Msg("Adicione itens ao pedido!", "Aviso", true); return; }
+            if (cmbClientes.SelectedValue == null)
+            { Msg("Selecione o cliente!", "Aviso", true); return; }
+            if (!rbEntrega.Checked && !rbRetirada.Checked)
+            { Msg("Selecione Entrega ou Retirada!", "Aviso", true); return; }
+            if (!decimal.TryParse(lblTotal.Text, out decimal total))
+            { Msg("Erro ao calcular total!", "Aviso", true); return; }
 
-            int idCliente = Convert.ToInt32(cmbClientes.SelectedValue);
-            string tipoEntrega = rbEntrega.Checked ? "Entrega" : "Retirada"; // ✅ captura tipo
-            var itens = new List<OrderItem>();
-
-            foreach (DataGridViewRow row in dgvItens.Rows)
-                if (row.Cells["IdProduto"].Value != null)
-                    itens.Add(new OrderItem
-                    {
-                        IdProduto = Convert.ToInt32(row.Cells["IdProduto"].Value),
-                        Quantidade = Convert.ToInt32(row.Cells["Quantidade"].Value),
-                        Observacao = row.Cells["Observacao"].Value?.ToString(),
-                        Adicionais = row.Cells["Adicionais"].Value?.ToString(),
-                        Preco = Convert.ToDecimal(row.Cells["Preco"].Value)
-                    });
-
-            string formaPagamento = "";
-            decimal troco = 0;
-
-            if (rbEntrega.Checked)
+            try
             {
-                var tela = new DevBurguer.Forms.FormEnderecoEntrega(idCliente);
-                tela.SetTotal(total);
-                tela.ShowDialog();
-                if (!tela.PedidoConfirmado) { MessageBox.Show("Pedido cancelado!"); return; }
-                formaPagamento = tela.FormaPagamento;
-                troco = tela.TrocoPara;
-            }
+                int idCliente = Convert.ToInt32(cmbClientes.SelectedValue);
+                string tipoEntrega = rbEntrega.Checked ? "Entrega" : "Retirada";
+                var itens = new List<OrderItem>();
 
-            if (rbRetirada.Checked)
+                foreach (DataGridViewRow row in dgvItens.Rows)
+                    if (row.Cells["IdProduto"].Value != null)
+                        itens.Add(new OrderItem
+                        {
+                            IdProduto = Convert.ToInt32(row.Cells["IdProduto"].Value),
+                            Quantidade = Convert.ToInt32(row.Cells["Quantidade"].Value),
+                            Observacao = row.Cells["Observacao"].Value?.ToString(),
+                            Adicionais = row.Cells["Adicionais"].Value?.ToString(),
+                            Preco = Convert.ToDecimal(row.Cells["Preco"].Value)
+                        });
+
+                string formaPagamento = "";
+                decimal troco = 0;
+
+                if (rbEntrega.Checked)
+                {
+                    var tela = new DevBurguer.Forms.FormEnderecoEntrega(idCliente);
+                    tela.SetTotal(total);
+                    tela.ShowDialog();
+                    if (!tela.PedidoConfirmado) { Msg("Pedido cancelado.", "Aviso"); return; }
+                    formaPagamento = tela.FormaPagamento;
+                    troco = tela.TrocoPara;
+                }
+                if (rbRetirada.Checked)
+                {
+                    var tela = new DevBurguer.Forms.FormPagamento();
+                    tela.ShowDialog();
+                    if (!tela.PagamentoConfirmado) { Msg("Pedido cancelado.", "Aviso"); return; }
+                    formaPagamento = tela.FormaPagamento;
+                }
+
+                var repo = new DevBurguer.Data.PedidoRepository();
+                await repo.InsertPedidoAsync(idCliente, total, itens, tipoEntrega, troco);
+
+                string msgFinal = "Pedido registrado com sucesso!";
+                if (!string.IsNullOrEmpty(formaPagamento))
+                    msgFinal += "\nPagamento: " + formaPagamento;
+                if (troco > 0)
+                    msgFinal += "\nTroco para: " + troco.ToString("C2");
+                Msg(msgFinal, "Pedido Feito");
+
+                dgvItens.Rows.Clear();
+                lblTotal.Text = "0,00";
+                cmbClientes.Enabled = true;
+                cmbClientes.BackColor = System.Drawing.Color.FromArgb(26, 26, 38);
+                cmbClientes.SelectedIndex = -1;
+            }
+            catch (Exception ex)
             {
-                var tela = new DevBurguer.Forms.FormPagamento();
-                tela.ShowDialog();
-                if (!tela.PagamentoConfirmado) { MessageBox.Show("Pedido cancelado!"); return; }
-                formaPagamento = tela.FormaPagamento;
+                DevBurguer.Services.ExceptionLogger.Log(ex, "btnFinalizar_Click");
+                Msg("Erro ao registrar pedido:\n" + ex.Message, "Erro", true);
             }
+        }
 
-            var repo = new DevBurguer.Data.PedidoRepository();
-            await repo.InsertPedidoAsync(idCliente, total, itens, tipoEntrega, troco); // ✅ envia tipo e troco
+        // ── Diálogos dark theme laranja ──────────────────────────
+        private void Msg(string texto, string titulo = "Aviso", bool erro = false)
+        {
+            var cor = erro ? _cVerm : _cLaranj;
+            using (var dlg = new Form())
+            {
+                dlg.BackColor = _cDark;
+                dlg.ClientSize = new System.Drawing.Size(420, 155);
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.MaximizeBox = false;
+                dlg.MinimizeBox = false;
+                dlg.Text = titulo;
+                dlg.Font = new System.Drawing.Font("Segoe UI", 9f);
 
-            MessageBox.Show($"Pedido feito!\nPagamento: {formaPagamento}\nTroco Para: {troco:F2}");
-            dgvItens.Rows.Clear();
-            lblTotal.Text = "0,00";
-            // ✅ destravar cliente para novo pedido
-            cmbClientes.Enabled = true;
-            cmbClientes.BackColor = System.Drawing.Color.FromArgb(26, 26, 38);
-            cmbClientes.SelectedIndex = -1;
+                dlg.Controls.Add(new Panel
+                {
+                    Dock = DockStyle.Top,
+                    Height = 4,
+                    BackColor = cor
+                });
+                dlg.Controls.Add(new Label
+                {
+                    Text = erro ? "!" : "✓",
+                    Font = new System.Drawing.Font("Segoe UI", 20f, System.Drawing.FontStyle.Bold),
+                    ForeColor = cor,
+                    AutoSize = true,
+                    Location = new System.Drawing.Point(18, 22)
+                });
+                dlg.Controls.Add(new Label
+                {
+                    Text = texto,
+                    Font = new System.Drawing.Font("Segoe UI", 10f),
+                    ForeColor = _cText,
+                    AutoSize = false,
+                    Location = new System.Drawing.Point(58, 20),
+                    Width = 344,
+                    Height = 60,
+                    TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+                });
+                var btn = new Button
+                {
+                    Text = "OK",
+                    Width = 100,
+                    Height = 32,
+                    Location = new System.Drawing.Point(160, 102),
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = cor,
+                    ForeColor = Color.White,
+                    Font = new System.Drawing.Font("Segoe UI Semibold", 9f),
+                    DialogResult = DialogResult.OK,
+                    Cursor = Cursors.Hand
+                };
+                btn.FlatAppearance.BorderSize = 0;
+                dlg.Controls.Add(btn);
+                dlg.AcceptButton = btn;
+                dlg.ShowDialog(this);
+            }
         }
     }
 }

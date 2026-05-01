@@ -210,8 +210,7 @@ namespace DevBurguer.Forms
             catch (Exception ex)
             {
                 _lblStatus.Text = "Erro ao carregar";
-                MessageBox.Show("Erro ao carregar pedidos:\n" + ex.Message,
-                    "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Msg("Erro ao carregar pedidos:\n" + ex.Message, "Erro", true);
             }
             finally
             {
@@ -424,7 +423,7 @@ namespace DevBurguer.Forms
                     btn.Click += async (s, e) =>
                     {
                         if (cmbMb.SelectedItem == null)
-                        { MessageBox.Show("Selecione um motoboy!"); return; }
+                        { Msg("Selecione um motoboy!", "Aviso", true); return; }
                         int idMb = ((MbItem)cmbMb.SelectedItem).Id;
                         await new PedidoRepository().AtualizarStatusAsync(idPedido, "A Caminho", idMb);
                         await CarregarAsync();
@@ -449,8 +448,7 @@ namespace DevBurguer.Forms
             var btnCancel = BtnAcao("Cancelar", Color.FromArgb(160, 40, 40), 0, pnl.Width, 40);
             btnCancel.Click += async (s, e) =>
             {
-                if (MessageBox.Show("Cancelar este pedido?", "Confirmar",
-                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (Confirmar("Cancelar este pedido?"))
                 {
                     await new PedidoRepository().AtualizarStatusAsync(idPedido, "Cancelado");
                     await CarregarAsync();
@@ -488,6 +486,52 @@ namespace DevBurguer.Forms
             public string Nome;
             public MbItem(int id, string nome) { Id = id; Nome = nome; }
             public override string ToString() => Nome;
+
+        }
+        // ── Diálogos dark theme laranja ──────────────────────────
+        private void Msg(string texto, string titulo = "Aviso", bool erro = false)
+        {
+            var cLaranj = Color.FromArgb(220, 130, 30);
+            var cVerm = Color.FromArgb(200, 60, 60);
+            var cor = erro ? cVerm : cLaranj;
+            using (var dlg = new Form())
+            {
+                dlg.BackColor = Color.FromArgb(16, 16, 22); dlg.ClientSize = new Size(420, 155);
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
+                dlg.Text = titulo; dlg.Font = new Font("Segoe UI", 9f);
+                dlg.Controls.Add(new Panel { Dock = DockStyle.Top, Height = 4, BackColor = cor });
+                dlg.Controls.Add(new Label { Text = erro ? "!" : "✓", Font = new Font("Segoe UI", 20f, FontStyle.Bold), ForeColor = cor, AutoSize = true, Location = new Point(18, 22) });
+                dlg.Controls.Add(new Label { Text = texto, Font = new Font("Segoe UI", 10f), ForeColor = Color.FromArgb(230, 230, 245), AutoSize = false, Location = new Point(58, 20), Width = 344, Height = 60, TextAlign = ContentAlignment.MiddleLeft });
+                var btn = new Button { Text = "OK", Width = 100, Height = 32, Location = new Point(160, 102), FlatStyle = FlatStyle.Flat, BackColor = cor, ForeColor = Color.White, Font = new Font("Segoe UI Semibold", 9f), DialogResult = DialogResult.OK, Cursor = Cursors.Hand };
+                btn.FlatAppearance.BorderSize = 0;
+                dlg.Controls.Add(btn); dlg.AcceptButton = btn;
+                dlg.ShowDialog();
+            }
+        }
+
+        private bool Confirmar(string texto, string titulo = "Confirmar")
+        {
+            var cVerm = Color.FromArgb(200, 60, 60);
+            var cMuted = Color.FromArgb(120, 120, 150);
+            using (var dlg = new Form())
+            {
+                dlg.BackColor = Color.FromArgb(16, 16, 22); dlg.ClientSize = new Size(420, 155);
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
+                dlg.Text = titulo; dlg.Font = new Font("Segoe UI", 9f);
+                dlg.Controls.Add(new Panel { Dock = DockStyle.Top, Height = 4, BackColor = cVerm });
+                dlg.Controls.Add(new Label { Text = "?", Font = new Font("Segoe UI", 20f, FontStyle.Bold), ForeColor = cVerm, AutoSize = true, Location = new Point(18, 22) });
+                dlg.Controls.Add(new Label { Text = texto, Font = new Font("Segoe UI", 10f), ForeColor = Color.FromArgb(230, 230, 245), AutoSize = false, Location = new Point(58, 20), Width = 344, Height = 60, TextAlign = ContentAlignment.MiddleLeft });
+                var btnSim = new Button { Text = "Sim", Width = 100, Height = 32, Location = new Point(100, 102), FlatStyle = FlatStyle.Flat, BackColor = cVerm, ForeColor = Color.White, Font = new Font("Segoe UI Semibold", 9f), DialogResult = DialogResult.Yes, Cursor = Cursors.Hand };
+                btnSim.FlatAppearance.BorderSize = 0;
+                var btnNao = new Button { Text = "Nao", Width = 100, Height = 32, Location = new Point(216, 102), FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(40, 40, 60), ForeColor = cMuted, Font = new Font("Segoe UI", 9f), DialogResult = DialogResult.No, Cursor = Cursors.Hand };
+                btnNao.FlatAppearance.BorderColor = Color.FromArgb(60, 60, 90);
+                dlg.Controls.Add(btnSim); dlg.Controls.Add(btnNao);
+                return dlg.ShowDialog() == DialogResult.Yes;
+            }
         }
     }
 }

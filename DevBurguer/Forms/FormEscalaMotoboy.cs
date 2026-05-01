@@ -312,7 +312,11 @@ namespace DevBurguer.Forms
 
                 PreencherCombo();
             }
-            catch (Exception ex) { MessageBox.Show("Erro:\n" + ex.Message); }
+            catch (Exception ex)
+            {
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormEscalaMotoboy.CarregarAsync");
+                if (lblStatus != null) lblStatus.Text = "Erro ao carregar escala.";
+            }
         }
 
         private DataTable BuscarMotoboys()
@@ -397,7 +401,11 @@ namespace DevBurguer.Forms
                 });
                 lblStatus.Text = "✔ Salvo";
             }
-            catch (Exception ex) { lblStatus.Text = "Erro: " + ex.Message; }
+            catch (Exception ex)
+            {
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormEscalaMotoboy.SalvarAsync");
+                if (lblStatus != null) lblStatus.Text = "Erro ao salvar escala.";
+            }
         }
 
         private async void btnAdicionar_Click(object sender, EventArgs e)
