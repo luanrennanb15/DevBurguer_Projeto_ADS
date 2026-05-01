@@ -16,7 +16,7 @@ namespace DevBurguer.Banco
             Path.Combine(Application.StartupPath, "config.txt");
 
         private static readonly string ConnectionPadrao =
-            "Server=DESKTOP-N98DB69;Database=DevBurguerDB;Trusted_Connection=True;Connection Timeout=120;";
+            "Server=localhost;Database=DevBurguerDB;Trusted_Connection=True;Connection Timeout=30;";
 
         private static string _connectionString;
 

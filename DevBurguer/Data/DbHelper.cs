@@ -18,6 +18,7 @@ namespace DevBurguer.Data
                     conn.Open();
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
+                        cmd.CommandTimeout = 60;
                         if (parameters != null && parameters.Length > 0)
                             cmd.Parameters.AddRange(parameters);
 
@@ -46,6 +47,7 @@ namespace DevBurguer.Data
                     conn.Open();
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
+                        cmd.CommandTimeout = 60;
                         if (parameters != null && parameters.Length > 0)
                             cmd.Parameters.AddRange(parameters);
 
@@ -71,6 +73,7 @@ namespace DevBurguer.Data
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
+                        cmd.CommandTimeout = 60;
                         if (parameters != null && parameters.Length > 0)
                             cmd.Parameters.AddRange(parameters);
 
@@ -100,6 +103,7 @@ namespace DevBurguer.Data
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
+                        cmd.CommandTimeout = 60;
                         if (parameters != null && parameters.Length > 0)
                             cmd.Parameters.AddRange(parameters);
 

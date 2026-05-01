@@ -223,7 +223,7 @@ namespace DevBurguer.Forms
 
                 AtualizarCards(dt);
             }
-            catch (Exception ex) { MessageBox.Show("Erro: " + ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+            catch (Exception ex) { DevBurguer.Services.ExceptionLogger.Log(ex, "FormRelatorioFaturamento.Carregar"); Msg("Erro ao carregar faturamento:\n" + ex.Message, "Erro", true); }
         }
 
         private void AtualizarCards(DataTable dt)
@@ -270,6 +270,31 @@ namespace DevBurguer.Forms
             if (!primario) { b.MouseEnter += (s, e) => { b.ForeColor = CText; b.FlatAppearance.BorderColor = COranje; }; b.MouseLeave += (s, e) => { b.ForeColor = CMuted; b.FlatAppearance.BorderColor = Color.FromArgb(55, 55, 75); }; }
             else { b.MouseEnter += (s, e) => b.BackColor = Color.FromArgb(210, 80, 30); b.MouseLeave += (s, e) => b.BackColor = COranje; }
             return b;
+        }
+
+        // ── Diálogos dark theme laranja ──────────────────────────
+        private void Msg(string texto, string titulo = "Aviso", bool erro = false)
+        {
+            var cLaranj = System.Drawing.Color.FromArgb(220, 130, 30);
+            var cVerm = System.Drawing.Color.FromArgb(200, 60, 60);
+            var cDark = System.Drawing.Color.FromArgb(16, 16, 22);
+            var cText = System.Drawing.Color.FromArgb(230, 230, 245);
+            var cor = erro ? cVerm : cLaranj;
+            using (var dlg = new Form())
+            {
+                dlg.BackColor = cDark; dlg.ClientSize = new System.Drawing.Size(420, 155);
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
+                dlg.Text = titulo; dlg.Font = new System.Drawing.Font("Segoe UI", 9f);
+                dlg.Controls.Add(new Panel { Dock = DockStyle.Top, Height = 4, BackColor = cor });
+                dlg.Controls.Add(new Label { Text = erro ? "!" : "✓", Font = new System.Drawing.Font("Segoe UI", 20f, System.Drawing.FontStyle.Bold), ForeColor = cor, AutoSize = true, Location = new System.Drawing.Point(18, 22) });
+                dlg.Controls.Add(new Label { Text = texto, Font = new System.Drawing.Font("Segoe UI", 10f), ForeColor = cText, AutoSize = false, Location = new System.Drawing.Point(58, 20), Width = 344, Height = 60, TextAlign = System.Drawing.ContentAlignment.MiddleLeft });
+                var btn = new Button { Text = "OK", Width = 100, Height = 32, Location = new System.Drawing.Point(160, 102), FlatStyle = FlatStyle.Flat, BackColor = cor, ForeColor = System.Drawing.Color.White, Font = new System.Drawing.Font("Segoe UI Semibold", 9f), DialogResult = DialogResult.OK, Cursor = Cursors.Hand };
+                btn.FlatAppearance.BorderSize = 0;
+                dlg.Controls.Add(btn); dlg.AcceptButton = btn;
+                dlg.ShowDialog(this);
+            }
         }
     }
 }

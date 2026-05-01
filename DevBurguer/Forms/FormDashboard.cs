@@ -33,6 +33,7 @@ namespace DevBurguer.Forms
         private Label _lblFinalizados;
         private Label _lblMaisVendido, _lblMotoboys, _lblCancelados, _lblHora;
         private System.Windows.Forms.Timer _timerRelogio;
+        private DateTime _ultimoDia = DateTime.Today; // detecta virada de dia
 
         public FormDashboard()
         {
@@ -365,6 +366,13 @@ namespace DevBurguer.Forms
         {
             if (_lblHora != null)
                 _lblHora.Text = DateTime.Now.ToString("HH:mm:ss");
+
+            // ✅ Detecta virada de dia e recarrega o dashboard automaticamente
+            if (DateTime.Today != _ultimoDia)
+            {
+                _ultimoDia = DateTime.Today;
+                _ = CarregarAsync();
+            }
         }
     }
 }

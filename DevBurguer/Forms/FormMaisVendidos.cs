@@ -58,7 +58,9 @@ namespace DevBurguer.Forms
                 ConstruirCards();
                 await FiltrarMesAsync();
                 // ✅ escuta pedidos finalizados no kanban
-                PedidoEventos.PedidoFinalizado += async (sender, args) => await FiltrarMesAsync();
+                // ✅ ao finalizar pedido recarrega com as datas atuais do filtro, sem resetar
+                PedidoEventos.PedidoFinalizado += async (sender, args) =>
+                    await CarregarAsync(dtpDe.Value.Date, dtpAte.Value.Date.AddDays(1).AddTicks(-1));
             };
         }
 
@@ -207,9 +209,12 @@ namespace DevBurguer.Forms
 
         private async Task FiltrarMesAsync()
         {
+            // ✅ Do dia 1 do mês atual até o último instante de hoje
             dtpDe.Value = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             dtpAte.Value = DateTime.Today;
-            await CarregarAsync(dtpDe.Value.Date, DateTime.Today.AddDays(1).AddTicks(-1));
+            await CarregarAsync(
+                new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1),
+                DateTime.Today.AddDays(1).AddTicks(-1));
         }
 
         // ═══════════════════════════════════════════════════════════
