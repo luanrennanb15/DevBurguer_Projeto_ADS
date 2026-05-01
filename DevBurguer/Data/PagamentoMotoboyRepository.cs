@@ -34,6 +34,43 @@ namespace DevBurguer.Data
             return Mappers.MapPagamentos(dt);
         }
 
+        // ✅ Busca com filtros — data e/ou nome do motoboy
+        public async Task<List<PagamentoMotoboy>> BuscarAsync(DateTime? data, string nomeMotoboy)
+        {
+            string sql = @"
+                SELECT
+                    p.Id,
+                    p.IdMotoboy,
+                    m.Nome                       AS Motoboy,
+                    p.QuantidadeEntregas,
+                    p.ValorTotalEntregas,
+                    p.ValorChegada,
+                    p.TotalPagar,
+                    p.DataPagamento,
+                    ISNULL(p.Comentario, '')     AS Comentario
+                FROM PagamentoMotoboy p
+                LEFT JOIN Motoboys m ON m.Id = p.IdMotoboy
+                WHERE 1=1";
+
+            var parametros = new System.Collections.Generic.List<SqlParameter>();
+
+            if (data.HasValue)
+            {
+                sql += " AND CONVERT(date, p.DataPagamento) = @data";
+                parametros.Add(new SqlParameter("@data", SqlDbType.Date) { Value = data.Value.Date });
+            }
+            if (!string.IsNullOrWhiteSpace(nomeMotoboy))
+            {
+                sql += " AND m.Nome LIKE @nome";
+                parametros.Add(new SqlParameter("@nome", SqlDbType.NVarChar, 100) { Value = "%" + nomeMotoboy.Trim() + "%" });
+            }
+
+            sql += " ORDER BY p.Id DESC";
+
+            DataTable dt = await DbHelper.ExecuteDataTableAsync(sql, parametros.ToArray());
+            return Mappers.MapPagamentos(dt);
+        }
+
         public async Task<List<Motoboy>> GetAllMotoboysAsync()
         {
             const string sql = "SELECT Id, Nome FROM Motoboys ORDER BY Nome";

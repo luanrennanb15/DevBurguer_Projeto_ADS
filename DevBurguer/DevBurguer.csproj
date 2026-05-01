@@ -70,6 +70,12 @@
     <Compile Include="Forms\FormClientes.Designer.cs">
       <DependentUpon>FormClientes.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\FormConfiguracoes.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FormConfiguracoes.Designer.cs">
+      <DependentUpon>FormConfiguracoes.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\FormDashboard.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -135,6 +141,12 @@
     </Compile>
     <Compile Include="Forms\FormPedidos.Designer.cs">
       <DependentUpon>FormPedidos.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\FormPrevisao.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FormPrevisao.Designer.cs">
+      <DependentUpon>FormPrevisao.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\FormProducao.cs">
       <SubType>Form</SubType>
@@ -217,7 +229,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DevBurguer.Tests\" />
     <Folder Include="Model\" />
   </ItemGroup>
   <ItemGroup>

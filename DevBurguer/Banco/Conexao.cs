@@ -1,56 +1,78 @@
 ﻿using System;
 using System.Data.SqlClient;
-using System.Reflection;
+using System.IO;
+using System.Windows.Forms;
 
 namespace DevBurguer.Banco
 {
-    public class Conexao
+    /// <summary>
+    /// Gerencia a conexão com o banco de dados.
+    /// A string de conexão é salva em config.txt na pasta do executável,
+    /// permitindo alteração sem necessidade de recompilar o sistema.
+    /// </summary>
+    public static class Conexao
     {
-        private static readonly string DefaultConnection = @"Server=DESKTOP-N98DB69;Database=DevBurguerDB;Trusted_Connection=True;";
-        private static readonly string _connectionString;
+        private static readonly string ArquivoConfig =
+            Path.Combine(Application.StartupPath, "config.txt");
+
+        private static readonly string ConnectionPadrao =
+            "Server=DESKTOP-N98DB69;Database=DevBurguerDB;Trusted_Connection=True;Connection Timeout=120;";
+
+        private static string _connectionString;
 
         static Conexao()
         {
-            try
-            {
-                // tenta obter via ConfigurationManager por reflection (evita referencia direta a System.Configuration)
-                var cfgType = Type.GetType("System.Configuration.ConfigurationManager, System.Configuration");
-                if (cfgType != null)
-                {
-                    var csProp = cfgType.GetProperty("ConnectionStrings", BindingFlags.Static | BindingFlags.Public);
-                    var csCollection = csProp?.GetValue(null, null);
-                    if (csCollection != null)
-                    {
-                        var getItem = csCollection.GetType().GetMethod("Get", new[] { typeof(string) })
-                                      ?? csCollection.GetType().GetMethod("get_Item", new[] { typeof(string) });
-                        if (getItem != null)
-                        {
-                            var setting = getItem.Invoke(csCollection, new object[] { "DevBurguerDB" });
-                            if (setting != null)
-                            {
-                                var connStrProp = setting.GetType().GetProperty("ConnectionString");
-                                var conn = connStrProp?.GetValue(setting, null) as string;
-                                if (!string.IsNullOrWhiteSpace(conn))
-                                {
-                                    _connectionString = conn;
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                // ignore and fallback
-            }
-
-            _connectionString = DefaultConnection;
+            _connectionString = CarregarConnectionString();
         }
+
+        public static string ConnectionString => _connectionString;
 
         public static SqlConnection GetConnection()
         {
             return new SqlConnection(_connectionString);
+        }
+
+        /// <summary>
+        /// Testa se a conexão funciona.
+        /// </summary>
+        public static bool TestarConexao(string connStr = null)
+        {
+            try
+            {
+                using (var conn = new SqlConnection(connStr ?? _connectionString))
+                {
+                    conn.Open();
+                    return true;
+                }
+            }
+            catch { return false; }
+        }
+
+        /// <summary>
+        /// Salva nova string de conexão no arquivo e atualiza em memória.
+        /// </summary>
+        public static void SalvarConnectionString(string novaConexao)
+        {
+            File.WriteAllText(ArquivoConfig, novaConexao.Trim());
+            _connectionString = novaConexao.Trim();
+        }
+
+        private static string CarregarConnectionString()
+        {
+            try
+            {
+                if (File.Exists(ArquivoConfig))
+                {
+                    string conn = File.ReadAllText(ArquivoConfig).Trim();
+                    if (!string.IsNullOrEmpty(conn))
+                        return conn;
+                }
+            }
+            catch { }
+
+            // cria arquivo com conexão padrão na primeira execução
+            try { File.WriteAllText(ArquivoConfig, ConnectionPadrao); } catch { }
+            return ConnectionPadrao;
         }
     }
 }

@@ -204,6 +204,7 @@ namespace DevBurguer.Forms
 
         private Panel CriarCard(string titulo, string valor, Color cor, string prefixo, out Label lblValor)
         {
+            // ✅ TableLayoutPanel interno — 3 linhas fixas, sem cortar nada
             var pnl = new Panel { Dock = DockStyle.Fill, BackColor = CDarkCard, Margin = new Padding(6) };
             var corLocal = cor;
             pnl.Paint += (s, e) =>
@@ -212,42 +213,52 @@ namespace DevBurguer.Forms
                 e.Graphics.DrawRectangle(new Pen(Color.FromArgb(40, 40, 60)), 0, 0, pnl.Width - 1, pnl.Height - 1);
             };
 
+            var inner = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 3,
+                BackColor = Color.Transparent,
+                Padding = new Padding(12, 8, 8, 8),
+                CellBorderStyle = TableLayoutPanelCellBorderStyle.None
+            };
+            inner.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            inner.RowStyles.Add(new RowStyle(SizeType.Absolute, 26)); // título
+            inner.RowStyles.Add(new RowStyle(SizeType.Absolute, 22)); // prefixo
+            inner.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // valor
+
             var lTitulo = new Label
             {
                 Text = titulo,
                 Font = new Font("Segoe UI", 8f, FontStyle.Bold),
                 ForeColor = CMuted,
-                AutoSize = false,
-                Dock = DockStyle.Top,
-                Height = 28,
-                TextAlign = ContentAlignment.BottomLeft,
-                Padding = new Padding(12, 0, 0, 0)
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.BottomLeft
             };
 
             var lPre = new Label
             {
                 Text = prefixo,
-                Font = new Font("Segoe UI", 10f),
+                Font = new Font("Segoe UI", 9f),
                 ForeColor = cor,
-                AutoSize = true,
-                Location = new Point(12, 42)
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft
             };
 
             var lValor = new Label
             {
                 Text = valor,
-                Font = new Font("Segoe UI Black", 24f),
+                Font = new Font("Segoe UI Black", 26f),
                 ForeColor = CText,
-                AutoSize = false,
-                Location = new Point(string.IsNullOrEmpty(prefixo) ? 12 : 36, 32),
-                Width = 280,
-                Height = 52,
-                TextAlign = ContentAlignment.MiddleLeft
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoSize = false
             };
 
-            pnl.Controls.Add(lTitulo);
-            pnl.Controls.Add(lValor);
-            if (!string.IsNullOrEmpty(prefixo)) pnl.Controls.Add(lPre);
+            inner.Controls.Add(lTitulo, 0, 0);
+            inner.Controls.Add(lPre, 0, 1);
+            inner.Controls.Add(lValor, 0, 2);
+            pnl.Controls.Add(inner);
 
             lblValor = lValor;
             return pnl;

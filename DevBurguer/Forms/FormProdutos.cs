@@ -53,7 +53,7 @@ namespace DevBurguer
             catch (Exception ex)
             {
                 DevBurguer.Services.ExceptionLogger.Log(ex, "CarregarCategoriasAsync");
-                MessageBox.Show("Erro ao carregar categorias.");
+                Msg("Erro ao carregar categorias.", "Erro", true);
             }
         }
 
@@ -81,7 +81,7 @@ namespace DevBurguer
             catch (Exception ex)
             {
                 DevBurguer.Services.ExceptionLogger.Log(ex, "CarregarProdutosAsync");
-                MessageBox.Show("Erro ao carregar produtos.");
+                Msg("Erro ao carregar produtos.", "Erro", true);
             }
         }
 
@@ -113,7 +113,7 @@ namespace DevBurguer
 
             if (txtPreenchido && comboSelecionado)
             {
-                MessageBox.Show("Não pode usar duas categorias.");
+                Msg("Nao pode usar duas categorias ao mesmo tempo.", "Aviso", true);
                 return null;
             }
 
@@ -123,7 +123,7 @@ namespace DevBurguer
             if (txtPreenchido)
                 return txtCategoria.Text;
 
-            MessageBox.Show("Informe uma categoria!");
+            Msg("Informe uma categoria!", "Aviso", true);
             return null;
         }
 
@@ -157,7 +157,7 @@ namespace DevBurguer
             {
                 if (txtNome.Text == "" || txtPreco.Text == "")
                 {
-                    MessageBox.Show("Preencha nome e preço!");
+                    Msg("Preencha o nome e o preco!", "Aviso", true);
                     return;
                 }
 
@@ -165,7 +165,7 @@ namespace DevBurguer
 
                 if (!decimal.TryParse(valorTexto, out decimal preco))
                 {
-                    MessageBox.Show("Preço inválido!");
+                    Msg("Preco invalido!", "Aviso", true);
                     return;
                 }
 
@@ -175,7 +175,7 @@ namespace DevBurguer
                 var repo = new DevBurguer.Data.ProdutoRepository();
                 await repo.InsertAsync(txtNome.Text, preco, categoria, txtIngredientes.Text);
 
-                MessageBox.Show("Produto cadastrado!");
+                Msg("Produto cadastrado com sucesso!", "Sucesso");
 
                 LimparCampos();
                 await CarregarProdutosAsync(); // 🔥 atualiza grid
@@ -183,7 +183,7 @@ namespace DevBurguer
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro: " + ex.Message);
+                Msg("Erro: " + ex.Message, "Erro", true);
             }
         }
 
@@ -191,7 +191,7 @@ namespace DevBurguer
         {
             if (idSelecionado == 0)
             {
-                MessageBox.Show("Selecione um produto!");
+                Msg("Selecione um produto na tabela!", "Aviso", true);
                 return;
             }
 
@@ -201,7 +201,7 @@ namespace DevBurguer
 
                 if (!decimal.TryParse(valorTexto, out decimal preco))
                 {
-                    MessageBox.Show("Preço inválido!");
+                    Msg("Preco invalido!", "Aviso", true);
                     return;
                 }
 
@@ -211,7 +211,7 @@ namespace DevBurguer
                 var repo = new DevBurguer.Data.ProdutoRepository();
                 await repo.UpdateAsync(idSelecionado, txtNome.Text, preco, categoria, txtIngredientes.Text);
 
-                MessageBox.Show("Produto atualizado!");
+                Msg("Produto atualizado com sucesso!", "Sucesso");
 
                 LimparCampos();
                 await CarregarProdutosAsync();
@@ -219,7 +219,7 @@ namespace DevBurguer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                Msg(ex.Message, "Erro", true);
             }
         }
 
@@ -227,16 +227,18 @@ namespace DevBurguer
         {
             if (idSelecionado == 0)
             {
-                MessageBox.Show("Selecione um produto!");
+                Msg("Selecione um produto na tabela!", "Aviso", true);
                 return;
             }
 
+            if (!Confirmar("Deseja realmente excluir este produto?\nEssa acao nao pode ser desfeita."))
+                return;
             try
             {
                 var repo = new DevBurguer.Data.ProdutoRepository();
                 await repo.DeleteAsync(idSelecionado);
 
-                MessageBox.Show("Produto excluído!");
+                Msg("Produto excluido com sucesso!", "Sucesso");
 
                 LimparCampos();
                 await CarregarProdutosAsync();
@@ -244,7 +246,7 @@ namespace DevBurguer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                Msg(ex.Message, "Erro", true);
             }
         }
 
@@ -256,6 +258,151 @@ namespace DevBurguer
             txtIngredientes.Clear();
             cmbCategoria.SelectedIndex = 0;
             idSelecionado = 0;
+        }
+        // ✅ Diálogos dark theme verde
+        private void Msg(string texto, string titulo = "Aviso", bool erro = false)
+        {
+            var cVerde = System.Drawing.Color.FromArgb(40, 160, 80);
+            var cVerm = System.Drawing.Color.FromArgb(200, 60, 60);
+            var cDark = System.Drawing.Color.FromArgb(16, 16, 22);
+            var cCard = System.Drawing.Color.FromArgb(26, 26, 38);
+            var cText = System.Drawing.Color.FromArgb(230, 230, 245);
+            var cor = erro ? cVerm : cVerde;
+
+            using (var dlg = new Form())
+            {
+                dlg.BackColor = cDark;
+                dlg.ClientSize = new System.Drawing.Size(400, 155);
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
+                dlg.Text = titulo;
+                dlg.Font = new System.Drawing.Font("Segoe UI", 9f);
+
+                var top = new Panel { Dock = DockStyle.Top, Height = 4, BackColor = cor };
+                dlg.Controls.Add(top);
+
+                var ico = new Label
+                {
+                    Text = erro ? "!" : "✓",
+                    Font = new System.Drawing.Font("Segoe UI", 20f, System.Drawing.FontStyle.Bold),
+                    ForeColor = cor,
+                    AutoSize = true,
+                    Location = new System.Drawing.Point(18, 22)
+                };
+                dlg.Controls.Add(ico);
+
+                var lbl = new Label
+                {
+                    Text = texto,
+                    Font = new System.Drawing.Font("Segoe UI", 10f),
+                    ForeColor = cText,
+                    AutoSize = false,
+                    Location = new System.Drawing.Point(58, 20),
+                    Width = 324,
+                    Height = 60,
+                    TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+                };
+                dlg.Controls.Add(lbl);
+
+                var btn = new Button
+                {
+                    Text = "OK",
+                    Width = 100,
+                    Height = 32,
+                    Location = new System.Drawing.Point(150, 102),
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = cor,
+                    ForeColor = System.Drawing.Color.White,
+                    Font = new System.Drawing.Font("Segoe UI Semibold", 9f),
+                    DialogResult = DialogResult.OK,
+                    Cursor = Cursors.Hand
+                };
+                btn.FlatAppearance.BorderSize = 0;
+                dlg.Controls.Add(btn);
+                dlg.AcceptButton = btn;
+                dlg.ShowDialog(this);
+            }
+        }
+
+        private bool Confirmar(string texto, string titulo = "Confirmar")
+        {
+            var cVerde = System.Drawing.Color.FromArgb(40, 160, 80);
+            var cVerm = System.Drawing.Color.FromArgb(200, 60, 60);
+            var cDark = System.Drawing.Color.FromArgb(16, 16, 22);
+            var cText = System.Drawing.Color.FromArgb(230, 230, 245);
+            var cMuted = System.Drawing.Color.FromArgb(120, 120, 150);
+
+            using (var dlg = new Form())
+            {
+                dlg.BackColor = cDark;
+                dlg.ClientSize = new System.Drawing.Size(400, 155);
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
+                dlg.Text = titulo;
+                dlg.Font = new System.Drawing.Font("Segoe UI", 9f);
+
+                var top = new Panel { Dock = DockStyle.Top, Height = 4, BackColor = cVerm };
+                dlg.Controls.Add(top);
+
+                var ico = new Label
+                {
+                    Text = "?",
+                    Font = new System.Drawing.Font("Segoe UI", 20f, System.Drawing.FontStyle.Bold),
+                    ForeColor = cVerm,
+                    AutoSize = true,
+                    Location = new System.Drawing.Point(18, 22)
+                };
+                dlg.Controls.Add(ico);
+
+                var lbl = new Label
+                {
+                    Text = texto,
+                    Font = new System.Drawing.Font("Segoe UI", 10f),
+                    ForeColor = cText,
+                    AutoSize = false,
+                    Location = new System.Drawing.Point(58, 20),
+                    Width = 324,
+                    Height = 60,
+                    TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+                };
+                dlg.Controls.Add(lbl);
+
+                var btnSim = new Button
+                {
+                    Text = "Sim",
+                    Width = 100,
+                    Height = 32,
+                    Location = new System.Drawing.Point(90, 102),
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = cVerm,
+                    ForeColor = System.Drawing.Color.White,
+                    Font = new System.Drawing.Font("Segoe UI Semibold", 9f),
+                    DialogResult = DialogResult.Yes,
+                    Cursor = Cursors.Hand
+                };
+                btnSim.FlatAppearance.BorderSize = 0;
+
+                var btnNao = new Button
+                {
+                    Text = "Nao",
+                    Width = 100,
+                    Height = 32,
+                    Location = new System.Drawing.Point(206, 102),
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = System.Drawing.Color.FromArgb(40, 40, 60),
+                    ForeColor = cMuted,
+                    Font = new System.Drawing.Font("Segoe UI", 9f),
+                    DialogResult = DialogResult.No,
+                    Cursor = Cursors.Hand
+                };
+                btnNao.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(60, 60, 90);
+
+                dlg.Controls.Add(btnSim);
+                dlg.Controls.Add(btnNao);
+                return dlg.ShowDialog(this) == DialogResult.Yes;
+            }
         }
     }
 }

@@ -2,233 +2,122 @@
 {
     partial class FormProdutos
     {
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
-
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
-
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormProdutos));
             this.lblNome = new System.Windows.Forms.Label();
+            this.lblIngredientes = new System.Windows.Forms.Label();
             this.lblPreco = new System.Windows.Forms.Label();
             this.lblCategoria = new System.Windows.Forms.Label();
+            this.lblCategoriaCadastrada = new System.Windows.Forms.Label();
             this.txtNome = new System.Windows.Forms.TextBox();
+            this.txtIngredientes = new System.Windows.Forms.TextBox();
             this.txtPreco = new System.Windows.Forms.TextBox();
             this.txtCategoria = new System.Windows.Forms.TextBox();
+            this.cmbCategoria = new System.Windows.Forms.ComboBox();
             this.btnSalvar = new System.Windows.Forms.Button();
-            this.txtIngredientes = new System.Windows.Forms.TextBox();
-            this.lblIngredientes = new System.Windows.Forms.Label();
-            this.dgvProdutos = new System.Windows.Forms.DataGridView();
             this.btnAtualizar = new System.Windows.Forms.Button();
             this.btnExcluir = new System.Windows.Forms.Button();
-            this.lblCategoriaCadastrada = new System.Windows.Forms.Label();
-            this.cmbCategoria = new System.Windows.Forms.ComboBox();
+            this.dgvProdutos = new System.Windows.Forms.DataGridView();
             ((System.ComponentModel.ISupportInitialize)(this.dgvProdutos)).BeginInit();
             this.SuspendLayout();
-            // 
-            // lblNome
-            // 
-            this.lblNome.AutoSize = true;
-            this.lblNome.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblNome.Location = new System.Drawing.Point(27, 38);
-            this.lblNome.Name = "lblNome";
-            this.lblNome.Size = new System.Drawing.Size(51, 20);
-            this.lblNome.TabIndex = 8;
-            this.lblNome.Text = "Nome";
-            // 
-            // lblPreco
-            // 
-            this.lblPreco.AutoSize = true;
-            this.lblPreco.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblPreco.Location = new System.Drawing.Point(27, 166);
-            this.lblPreco.Name = "lblPreco";
-            this.lblPreco.Size = new System.Drawing.Size(50, 20);
-            this.lblPreco.TabIndex = 10;
-            this.lblPreco.Text = "Preço";
-            // 
-            // lblCategoria
-            // 
-            this.lblCategoria.AutoSize = true;
-            this.lblCategoria.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblCategoria.Location = new System.Drawing.Point(27, 230);
-            this.lblCategoria.Name = "lblCategoria";
-            this.lblCategoria.Size = new System.Drawing.Size(78, 20);
-            this.lblCategoria.TabIndex = 11;
-            this.lblCategoria.Text = "Categoria";
-            // 
-            // txtNome
-            // 
-            this.txtNome.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtNome.Location = new System.Drawing.Point(27, 67);
-            this.txtNome.Name = "txtNome";
-            this.txtNome.Size = new System.Drawing.Size(176, 26);
-            this.txtNome.TabIndex = 0;
-            // 
-            // txtPreco
-            // 
-            this.txtPreco.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtPreco.Location = new System.Drawing.Point(27, 195);
-            this.txtPreco.Name = "txtPreco";
-            this.txtPreco.Size = new System.Drawing.Size(122, 26);
-            this.txtPreco.TabIndex = 2;
-            // 
-            // txtCategoria
-            // 
-            this.txtCategoria.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtCategoria.Location = new System.Drawing.Point(27, 259);
-            this.txtCategoria.Name = "txtCategoria";
-            this.txtCategoria.Size = new System.Drawing.Size(123, 26);
-            this.txtCategoria.TabIndex = 3;
-            // 
-            // btnSalvar
-            // 
-            this.btnSalvar.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSalvar.Location = new System.Drawing.Point(31, 564);
-            this.btnSalvar.Name = "btnSalvar";
-            this.btnSalvar.Size = new System.Drawing.Size(78, 29);
-            this.btnSalvar.TabIndex = 5;
-            this.btnSalvar.Text = "Salvar";
-            this.btnSalvar.UseVisualStyleBackColor = true;
-            this.btnSalvar.Click += new System.EventHandler(this.btnSalvar_Click);
-            // 
-            // txtIngredientes
-            // 
-            this.txtIngredientes.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtIngredientes.Location = new System.Drawing.Point(27, 131);
-            this.txtIngredientes.Multiline = true;
-            this.txtIngredientes.Name = "txtIngredientes";
-            this.txtIngredientes.Size = new System.Drawing.Size(292, 26);
-            this.txtIngredientes.TabIndex = 1;
-            // 
-            // lblIngredientes
-            // 
-            this.lblIngredientes.AutoSize = true;
-            this.lblIngredientes.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblIngredientes.Location = new System.Drawing.Point(27, 102);
-            this.lblIngredientes.Name = "lblIngredientes";
-            this.lblIngredientes.Size = new System.Drawing.Size(98, 20);
-            this.lblIngredientes.TabIndex = 9;
-            this.lblIngredientes.Text = "Ingredientes";
-            // 
-            // dgvProdutos
-            // 
-            this.dgvProdutos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvProdutos.Dock = System.Windows.Forms.DockStyle.Right;
-            this.dgvProdutos.Location = new System.Drawing.Point(340, 0);
-            this.dgvProdutos.Name = "dgvProdutos";
-            this.dgvProdutos.Size = new System.Drawing.Size(978, 622);
-            this.dgvProdutos.TabIndex = 13;
-            // 
-            // btnAtualizar
-            // 
-            this.btnAtualizar.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAtualizar.Location = new System.Drawing.Point(115, 564);
-            this.btnAtualizar.Name = "btnAtualizar";
-            this.btnAtualizar.Size = new System.Drawing.Size(78, 29);
-            this.btnAtualizar.TabIndex = 6;
-            this.btnAtualizar.Text = "Atualizar";
-            this.btnAtualizar.UseVisualStyleBackColor = true;
-            this.btnAtualizar.Click += new System.EventHandler(this.btnAtualizar_Click);
-            // 
-            // btnExcluir
-            // 
-            this.btnExcluir.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnExcluir.Location = new System.Drawing.Point(199, 564);
-            this.btnExcluir.Name = "btnExcluir";
-            this.btnExcluir.Size = new System.Drawing.Size(78, 29);
-            this.btnExcluir.TabIndex = 7;
-            this.btnExcluir.Text = "Excluir";
-            this.btnExcluir.UseVisualStyleBackColor = true;
-            this.btnExcluir.Click += new System.EventHandler(this.btnExcluir_Click);
-            // 
-            // lblCategoriaCadastrada
-            // 
-            this.lblCategoriaCadastrada.AutoSize = true;
-            this.lblCategoriaCadastrada.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblCategoriaCadastrada.Location = new System.Drawing.Point(27, 294);
-            this.lblCategoriaCadastrada.Name = "lblCategoriaCadastrada";
-            this.lblCategoriaCadastrada.Size = new System.Drawing.Size(181, 20);
-            this.lblCategoriaCadastrada.TabIndex = 12;
-            this.lblCategoriaCadastrada.Text = "Categoria ja Cadastrado";
-            // 
-            // cmbCategoria
-            // 
-            this.cmbCategoria.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbCategoria.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cmbCategoria.FormattingEnabled = true;
-            this.cmbCategoria.Location = new System.Drawing.Point(27, 323);
-            this.cmbCategoria.Name = "cmbCategoria";
-            this.cmbCategoria.Size = new System.Drawing.Size(169, 28);
-            this.cmbCategoria.TabIndex = 4;
-            this.cmbCategoria.SelectedIndexChanged += new System.EventHandler(this.cmbCategoria_SelectedIndexChanged);
-            // 
-            // FormProdutos
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
-            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(1318, 622);
-            this.Controls.Add(this.cmbCategoria);
-            this.Controls.Add(this.lblCategoriaCadastrada);
-            this.Controls.Add(this.btnExcluir);
-            this.Controls.Add(this.btnAtualizar);
-            this.Controls.Add(this.dgvProdutos);
-            this.Controls.Add(this.lblIngredientes);
-            this.Controls.Add(this.txtIngredientes);
-            this.Controls.Add(this.btnSalvar);
-            this.Controls.Add(this.txtCategoria);
-            this.Controls.Add(this.txtPreco);
-            this.Controls.Add(this.txtNome);
-            this.Controls.Add(this.lblCategoria);
-            this.Controls.Add(this.lblPreco);
-            this.Controls.Add(this.lblNome);
-            this.DoubleBuffered = true;
-            this.Name = "FormProdutos";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "FormProdutos";
-            this.Load += new System.EventHandler(this.FormProdutos_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.dgvProdutos)).EndInit();
-            this.ResumeLayout(false);
-            this.PerformLayout();
 
+            var cDark = System.Drawing.Color.FromArgb(16, 16, 22);
+            var cPanel = System.Drawing.Color.FromArgb(20, 20, 30);
+            var cCard = System.Drawing.Color.FromArgb(26, 26, 38);
+            var cText = System.Drawing.Color.FromArgb(230, 230, 245);
+            var cMuted = System.Drawing.Color.FromArgb(120, 120, 150);
+            var cVerde = System.Drawing.Color.FromArgb(40, 160, 80);
+            var cAzul = System.Drawing.Color.FromArgb(50, 140, 220);
+            var cVerm = System.Drawing.Color.FromArgb(160, 50, 50);
+            var fLbl = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Bold);
+            var fInp = new System.Drawing.Font("Segoe UI", 10F);
+            var fBtn = new System.Drawing.Font("Segoe UI Semibold", 9F);
+
+            this.BackColor = cDark;
+            this.ClientSize = new System.Drawing.Size(1334, 661);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.Name = "FormProdutos"; this.Text = "Cadastro de Produtos";
+
+            // painel esquerdo
+            var pnl = new System.Windows.Forms.Panel();
+            pnl.BackColor = cPanel; pnl.Location = new System.Drawing.Point(0, 0);
+            pnl.Size = new System.Drawing.Size(340, 661);
+
+            // cabeçalho
+            var cab = new System.Windows.Forms.Panel();
+            cab.BackColor = cCard; cab.Dock = System.Windows.Forms.DockStyle.Top; cab.Height = 46;
+            cab.Paint += (s, e) => e.Graphics.FillRectangle(new System.Drawing.SolidBrush(cVerde), 0, 43, 340, 3);
+            var lT = new System.Windows.Forms.Label(); lT.Text = "Cadastro de Produtos";
+            lT.Font = new System.Drawing.Font("Segoe UI Semibold", 11F); lT.ForeColor = cVerde;
+            lT.AutoSize = true; lT.Location = new System.Drawing.Point(12, 12); cab.Controls.Add(lT);
+            pnl.Controls.Add(cab);
+
+            int x = 16, y = 58;
+            // Nome
+            D_Lbl(pnl, this.lblNome, "Nome", fLbl, cMuted, x, y); y += 20;
+            D_Txt(pnl, this.txtNome, fInp, cCard, cText, x, y, 308, 30, 0); y += 44;
+            // Ingredientes
+            D_Lbl(pnl, this.lblIngredientes, "Ingredientes", fLbl, cMuted, x, y); y += 20;
+            D_Txt(pnl, this.txtIngredientes, fInp, cCard, cText, x, y, 308, 30, 1); y += 44;
+            // Preco
+            D_Lbl(pnl, this.lblPreco, "Preco", fLbl, cMuted, x, y); y += 20;
+            D_Txt(pnl, this.txtPreco, fInp, cCard, cText, x, y, 150, 30, 2); y += 44;
+            // Categoria nova
+            D_Lbl(pnl, this.lblCategoria, "Categoria (nova)", fLbl, cMuted, x, y); y += 20;
+            D_Txt(pnl, this.txtCategoria, fInp, cCard, cText, x, y, 150, 30, 3); y += 44;
+            // Categoria existente
+            D_Lbl(pnl, this.lblCategoriaCadastrada, "Categoria ja Cadastrada", fLbl, cMuted, x, y); y += 20;
+            this.cmbCategoria.Font = fInp; this.cmbCategoria.BackColor = cCard;
+            this.cmbCategoria.ForeColor = cText; this.cmbCategoria.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cmbCategoria.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbCategoria.Location = new System.Drawing.Point(x, y);
+            this.cmbCategoria.Size = new System.Drawing.Size(200, 28); this.cmbCategoria.TabIndex = 4;
+            pnl.Controls.Add(this.cmbCategoria); y += 52;
+
+            // botões
+            D_Btn(pnl, this.btnSalvar, "Salvar", cVerde, fBtn, x, y, 90, 34, 5);
+            D_Btn(pnl, this.btnAtualizar, "Atualizar", cAzul, fBtn, x + 100, y, 100, 34, 6);
+            D_Btn(pnl, this.btnExcluir, "Excluir", cVerm, fBtn, x + 210, y, 100, 34, 7);
+            this.btnSalvar.Click += new System.EventHandler(this.btnSalvar_Click);
+            this.btnAtualizar.Click += new System.EventHandler(this.btnAtualizar_Click);
+            this.btnExcluir.Click += new System.EventHandler(this.btnExcluir_Click);
+            this.Controls.Add(pnl);
+
+            // grid
+            D_Grid(this.dgvProdutos, cDark, cCard, cText, cVerde);
+            this.dgvProdutos.Location = new System.Drawing.Point(340, 0);
+            this.dgvProdutos.Size = new System.Drawing.Size(994, 661); this.dgvProdutos.TabIndex = 13;
+            this.Load += new System.EventHandler(this.FormProdutos_Load);
+            this.dgvProdutos.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvProdutos_CellClick);
+            this.Controls.Add(this.dgvProdutos);
+
+            ((System.ComponentModel.ISupportInitialize)(this.dgvProdutos)).EndInit();
+            this.ResumeLayout(false); this.PerformLayout();
         }
 
-        #endregion
+        private void D_Lbl(System.Windows.Forms.Control p, System.Windows.Forms.Label l, string t, System.Drawing.Font f, System.Drawing.Color c, int x, int y)
+        { l.Text = t; l.Font = f; l.ForeColor = c; l.AutoSize = true; l.Location = new System.Drawing.Point(x, y); p.Controls.Add(l); }
 
-        private System.Windows.Forms.Label lblNome;
-        private System.Windows.Forms.Label lblPreco;
-        private System.Windows.Forms.Label lblCategoria;
-        private System.Windows.Forms.TextBox txtNome;
-        private System.Windows.Forms.TextBox txtPreco;
-        private System.Windows.Forms.TextBox txtCategoria;
-        private System.Windows.Forms.Button btnSalvar;
-        private System.Windows.Forms.TextBox txtIngredientes;
-        private System.Windows.Forms.Label lblIngredientes;
-        private System.Windows.Forms.DataGridView dgvProdutos;
-        private System.Windows.Forms.Button btnAtualizar;
-        private System.Windows.Forms.Button btnExcluir;
-        private System.Windows.Forms.Label lblCategoriaCadastrada;
+        private void D_Txt(System.Windows.Forms.Control p, System.Windows.Forms.TextBox t, System.Drawing.Font f, System.Drawing.Color back, System.Drawing.Color fore, int x, int y, int w, int h, int tab)
+        { t.Font = f; t.BackColor = back; t.ForeColor = fore; t.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle; t.Location = new System.Drawing.Point(x, y); t.Size = new System.Drawing.Size(w, h); t.TabIndex = tab; p.Controls.Add(t); }
+
+        private void D_Btn(System.Windows.Forms.Control p, System.Windows.Forms.Button b, string t, System.Drawing.Color c, System.Drawing.Font f, int x, int y, int w, int h, int tab)
+        { b.Text = t; b.BackColor = c; b.ForeColor = System.Drawing.Color.White; b.FlatStyle = System.Windows.Forms.FlatStyle.Flat; b.FlatAppearance.BorderSize = 0; b.Font = f; b.Location = new System.Drawing.Point(x, y); b.Size = new System.Drawing.Size(w, h); b.TabIndex = tab; b.Cursor = System.Windows.Forms.Cursors.Hand; p.Controls.Add(b); }
+
+        private void D_Grid(System.Windows.Forms.DataGridView g, System.Drawing.Color back, System.Drawing.Color row, System.Drawing.Color fore, System.Drawing.Color sel)
+        { g.BackgroundColor = back; g.DefaultCellStyle.BackColor = row; g.DefaultCellStyle.ForeColor = fore; g.DefaultCellStyle.SelectionBackColor = sel; g.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.White; g.DefaultCellStyle.Font = new System.Drawing.Font("Segoe UI", 9.5F); g.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(20, 20, 35); g.ColumnHeadersDefaultCellStyle.ForeColor = sel; g.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font("Segoe UI Semibold", 9F); g.ColumnHeadersDefaultCellStyle.SelectionBackColor = System.Drawing.Color.FromArgb(20, 20, 35); g.EnableHeadersVisualStyles = false; g.GridColor = System.Drawing.Color.FromArgb(40, 40, 60); g.BorderStyle = System.Windows.Forms.BorderStyle.None; g.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal; g.RowHeadersVisible = false; g.AllowUserToAddRows = false; g.ReadOnly = true; g.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect; g.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill; g.ColumnHeadersHeight = 36; g.RowTemplate.Height = 28; }
+
+        private System.Windows.Forms.Label lblNome, lblIngredientes, lblPreco, lblCategoria, lblCategoriaCadastrada;
+        private System.Windows.Forms.TextBox txtNome, txtIngredientes, txtPreco, txtCategoria;
         private System.Windows.Forms.ComboBox cmbCategoria;
+        private System.Windows.Forms.Button btnSalvar, btnAtualizar, btnExcluir;
+        private System.Windows.Forms.DataGridView dgvProdutos;
     }
 }
