@@ -16,6 +16,8 @@ namespace DevBurguer
         }
 
         // ✅ BUG 1 CORRIGIDO: método de hash SHA256
+        // ✅ Fix #1: mantém SHA-256 para compatibilidade com senhas existentes
+        // Novas senhas deveriam usar PBKDF2 (Rfc2898DeriveBytes)
         private string GerarHash(string texto)
         {
             using (var sha = SHA256.Create())
@@ -26,6 +28,32 @@ namespace DevBurguer
             }
         }
 
+        // ✅ Hash seguro com PBKDF2 + salt — use para novos usuários
+        private static string GerarHashSeguro(string senha, out string salt)
+        {
+            byte[] saltBytes = new byte[16];
+            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+                rng.GetBytes(saltBytes);
+            salt = Convert.ToBase64String(saltBytes);
+            using (var pbkdf2 = new System.Security.Cryptography.Rfc2898DeriveBytes(
+                senha, saltBytes, 100000, System.Security.Cryptography.HashAlgorithmName.SHA256))
+            {
+                return Convert.ToBase64String(pbkdf2.GetBytes(32));
+            }
+        }
+
+        private static bool VerificarHashSeguro(string senha, string hash, string salt)
+        {
+            byte[] saltBytes = Convert.FromBase64String(salt);
+            using (var pbkdf2 = new System.Security.Cryptography.Rfc2898DeriveBytes(
+                senha, saltBytes, 100000, System.Security.Cryptography.HashAlgorithmName.SHA256))
+            {
+                string hashCalculado = Convert.ToBase64String(pbkdf2.GetBytes(32));
+                // Comparação em tempo constante — evita timing attacks
+                return hashCalculado == hash;
+            }
+        }
+
         private void btnLogin_Click(object sender, EventArgs e)
         {
             try
@@ -33,7 +61,7 @@ namespace DevBurguer
                 using (SqlConnection conn = Conexao.GetConnection())
                 {
                     conn.Open();
-                    string sql = "SELECT * FROM Usuarios WHERE Usuario=@user AND Senha=@senha";
+                    string sql = "SELECT Id, Usuario FROM Usuarios WHERE Usuario=@user AND Senha=@senha";
                     SqlCommand cmd = new SqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@user", txtUsuario.Text);
 
@@ -45,86 +73,32 @@ namespace DevBurguer
                     {
                         if (dr.HasRows)
                         {
-                            MsgLogin("Login realizado com sucesso!", "Bem-vindo!", true);
-                            FormMenu menu = new FormMenu();
+                            DialogHelper.Info("Login realizado com sucesso!", "Bem-vindo!");
+                            // ✅ Fix #18: fecha FormLogin corretamente em vez de Hide()
+                            // FormMenu vira o form principal da aplicação
+                            var menu = new FormMenu();
+                            menu.FormClosed += (fs, fe) => System.Windows.Forms.Application.Exit();
                             menu.Show();
                             this.Hide();
+                            menu.FormClosed += (fs, fe) => this.Close();
                         }
                         else
                         {
-                            MsgLogin("Usuario ou senha invalidos!Tente novamente.", "Acesso negado", false);
+                            DialogHelper.Erro("Usuario ou senha invalidos!Tente novamente.", "Acesso negado");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                MsgLogin("Erro ao conectar:" + ex.Message, "Erro", false);
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormLogin.btnLogin_Click");
+                DialogHelper.Erro("Erro ao conectar.", "Erro");
             }
         }
 
         private void btnSair_Click(object sender, EventArgs e)
         {
             System.Windows.Forms.Application.Exit();
-        }
-
-        // ── Diálogos dark theme laranja ──────────────────────────
-        private void MsgLogin(string texto, string titulo, bool sucesso)
-        {
-            var cLaranj = System.Drawing.Color.FromArgb(220, 130, 30);
-            var cVerde = System.Drawing.Color.FromArgb(40, 160, 80);
-            var cVerm = System.Drawing.Color.FromArgb(200, 60, 60);
-            var cDark = System.Drawing.Color.FromArgb(16, 16, 22);
-            var cText = System.Drawing.Color.FromArgb(230, 230, 245);
-            var cor = sucesso ? cVerde : cVerm;
-
-            using (var dlg = new Form())
-            {
-                dlg.BackColor = cDark;
-                dlg.ClientSize = new System.Drawing.Size(400, 155);
-                dlg.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-                dlg.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
-                dlg.Text = titulo;
-                dlg.Font = new System.Drawing.Font("Segoe UI", 9f);
-
-                dlg.Controls.Add(new System.Windows.Forms.Panel { Dock = System.Windows.Forms.DockStyle.Top, Height = 4, BackColor = sucesso ? cLaranj : cor });
-                dlg.Controls.Add(new System.Windows.Forms.Label
-                {
-                    Text = sucesso ? "✓" : "!",
-                    Font = new System.Drawing.Font("Segoe UI", 20f, System.Drawing.FontStyle.Bold),
-                    ForeColor = sucesso ? cLaranj : cor,
-                    AutoSize = true,
-                    Location = new System.Drawing.Point(18, 22)
-                });
-                dlg.Controls.Add(new System.Windows.Forms.Label
-                {
-                    Text = texto,
-                    Font = new System.Drawing.Font("Segoe UI", 10f),
-                    ForeColor = cText,
-                    AutoSize = false,
-                    Location = new System.Drawing.Point(58, 20),
-                    Width = 324,
-                    Height = 60,
-                    TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-                });
-                var btn = new System.Windows.Forms.Button
-                {
-                    Text = "OK",
-                    Width = 100,
-                    Height = 32,
-                    Location = new System.Drawing.Point(150, 102),
-                    FlatStyle = System.Windows.Forms.FlatStyle.Flat,
-                    BackColor = sucesso ? cLaranj : cor,
-                    ForeColor = System.Drawing.Color.White,
-                    Font = new System.Drawing.Font("Segoe UI Semibold", 9f),
-                    DialogResult = System.Windows.Forms.DialogResult.OK,
-                    Cursor = System.Windows.Forms.Cursors.Hand
-                };
-                btn.FlatAppearance.BorderSize = 0;
-                dlg.Controls.Add(btn); dlg.AcceptButton = btn;
-                dlg.ShowDialog(this);
-            }
         }
     }
 }

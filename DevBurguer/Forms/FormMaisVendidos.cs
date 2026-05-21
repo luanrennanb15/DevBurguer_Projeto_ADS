@@ -58,10 +58,29 @@ namespace DevBurguer.Forms
                 ConstruirCards();
                 await FiltrarMesAsync();
                 // ✅ escuta pedidos finalizados no kanban
-                // ✅ ao finalizar pedido recarrega com as datas atuais do filtro, sem resetar
-                PedidoEventos.PedidoFinalizado += async (sender, args) =>
-                    await CarregarAsync(dtpDe.Value.Date, dtpAte.Value.Date.AddDays(1).AddTicks(-1));
+                PedidoEventos.PedidoFinalizado += OnPedidoFinalizado;
             };
+
+            // ✅ FIX: desregistra handler ao fechar — antes ficava preso na memória
+            // e disparava em form disposto causando NullReferenceException
+            this.FormClosed += (s, e) =>
+            {
+                PedidoEventos.PedidoFinalizado -= OnPedidoFinalizado;
+            };
+        }
+
+        // ✅ Handler nomeado pra poder ser removido (lambda anônima não dá pra remover)
+        private async void OnPedidoFinalizado(object sender, EventArgs e)
+        {
+            if (this.IsDisposed || dtpDe == null || dtpAte == null) return;
+            try
+            {
+                await CarregarAsync(dtpDe.Value.Date, dtpAte.Value.Date.AddDays(1).AddTicks(-1));
+            }
+            catch (Exception ex)
+            {
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormMaisVendidos.OnPedidoFinalizado");
+            }
         }
 
         private static void AtivarDoubleBuffer(DataGridView dgv)
@@ -222,6 +241,13 @@ namespace DevBurguer.Forms
         // ═══════════════════════════════════════════════════════════
         private async Task CarregarAsync(DateTime inicio, DateTime fim)
         {
+            // ✅ FIX: validação de range — antes data início > fim retornava lista vazia sem aviso
+            if (inicio.Date > fim.Date)
+            {
+                DialogHelper.Aviso("Data inicial nao pode ser maior que a final.", "Aviso", DialogHelper.Verde);
+                return;
+            }
+
             if (_carregando) return;
             _carregando = true;
             SetCarregando(true);
@@ -229,6 +255,9 @@ namespace DevBurguer.Forms
             {
                 int top = (int)nudTop.Value;
 
+                // ✅ FIX: Status = 'Finalizado' (antes era != 'Cancelado' — contava em produção)
+                // ✅ FIX: removido 'Combo' das categorias (TCC só lanches)
+                // ✅ FIX: removido ISNULL(Data, GETDATE()) — pedidos sem Data não devem entrar
                 string sql = string.Format(@"
                     SELECT TOP {0}
                         p.Nome                      AS Produto,
@@ -238,9 +267,9 @@ namespace DevBurguer.Forms
                     FROM ItensPedido i
                     JOIN Pedidos  ped ON ped.Id = i.IdPedido
                     JOIN Produtos p   ON p.Id   = i.IdProduto
-                    WHERE ISNULL(ped.Data, GETDATE()) BETWEEN @di AND @df
-                      AND ISNULL(ped.Status, '') <> 'Cancelado'
-                      AND p.Categoria IN ('Lanche Tradicional', 'Lanche Gourmet', 'Combo')
+                    WHERE ped.Data BETWEEN @di AND @df
+                      AND ped.Status = 'Finalizado'
+                      AND p.Categoria IN ('Lanche Tradicional', 'Lanche Gourmet')
                     GROUP BY p.Nome, p.Categoria
                     ORDER BY Qtd DESC", top);
 
@@ -291,11 +320,16 @@ namespace DevBurguer.Forms
                     pt.Label = r["Qtd"].ToString();
                 }
 
-                AtualizarCards(dt);
+                // ✅ FIX: busca receita REAL do período (não limitada ao TOP N)
+                decimal receitaTotal = await new DevBurguer.Data.RelatorioService()
+                    .ObterReceitaTotalPeriodoAsync(inicio, fim);
+
+                AtualizarCards(dt, receitaTotal);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro:\n" + ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormMaisVendidos.CarregarAsync");
+                DialogHelper.Erro("Erro ao carregar mais vendidos.", "Erro");
             }
             finally
             {
@@ -304,17 +338,16 @@ namespace DevBurguer.Forms
             }
         }
 
-        private void AtualizarCards(DataTable dt)
+        // ✅ FIX: agora recebe receita TOTAL como parâmetro (antes somava só TOP N)
+        private void AtualizarCards(DataTable dt, decimal receitaTotal)
         {
             string p1 = dt.Rows.Count > 0 ? dt.Rows[0]["Produto"].ToString() : "-";
             string p2 = dt.Rows.Count > 1 ? dt.Rows[1]["Produto"].ToString() : "-";
             string p3 = dt.Rows.Count > 2 ? dt.Rows[2]["Produto"].ToString() : "-";
-            decimal rc = 0;
-            foreach (DataRow r in dt.Rows) rc += Convert.ToDecimal(r["Receita"]);
             if (lblCard1 != null) lblCard1.Text = p1;
             if (lblCard2 != null) lblCard2.Text = p2;
             if (lblCard3 != null) lblCard3.Text = p3;
-            if (lblCardReceita != null) lblCardReceita.Text = rc.ToString("C2");
+            if (lblCardReceita != null) lblCardReceita.Text = receitaTotal.ToString("C2");
         }
 
         private void ConstruirCards()
@@ -328,7 +361,11 @@ namespace DevBurguer.Forms
             {
                 var cl = cores[i]; var tg = tags[i];
                 var pnl = new Panel { Width = w, Height = 78, Left = 10 + i * (w + 10), Top = 6, BackColor = CDarkCard };
-                pnl.Paint += (s, pe) => pe.Graphics.FillRectangle(new SolidBrush(cl), 0, 0, pnl.Width, 4);
+                pnl.Paint += (s, pe) =>
+                {
+                    using (var br = new SolidBrush(cl))
+                        pe.Graphics.FillRectangle(br, 0, 0, pnl.Width, 4);
+                };
                 var lT = new Label { Text = titulos[i], Font = new Font("Segoe UI", 7f, FontStyle.Bold), ForeColor = CMuted, AutoSize = false, Width = w - 12, Height = 14, Location = new Point(8, 10) };
                 var lV = new Label { Text = "-", Font = new Font("Segoe UI Semibold", tg == "receita" ? 13f : 10f), ForeColor = CText, AutoSize = false, Width = w - 12, Height = 42, Location = new Point(8, 28) };
                 pnl.Controls.Add(lT); pnl.Controls.Add(lV);

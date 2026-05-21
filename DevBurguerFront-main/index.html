@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DevBurguer — Hambúrgueres artesanais épicos com entrega rápida. Peça pelo WhatsApp!">
+    <meta name="theme-color" content="#FF3A44">
+    <link rel="icon" type="image/x-icon" href="img/logo.ico">
+    <title>DevBurguer - Burgers Épicos</title>
+
+    <!-- Preload da fonte Poppins (usada nos headings) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/globals.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/layouts.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header" id="header" role="banner">
+        <div class="header-container">
+
+            <button class="mobile-menu-btn" id="mobileMenuBtn"
+                aria-label="Abrir menu" aria-expanded="false" aria-controls="navMenu">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
+
+            <a href="#home" class="logo-section" aria-label="DevBurguer — Página inicial">
+                <img src="img/logo-devburger.jpeg" alt="Logo DevBurguer" class="logo-img" width="90" height="90">
+            </a>
+
+            <nav class="nav-menu" id="navMenu" aria-label="Menu principal">
+                <button class="close-menu-btn" id="closeMenuBtn" aria-label="Fechar menu">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+                <a href="#home"     class="nav-link">Início</a>
+                <a href="#sobre"    class="nav-link">Sobre</a>
+                <a href="#cardapio" class="nav-link">Cardápio</a>
+            </nav>
+
+            <div class="header-actions">
+                <button class="theme-toggle" id="themeToggle" aria-label="Alternar tema claro/escuro">
+                    <i class="fa-solid fa-sun" id="themeIcon" aria-hidden="true"></i>
+                </button>
+                <button class="cart-button" id="cartButton" aria-label="Abrir carrinho">
+                    <span class="cart-icon" aria-hidden="true">🛒</span>
+                    <span class="cart-count" id="cartCount" aria-live="polite">0</span>
+                </button>
+            </div>
+
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay" aria-hidden="true"></div>
+
+    <main id="main-content">
+
+        <!-- 1. HERO -->
+        <section class="hero" id="home" aria-label="Banner promocional">
+            <a href="javascript:void(0)" data-action="add" data-id="30" class="hero-cta-link"
+                aria-label="Adicionar Combo DevClassic ao carrinho">
+                <picture class="hero-picture">
+                    <source srcset="img/BannerDev_Desktop.jpeg" media="(min-width: 1050px)">
+                    <source srcset="img/BannerDev_Tablet.jpeg"  media="(min-width: 768px)">
+                    <img src="img/BannerDev_Mobile.jpeg"
+                        alt="Combo DevClassic em destaque — clique para adicionar ao carrinho"
+                        class="hero-img"
+                        fetchpriority="high">
+                </picture>
+            </a>
+        </section>
+
+        <!-- 2. TOP 3 MAIS PEDIDOS -->
+        <section class="top-products fade-in-section" id="destaques" aria-labelledby="destaques-titulo">
+            <div class="container">
+                <div class="section-header-centered">
+                    <h2 id="destaques-titulo" class="section-title">🏆 Mais Pedidos</h2>
+                    <p class="section-subtitle">Os queridinhos da galera. Vai sem erro!</p>
+                </div>
+                <div class="products-grid top-3-grid" id="topProductsGrid" aria-live="polite">
+                    <!-- Inserido via JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. CARDÁPIO COMPLETO -->
+        <section class="menu fade-in-section" id="cardapio" aria-labelledby="cardapio-titulo">
+            <div class="container">
+                <h2 id="cardapio-titulo" class="section-title section-title--white">Cardápio Completo</h2>
+                <div class="categories" id="categoriesContainer" role="group" aria-label="Filtrar por categoria"></div>
+                <div class="products-grid" id="productsGrid" aria-live="polite" aria-label="Produtos"></div>
+            </div>
+        </section>
+
+        <!-- 4. SOBRE NÓS -->
+        <section class="about fade-in-section" id="sobre" aria-labelledby="sobre-titulo">
+            <div class="container about-container">
+                <div class="about-image">
+                    <img
+                        src="https://images.unsplash.com/photo-1550547660-d9450f859349?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+                        alt="Interior aconchegante da lanchonete DevBurguer"
+                        class="about-img"
+                        loading="lazy"
+                        width="800" height="600"
+                    >
+                </div>
+                <div class="about-text">
+                    <h2 id="sobre-titulo" class="section-title section-title--left">🍔 Sobre a DevBurguer</h2>
+                    <p>Nascida da paixão por tecnologia e por hambúrgueres artesanais, a <strong>DevBurguer</strong> é o lugar onde o sabor encontra a perfeição. Preparamos cada lanche como se fosse um código de sucesso: com os <strong>melhores ingredientes, zero bugs e muito amor</strong>.</p>
+                    <p>Nossa missão é entregar não apenas uma refeição, mas uma <strong>experiência épica</strong> que vai dar um verdadeiro "upgrade" no seu dia. Venha conhecer nosso espaço físico ou <strong>faça o seu pedido</strong> no conforto da sua casa!</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer" role="contentinfo">
+        <div class="container footer-container">
+            <div class="footer-brand">
+                <span class="logo-text">DevBurguer</span>
+                <p>O melhor burger artesanal da região, feito com paixão e ingredientes selecionados.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Navegação</h4>
+                <nav class="social-links" aria-label="Navegação do rodapé">
+                    <a href="#home"      class="social-link">Início</a>
+                    <a href="#destaques" class="social-link">Destaques</a>
+                    <a href="#cardapio"  class="social-link">Cardápio</a>
+                </nav>
+            </div>
+            <div class="footer-social">
+                <h4>Redes Sociais</h4>
+                <div class="social-links">
+                    <a href="#" class="social-link" aria-label="Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i> Instagram</a>
+                    <a href="#" class="social-link" aria-label="Facebook"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i> Facebook</a>
+                    <a href="#" class="social-link" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-payments">
+            <p>Formas de Pagamento</p>
+            <div class="payment-icons">
+                <i class="fa-brands fa-pix"           title="Pix" aria-label="Pix"></i>
+                <i class="fa-brands fa-cc-visa"        title="Visa" aria-label="Visa"></i>
+                <i class="fa-brands fa-cc-mastercard"  title="Mastercard" aria-label="Mastercard"></i>
+                <i class="fa-solid fa-money-bill-wave" title="Dinheiro" aria-label="Dinheiro"></i>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; <span id="footerYear">2026</span> DevBurguer. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- CARRINHO LATERAL -->
+    <aside class="cart-panel" id="cartPanel" aria-label="Carrinho de compras" aria-hidden="true">
+        <div class="cart-header">
+            <h2>Seu Carrinho 🛒</h2>
+            <button class="close-btn" id="closeCartBtn" aria-label="Fechar carrinho">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems" aria-live="polite">
+            <div class="cart-empty">Seu carrinho está vazio</div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span id="subtotal">R$ 0,00</span>
+                </div>
+                <div class="summary-row" id="deliveryFeeRow">
+                    <span>Taxa Entrega:</span>
+                    <span id="deliveryFee">R$ 6,00</span>
+                </div>
+                <div class="summary-row summary-total">
+                    <span>Total:</span>
+                    <span id="total">R$ 0,00</span>
+                </div>
+            </div>
+            
+            <div class="cart-actions" style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                <button class="btn btn-carrinho btn-block" id="checkoutBtn" disabled>
+                    <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i> Finalizar Pedido
+                </button>
+                <button class="btn btn-ghost btn-block" id="continueShoppingBtn" aria-label="Voltar para o cardápio">
+                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Continuar Comprando
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <div class="cart-overlay" id="cartOverlay" aria-hidden="true"></div>
+
+    <!-- MODAL CHECKOUT -->
+    <div class="modal-overlay" id="checkoutModal" role="dialog" aria-modal="true"
+        aria-labelledby="checkoutModalTitle" aria-hidden="true">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="checkoutModalTitle">Finalizar Pedido</h2>
+                <button class="close-btn" id="closeModalBtn" aria-label="Fechar">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <form id="checkoutForm" novalidate>
+
+                    <!-- DADOS DO CLIENTE -->
+                    <fieldset class="form-fieldset">
+                        <legend class="form-legend">👤 Dados do Cliente</legend>
+                        <div class="form-group">
+                            <label for="clientName" class="form-label">Nome Completo *</label>
+                            <input type="text" id="clientName" name="clientName" class="form-input"
+                                placeholder="Seu nome completo" minlength="3" maxlength="50"
+                                required autocomplete="name">
+                        </div>
+                        <div class="form-group">
+                            <label for="clientPhone" class="form-label">WhatsApp *</label>
+                            <input type="tel" id="clientPhone" name="clientPhone" class="form-input"
+                                placeholder="(11) 99999-9999" required autocomplete="tel" inputmode="numeric">
+                            <small id="phoneFeedback" class="field-feedback" hidden aria-live="polite"></small>
+                        </div>
+                    </fieldset>
+
+                    <!-- TIPO DE ENTREGA -->
+                    <fieldset class="form-fieldset">
+                        <legend class="form-legend">📍 Tipo de Entrega</legend>
+                        <div class="radio-group">
+                            <label class="radio-option" for="deliveryType">
+                                <input type="radio" id="deliveryType" name="deliveryType" value="delivery" checked>
+                                <span class="radio-label">🚚 Entrega em Casa</span>
+                            </label>
+                            <label class="radio-option" for="pickupType">
+                                <input type="radio" id="pickupType" name="deliveryType" value="pickup">
+                                <span class="radio-label">🏪 Retirada</span>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <!-- ENDEREÇO -->
+                    <fieldset class="form-fieldset" id="addressFieldset">
+                        <legend class="form-legend" id="addressLegend">🏠 Endereço de Entrega</legend>
+
+                        <div class="shop-address-info" id="shopAddressInfo" hidden>
+                            <strong>📍 Localização da DevBurguer:</strong>
+                            <p>Rua Principal, 123 - Centro</p>
+                            <p>Telefone: (15) 3333-3333</p>
+                            <p class="shop-note">Seu pedido estará pronto em aprox. 30–40 min. Apresente seu nome no balcão.</p>
+                        </div>
+
+                        <div id="customerAddressForm">
+                            <div class="form-group">
+                                <label for="cep" class="form-label">CEP</label>
+                                <input type="text" id="cep" name="cep" class="form-input cep-input"
+                                    placeholder="00000-000" maxlength="9" inputmode="numeric" autocomplete="postal-code">
+                                <small id="cepError" class="field-feedback" hidden></small>
+                                <small id="cepLoading" class="field-feedback" hidden>🔍 Buscando endereço...</small>
+                            </div>
+                                                        <div class="form-group">
+                                <label for="address" class="form-label">Rua e Número *</label>
+                                <input type="text" id="address" name="address" class="form-input"
+                                    placeholder="Ex: Rua das Flores, 123" required autocomplete="street-address">
+                            </div>
+                            <div class="form-row-inline">
+                                <div class="form-group">
+                                    <label for="neighborhood" class="form-label">Bairro *</label>
+                                    <input type="text" id="neighborhood" name="neighborhood" class="form-input"
+                                        placeholder="Bairro" required autocomplete="address-level2">
+                                </div>
+                                <div class="form-group">
+                                    <label for="complement" class="form-label">Complemento</label>
+                                    <input type="text" id="complement" name="complement" class="form-input"
+                                        placeholder="Apto, bloco..." autocomplete="address-line2">
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- PAGAMENTO -->
+                    <fieldset class="form-fieldset">
+                        <legend class="form-legend">💳 Pagamento</legend>
+
+                        <div class="form-group">
+                            <label for="paymentMethod" class="form-label">Forma de Pagamento *</label>
+                            <select id="paymentMethod" name="paymentMethod" class="form-input" required>
+                                <option value="">Selecione...</option>
+                                <option value="pix">PIX</option>
+                                <option value="cartao">Cartão</option>
+                                <option value="dinheiro">Dinheiro</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="cardTypeContainer" hidden>
+                            <label for="cardType" class="form-label">Tipo de Cartão</label>
+                            <select id="cardType" name="cardType" class="form-input">
+                                <option value="debito">Débito</option>
+                                <option value="credito">Crédito</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="changeContainer" hidden>
+                            <label for="changeAmount" class="form-label">Troco para quanto?</label>
+                            <input type="number" id="changeAmount" name="changeAmount" class="form-input"
+                                placeholder="Ex: 50,00" min="0" step="0.01" inputmode="decimal">
+                            <small class="form-hint">Deixe em branco se não precisar de troco.</small>
+                            <small id="changeFeedback" class="field-feedback" hidden aria-live="polite"></small>
+                        </div>
+                    </fieldset>
+
+                    <!-- RESUMO DO PEDIDO -->
+                    <fieldset class="form-fieldset">
+                        <legend class="form-legend">📦 Resumo do Pedido</legend>
+                        <div class="order-summary">
+                            <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <span id="modalSubtotal">R$ 0,00</span>
+                            </div>
+                            <div class="summary-row" id="modalDeliveryFeeRow">
+                                <span>Taxa Entrega:</span>
+                                <span id="modalDeliveryFee">R$ 6,00</span>
+                            </div>
+                            <div class="summary-row summary-total">
+                                <span><strong>Total:</strong></span>
+                                <span id="modalTotal"><strong>R$ 0,00</strong></span>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-submit">
+                        <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+                        Confirmar e Enviar pelo WhatsApp
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/checkout.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- VLIBRAS: Widget de acessibilidade em Libras -->
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
+    </script>
+</body>
+</html>

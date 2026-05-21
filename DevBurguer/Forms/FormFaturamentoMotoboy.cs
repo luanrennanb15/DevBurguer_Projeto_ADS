@@ -192,7 +192,7 @@ namespace DevBurguer
                     cmbMotoboy.SelectedIndex = 0;
                 }
             }
-            catch (Exception ex) { DevBurguer.Services.ExceptionLogger.Log(ex, "CarregarMotoboys"); Msg("Erro ao carregar motoboys:\n" + ex.Message, "Erro", true); }
+            catch (Exception ex) { DevBurguer.Services.ExceptionLogger.Log(ex, "CarregarMotoboys"); DialogHelper.Erro("Erro ao carregar motoboys."); }
         }
 
         private int ObterIdMotoboy()
@@ -225,18 +225,27 @@ namespace DevBurguer
 
         private void Carregar(DateTime inicio, DateTime fim, int idMotoboy)
         {
+            // ✅ FIX: validação de range — antes data início > fim retornava lista vazia
+            if (inicio.Date > fim.Date)
+            {
+                DialogHelper.Aviso("Data inicial nao pode ser maior que a final.", "Aviso", DialogHelper.Azul);
+                return;
+            }
+
             try
             {
                 string filtroMotoboy = idMotoboy > 0 ? "AND p.IdMotoboy = @idMotoboy" : "";
 
+                // ✅ FIX: COUNT(DISTINCT CONVERT(date, p.DataPagamento)) — antes COUNT(p.Id)
+                // contava 2 vezes se houvesse 2 pagamentos no mesmo dia
                 string sql = string.Format(@"
                     SELECT
-                        m.Nome                          AS Motoboy,
-                        COUNT(p.Id)                     AS Dias,
-                        SUM(p.QuantidadeEntregas)       AS TotalEntregas,
-                        SUM(p.ValorTotalEntregas)       AS ValorEntregas,
-                        SUM(p.ValorChegada)             AS ValorChegada,
-                        SUM(p.TotalPagar)               AS TotalRecebido
+                        m.Nome                                            AS Motoboy,
+                        COUNT(DISTINCT CONVERT(date, p.DataPagamento))    AS Dias,
+                        SUM(p.QuantidadeEntregas)                         AS TotalEntregas,
+                        SUM(p.ValorTotalEntregas)                         AS ValorEntregas,
+                        SUM(p.ValorChegada)                               AS ValorChegada,
+                        SUM(p.TotalPagar)                                 AS TotalRecebido
                     FROM PagamentoMotoboy p
                     INNER JOIN Motoboys m ON m.Id = p.IdMotoboy
                     WHERE p.DataPagamento BETWEEN @inicio AND @fim
@@ -278,7 +287,7 @@ namespace DevBurguer
                     AtualizarCards(dt);
                 }
             }
-            catch (Exception ex) { DevBurguer.Services.ExceptionLogger.Log(ex, "FormFaturamentoMotoboy.Carregar"); Msg("Erro ao carregar faturamento:\n" + ex.Message, "Erro", true); }
+            catch (Exception ex) { DevBurguer.Services.ExceptionLogger.Log(ex, "FormFaturamentoMotoboy.Carregar"); DialogHelper.Erro("Erro ao carregar faturamento."); }
         }
 
         private void AtualizarCards(DataTable dt)
@@ -287,27 +296,29 @@ namespace DevBurguer
             int totalEntr = 0;
             decimal melhorVal = 0;
             string melhorNome = "-";
-            int melhorDias = 0; // dias apenas do motoboy que mais recebeu
+            int totalDias = 0; // ✅ FIX: soma dos dias de TODOS os motoboys (antes só do top 1)
 
             foreach (DataRow r in dt.Rows)
             {
                 decimal val = Convert.ToDecimal(r["TotalRecebido"]);
                 totalGeral += val;
                 totalEntr += Convert.ToInt32(r["TotalEntregas"]);
+                totalDias += Convert.ToInt32(r["Dias"]); // ✅ FIX: soma TODOS
 
-                // ✅ guarda dias e nome apenas do que mais recebeu
                 if (val > melhorVal)
                 {
                     melhorVal = val;
-                    melhorNome = r["Motoboy"].ToString().Split(' ')[0];
-                    melhorDias = Convert.ToInt32(r["Dias"]);
+                    // ✅ FIX: nome completo (antes só o primeiro nome — confunde se 2 motoboys
+                    // tiverem mesmo primeiro nome). Trunca se for muito grande pro card.
+                    string nome = r["Motoboy"].ToString();
+                    melhorNome = nome.Length > 18 ? nome.Substring(0, 16) + ".." : nome;
                 }
             }
 
             if (lblCardTotal != null) lblCardTotal.Text = totalGeral.ToString("C2");
             if (lblCardEntregas != null) lblCardEntregas.Text = totalEntr.ToString();
             if (lblCardMelhor != null) lblCardMelhor.Text = melhorNome;
-            if (lblCardDias != null) lblCardDias.Text = melhorDias.ToString();
+            if (lblCardDias != null) lblCardDias.Text = totalDias.ToString(); // ✅ usa total agora
         }
 
         private void ConstruirCards()
@@ -323,7 +334,7 @@ namespace DevBurguer
             {
                 var cl = cores[i]; var tg = tags[i];
                 var pnl = new Panel { Width = w, Height = 78, Left = 10 + i * (w + 10), Top = 6, BackColor = CDarkCard };
-                pnl.Paint += (s, pe) => pe.Graphics.FillRectangle(new SolidBrush(cl), 0, 0, pnl.Width, 4);
+                pnl.Paint += (s, pe) => { using (var br = new SolidBrush(cl)) pe.Graphics.FillRectangle(br, 0, 0, pnl.Width, 4); };
                 var lT = new Label { Text = titulos[i], Font = new Font("Segoe UI", 7f, FontStyle.Bold), ForeColor = CMuted, AutoSize = false, Width = w - 12, Height = 14, Location = new Point(8, 10) };
                 var lV = new Label { Text = "-", Font = new Font("Segoe UI Semibold", 13f), ForeColor = CText, AutoSize = false, Width = w - 12, Height = 42, Location = new Point(8, 28) };
                 pnl.Controls.Add(lT); pnl.Controls.Add(lV);
@@ -342,29 +353,5 @@ namespace DevBurguer
             return b;
         }
 
-        // ── Diálogos dark theme azul ──────────────────────────
-        private void Msg(string texto, string titulo = "Aviso", bool erro = false)
-        {
-            var cAzul = System.Drawing.Color.FromArgb(50, 140, 220);
-            var cVerm = System.Drawing.Color.FromArgb(200, 60, 60);
-            var cDark = System.Drawing.Color.FromArgb(16, 16, 22);
-            var cText = System.Drawing.Color.FromArgb(230, 230, 245);
-            var cor = erro ? cVerm : cAzul;
-            using (var dlg = new Form())
-            {
-                dlg.BackColor = cDark; dlg.ClientSize = new System.Drawing.Size(420, 155);
-                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dlg.StartPosition = FormStartPosition.CenterParent;
-                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
-                dlg.Text = titulo; dlg.Font = new System.Drawing.Font("Segoe UI", 9f);
-                dlg.Controls.Add(new Panel { Dock = DockStyle.Top, Height = 4, BackColor = cor });
-                dlg.Controls.Add(new Label { Text = erro ? "!" : "✓", Font = new System.Drawing.Font("Segoe UI", 20f, System.Drawing.FontStyle.Bold), ForeColor = cor, AutoSize = true, Location = new System.Drawing.Point(18, 22) });
-                dlg.Controls.Add(new Label { Text = texto, Font = new System.Drawing.Font("Segoe UI", 10f), ForeColor = cText, AutoSize = false, Location = new System.Drawing.Point(58, 20), Width = 344, Height = 60, TextAlign = System.Drawing.ContentAlignment.MiddleLeft });
-                var btn = new Button { Text = "OK", Width = 100, Height = 32, Location = new System.Drawing.Point(160, 102), FlatStyle = FlatStyle.Flat, BackColor = cor, ForeColor = System.Drawing.Color.White, Font = new System.Drawing.Font("Segoe UI Semibold", 9f), DialogResult = DialogResult.OK, Cursor = Cursors.Hand };
-                btn.FlatAppearance.BorderSize = 0;
-                dlg.Controls.Add(btn); dlg.AcceptButton = btn;
-                dlg.ShowDialog(this);
-            }
-        }
     }
 }

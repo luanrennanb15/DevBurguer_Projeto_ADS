@@ -77,140 +77,6 @@ namespace DevBurguer
         }
 
         // ── parse decimal tolerante (aceita 100 / 100.00 / 100,00) ─
-        // ✅ Diálogos com dark theme roxo
-        private void Msg(string texto, string titulo = "Aviso", bool erro = false)
-        {
-            using (var dlg = new Form())
-            {
-                dlg.BackColor = Color.FromArgb(20, 14, 32);
-                dlg.ClientSize = new System.Drawing.Size(420, 160);
-                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dlg.StartPosition = FormStartPosition.CenterParent;
-                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
-                dlg.Text = titulo;
-                dlg.Font = new Font("Segoe UI", 9f);
-
-                var cor = erro ? Color.FromArgb(200, 60, 60) : CRoxo;
-
-                var pnlTop = new Panel { Dock = DockStyle.Top, Height = 4, BackColor = cor };
-                dlg.Controls.Add(pnlTop);
-
-                var ico = new Label
-                {
-                    Text = erro ? "✕" : "✓",
-                    Font = new Font("Segoe UI", 18f, FontStyle.Bold),
-                    ForeColor = cor,
-                    AutoSize = true,
-                    Location = new Point(20, 24)
-                };
-                dlg.Controls.Add(ico);
-
-                var lbl = new Label
-                {
-                    Text = texto,
-                    Font = new Font("Segoe UI", 10f),
-                    ForeColor = Color.FromArgb(230, 220, 255),
-                    AutoSize = false,
-                    Location = new Point(60, 22),
-                    Width = 340,
-                    Height = 60,
-                    TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-                };
-                dlg.Controls.Add(lbl);
-
-                var btn = new Button
-                {
-                    Text = "OK",
-                    Width = 100,
-                    Height = 32,
-                    Location = new Point(160, 106),
-                    FlatStyle = FlatStyle.Flat,
-                    BackColor = cor,
-                    ForeColor = Color.White,
-                    Font = new Font("Segoe UI Semibold", 9f),
-                    DialogResult = DialogResult.OK,
-                    Cursor = Cursors.Hand
-                };
-                btn.FlatAppearance.BorderSize = 0;
-                dlg.Controls.Add(btn);
-                dlg.AcceptButton = btn;
-                dlg.ShowDialog(this);
-            }
-        }
-
-        private bool Confirmar(string texto, string titulo = "Confirmar")
-        {
-            using (var dlg = new Form())
-            {
-                dlg.BackColor = Color.FromArgb(20, 14, 32);
-                dlg.ClientSize = new System.Drawing.Size(420, 160);
-                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dlg.StartPosition = FormStartPosition.CenterParent;
-                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
-                dlg.Text = titulo;
-                dlg.Font = new Font("Segoe UI", 9f);
-
-                var pnlTop = new Panel { Dock = DockStyle.Top, Height = 4, BackColor = CLilas };
-                dlg.Controls.Add(pnlTop);
-
-                var ico = new Label
-                {
-                    Text = "?",
-                    Font = new Font("Segoe UI", 18f, FontStyle.Bold),
-                    ForeColor = CLilas,
-                    AutoSize = true,
-                    Location = new Point(20, 24)
-                };
-                dlg.Controls.Add(ico);
-
-                var lbl = new Label
-                {
-                    Text = texto,
-                    Font = new Font("Segoe UI", 10f),
-                    ForeColor = Color.FromArgb(230, 220, 255),
-                    AutoSize = false,
-                    Location = new Point(60, 22),
-                    Width = 340,
-                    Height = 60,
-                    TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-                };
-                dlg.Controls.Add(lbl);
-
-                var btnSim = new Button
-                {
-                    Text = "Sim",
-                    Width = 100,
-                    Height = 32,
-                    Location = new Point(110, 106),
-                    FlatStyle = FlatStyle.Flat,
-                    BackColor = CRoxo,
-                    ForeColor = Color.White,
-                    Font = new Font("Segoe UI Semibold", 9f),
-                    DialogResult = DialogResult.Yes,
-                    Cursor = Cursors.Hand
-                };
-                btnSim.FlatAppearance.BorderSize = 0;
-
-                var btnNao = new Button
-                {
-                    Text = "Nao",
-                    Width = 100,
-                    Height = 32,
-                    Location = new Point(220, 106),
-                    FlatStyle = FlatStyle.Flat,
-                    BackColor = Color.FromArgb(50, 35, 80),
-                    ForeColor = Color.FromArgb(180, 150, 220),
-                    Font = new Font("Segoe UI", 9f),
-                    DialogResult = DialogResult.No,
-                    Cursor = Cursors.Hand
-                };
-                btnNao.FlatAppearance.BorderColor = Color.FromArgb(80, 50, 120);
-
-                dlg.Controls.Add(btnSim); dlg.Controls.Add(btnNao);
-                return dlg.ShowDialog(this) == DialogResult.Yes;
-            }
-        }
-
         private static bool TryParseDecimal(string texto, out decimal resultado)
         {
             texto = texto?.Trim() ?? "";
@@ -473,7 +339,7 @@ namespace DevBurguer
             catch (Exception ex)
             {
                 ExceptionLogger.Log(ex, "AplicarFiltroAsync");
-                Msg("Erro ao pesquisar:\n" + ex.Message, "Erro", true);
+                DialogHelper.Erro("Erro ao pesquisar.");
             }
         }
 
@@ -496,7 +362,7 @@ namespace DevBurguer
                 }
                 cmbFiltroMotoboy.SelectedIndex = 0;
             }
-            catch (Exception ex) { ExceptionLogger.Log(ex, "FormPagamentoMotoboy_Load"); Msg("Erro ao iniciar:\n" + ex.Message, "Erro", true); }
+            catch (Exception ex) { ExceptionLogger.Log(ex, "FormPagamentoMotoboy_Load"); DialogHelper.Erro("Erro ao iniciar."); }
         }
 
         // ✅ quando muda quantidade, calcula valor total automaticamente (Qtd * R$6)
@@ -533,7 +399,7 @@ namespace DevBurguer
                 cmbMotoboy.ValueMember = "Id";
                 cmbMotoboy.SelectedIndex = -1;
             }
-            catch (Exception ex) { ExceptionLogger.Log(ex, "CarregarMotoboys"); Msg("Erro ao carregar motoboys.", "Erro", true); }
+            catch (Exception ex) { ExceptionLogger.Log(ex, "CarregarMotoboys"); DialogHelper.Aviso("Erro ao carregar motoboys.", "Erro", DialogHelper.Roxo); }
         }
 
         private async Task CarregarGrid()
@@ -546,7 +412,7 @@ namespace DevBurguer
                 idSelecionado = 0;
                 LimparCampos();
             }
-            catch (Exception ex) { ExceptionLogger.Log(ex, "CarregarGrid"); Msg("Erro ao carregar pagamentos.", "Erro", true); }
+            catch (Exception ex) { ExceptionLogger.Log(ex, "CarregarGrid"); DialogHelper.Aviso("Erro ao carregar pagamentos.", "Erro", DialogHelper.Roxo); }
         }
 
         private async void btnSalvar_Click(object sender, EventArgs e)
@@ -555,60 +421,60 @@ namespace DevBurguer
             {
                 if (cmbMotoboy.SelectedValue == null ||
                     !int.TryParse(cmbMotoboy.SelectedValue.ToString(), out int idMotoboy))
-                { Msg("Selecione um motoboy valido.", "Aviso", true); return; }
+                { DialogHelper.Aviso("Selecione um motoboy valido.", "Aviso", DialogHelper.Roxo); return; }
 
                 if (!int.TryParse(txtQtd.Text.Trim(), out int qtd))
-                { Msg("Quantidade invalida.", "Aviso", true); return; }
+                { DialogHelper.Aviso("Quantidade invalida.", "Aviso", DialogHelper.Roxo); return; }
 
                 if (!TryParseDecimal(txtValorTotalEntregas.Text, out decimal valorTotal))
-                { Msg("Valor total invalido.\nUse: 100 ou 100,00 ou 100.00", "Aviso", true); return; }
+                { DialogHelper.Aviso("Valor total invalido.\nUse: 100 ou 100,00 ou 100.00", "Aviso", DialogHelper.Roxo); return; }
 
                 if (!TryParseDecimal(txtChegada.Text, out decimal chegada))
-                { Msg("Chegada invalida.\nUse: 70 ou 70,00 ou 70.00", "Aviso", true); return; }
+                { DialogHelper.Aviso("Chegada invalida.\nUse: 70 ou 70,00 ou 70.00", "Aviso", DialogHelper.Roxo); return; }
 
                 string comentario = txtComentario.Text.Trim();
 
                 await _repo.InsertAsync(idMotoboy, qtd, valorTotal, chegada, dtpData.Value, comentario);
                 await CarregarGrid();
-                Msg("Pagamento salvo com sucesso!", "Sucesso");
+                DialogHelper.Info("Pagamento salvo com sucesso!", "Sucesso", DialogHelper.Roxo);
             }
-            catch (Exception ex) { ExceptionLogger.Log(ex, "btnSalvar_Click"); Msg("Erro ao salvar:\n" + ex.Message, "Erro", true); }
+            catch (Exception ex) { ExceptionLogger.Log(ex, "btnSalvar_Click"); DialogHelper.Erro("Erro ao salvar."); }
         }
 
         private async void btnAtualizar_Click(object sender, EventArgs e)
         {
-            if (idSelecionado == 0) { Msg("Selecione um registro para editar.", "Aviso", true); return; }
+            if (idSelecionado == 0) { DialogHelper.Aviso("Selecione um registro para editar.", "Aviso", DialogHelper.Roxo); return; }
             try
             {
                 if (!TryParseDecimal(txtValorTotalEntregas.Text, out decimal valorTotal))
-                { Msg("Valor total invalido.", "Aviso", true); return; }
+                { DialogHelper.Aviso("Valor total invalido.", "Aviso", DialogHelper.Roxo); return; }
 
                 if (!TryParseDecimal(txtChegada.Text, out decimal chegada))
-                { Msg("Chegada invalida.", "Aviso", true); return; }
+                { DialogHelper.Aviso("Chegada invalida.", "Aviso", DialogHelper.Roxo); return; }
 
                 if (!int.TryParse(txtQtd.Text.Trim(), out int qtd))
-                { Msg("Quantidade invalida.", "Aviso", true); return; }
+                { DialogHelper.Aviso("Quantidade invalida.", "Aviso", DialogHelper.Roxo); return; }
 
                 string comentario = txtComentario.Text.Trim();
 
                 await _repo.UpdateAsync(idSelecionado, qtd, valorTotal, chegada, dtpData.Value, comentario);
                 await CarregarGrid();
-                Msg("Pagamento atualizado com sucesso!", "Sucesso");
+                DialogHelper.Info("Pagamento atualizado com sucesso!", "Sucesso", DialogHelper.Roxo);
             }
-            catch (Exception ex) { ExceptionLogger.Log(ex, "btnAtualizar_Click"); Msg("Erro ao atualizar:\n" + ex.Message, "Erro", true); }
+            catch (Exception ex) { ExceptionLogger.Log(ex, "btnAtualizar_Click"); DialogHelper.Erro("Erro ao atualizar."); }
         }
 
         private async void btnRemover_Click(object sender, EventArgs e)
         {
-            if (idSelecionado == 0) { Msg("Selecione um registro para editar.", "Aviso", true); return; }
-            if (!Confirmar("Confirma exclusao deste pagamento?")) return;
+            if (idSelecionado == 0) { DialogHelper.Aviso("Selecione um registro para editar.", "Aviso", DialogHelper.Roxo); return; }
+            if (!DialogHelper.Confirmar("Confirma exclusao deste pagamento?", "Confirmar", DialogHelper.Roxo)) return;
             try
             {
                 await _repo.DeleteAsync(idSelecionado);
                 await CarregarGrid();
-                Msg("Pagamento removido com sucesso!", "Sucesso");
+                DialogHelper.Info("Pagamento removido com sucesso!", "Sucesso", DialogHelper.Roxo);
             }
-            catch (Exception ex) { ExceptionLogger.Log(ex, "btnRemover_Click"); Msg("Erro ao remover:\n" + ex.Message, "Erro", true); }
+            catch (Exception ex) { ExceptionLogger.Log(ex, "btnRemover_Click"); DialogHelper.Erro("Erro ao remover."); }
         }
 
         private void PreencherCampos()

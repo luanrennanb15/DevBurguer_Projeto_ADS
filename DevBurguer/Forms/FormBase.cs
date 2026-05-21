@@ -73,9 +73,8 @@ namespace DevBurguer.Forms
         {
             Services.ExceptionLogger.Log(ex, contexto);
             MostrarStatus("Erro ao carregar dados.");
-            MessageBox.Show(
-                "Erro em " + contexto + ":\n" + ex.Message,
-                "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            // ✅ Não vaza ex.Message — apenas mensagem amigável e log via ExceptionLogger
+            DialogHelper.Erro("Erro em " + contexto + ".", "Erro");
         }
 
         // ── ciclo de vida ─────────────────────────────────────────

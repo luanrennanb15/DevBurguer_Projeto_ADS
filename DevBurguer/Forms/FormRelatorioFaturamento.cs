@@ -53,8 +53,27 @@ namespace DevBurguer.Forms
                 ConstruirCards();
                 FiltrarMes();
                 // ✅ escuta pedidos finalizados no kanban
-                PedidoEventos.PedidoFinalizado += (sender, args) => FiltrarMes();
+                PedidoEventos.PedidoFinalizado += OnPedidoFinalizado;
             };
+
+            // ✅ FIX: desregistra o handler ao fechar — antes ficava preso na memória
+            // e disparava em form disposto, causando NullReferenceException no chart
+            this.FormClosed += (s, e) =>
+            {
+                PedidoEventos.PedidoFinalizado -= OnPedidoFinalizado;
+            };
+        }
+
+        // ✅ Handler nomeado pra poder ser removido (lambda anônima não dá pra remover)
+        private void OnPedidoFinalizado(object sender, EventArgs e)
+        {
+            // ✅ Proteção extra: se form já disposto ou chart não existe, ignora
+            if (this.IsDisposed || chart == null) return;
+            try { FiltrarMes(); }
+            catch (Exception ex)
+            {
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormRelatorioFaturamento.OnPedidoFinalizado");
+            }
         }
 
         // ── Ativa DoubleBuffer no DataGridView via reflection ─────
@@ -185,18 +204,27 @@ namespace DevBurguer.Forms
 
         private void Carregar(DateTime inicio, DateTime fim)
         {
+            // ✅ FIX: validação de range — antes data início > fim retornava lista vazia
+            if (inicio.Date > fim.Date)
+            {
+                DialogHelper.Aviso("Data inicial nao pode ser maior que a final.", "Aviso", DialogHelper.Azul);
+                return;
+            }
+
             try
             {
+                // ✅ FIX: Status = 'Finalizado' (antes era != 'Cancelado' — contava em produção)
+                // ✅ FIX: removido ISNULL(Data, GETDATE()) — pedidos sem Data não devem entrar
                 string sql = @"
                     SELECT
-                        CONVERT(date, ISNULL(Data, GETDATE())) AS Dia,
-                        COUNT(Id)                              AS Pedidos,
-                        SUM(Total)                             AS Faturamento,
-                        AVG(Total)                             AS TicketMedio
+                        CONVERT(date, Data) AS Dia,
+                        COUNT(Id)           AS Pedidos,
+                        SUM(Total)          AS Faturamento,
+                        AVG(Total)          AS TicketMedio
                     FROM Pedidos
-                    WHERE ISNULL(Data, GETDATE()) BETWEEN @di AND @df
-                      AND ISNULL(Status, '') <> 'Cancelado'
-                    GROUP BY CONVERT(date, ISNULL(Data, GETDATE()))
+                    WHERE Data BETWEEN @di AND @df
+                      AND Status = 'Finalizado'
+                    GROUP BY CONVERT(date, Data)
                     ORDER BY Dia DESC";
 
                 var p = new[] {
@@ -212,18 +240,22 @@ namespace DevBurguer.Forms
                 if (grid.Columns["TicketMedio"] != null) grid.Columns["TicketMedio"].DefaultCellStyle.Format = "C2";
                 if (grid.Columns["Dia"] != null) grid.Columns["Dia"].DefaultCellStyle.Format = "dd/MM/yyyy";
 
-                chart.Series["Fat"].Points.Clear();
-                int start = Math.Max(0, dt.Rows.Count - 15);
-                for (int i = dt.Rows.Count - 1; i >= start; i--)
+                // ✅ FIX: proteção contra chart null/disposto (form fechando ou ainda construindo)
+                if (chart != null && !chart.IsDisposed && chart.Series["Fat"] != null)
                 {
-                    var pt = chart.Series["Fat"].Points.Add(Convert.ToDouble(dt.Rows[i]["Faturamento"]));
-                    pt.AxisLabel = Convert.ToDateTime(dt.Rows[i]["Dia"]).ToString("dd/MM");
-                    pt.Label = Convert.ToDecimal(dt.Rows[i]["Faturamento"]).ToString("C2");
+                    chart.Series["Fat"].Points.Clear();
+                    int start = Math.Max(0, dt.Rows.Count - 15);
+                    for (int i = dt.Rows.Count - 1; i >= start; i--)
+                    {
+                        var pt = chart.Series["Fat"].Points.Add(Convert.ToDouble(dt.Rows[i]["Faturamento"]));
+                        pt.AxisLabel = Convert.ToDateTime(dt.Rows[i]["Dia"]).ToString("dd/MM");
+                        pt.Label = Convert.ToDecimal(dt.Rows[i]["Faturamento"]).ToString("C2");
+                    }
                 }
 
                 AtualizarCards(dt);
             }
-            catch (Exception ex) { DevBurguer.Services.ExceptionLogger.Log(ex, "FormRelatorioFaturamento.Carregar"); Msg("Erro ao carregar faturamento:\n" + ex.Message, "Erro", true); }
+            catch (Exception ex) { DevBurguer.Services.ExceptionLogger.Log(ex, "FormRelatorioFaturamento.Carregar"); DialogHelper.Erro("Erro ao carregar faturamento."); }
         }
 
         private void AtualizarCards(DataTable dt)
@@ -253,7 +285,7 @@ namespace DevBurguer.Forms
             {
                 var cl = cores[i]; var tg = tags[i];
                 var pnl = new Panel { Width = w, Height = 78, Left = 10 + i * (w + 10), Top = 6, BackColor = CDarkCard };
-                pnl.Paint += (s, pe) => pe.Graphics.FillRectangle(new SolidBrush(cl), 0, 0, pnl.Width, 4);
+                pnl.Paint += (s, pe) => { using (var br = new SolidBrush(cl)) pe.Graphics.FillRectangle(br, 0, 0, pnl.Width, 4); };
                 var lT = new Label { Text = titulos[i], Font = new Font("Segoe UI", 7f, FontStyle.Bold), ForeColor = CMuted, AutoSize = false, Width = w - 12, Height = 14, Location = new Point(8, 10) };
                 var lV = new Label { Text = "-", Font = new Font("Segoe UI Semibold", 13f), ForeColor = CText, AutoSize = false, Width = w - 12, Height = 42, Location = new Point(8, 28) };
                 pnl.Controls.Add(lT); pnl.Controls.Add(lV);
@@ -272,29 +304,5 @@ namespace DevBurguer.Forms
             return b;
         }
 
-        // ── Diálogos dark theme laranja ──────────────────────────
-        private void Msg(string texto, string titulo = "Aviso", bool erro = false)
-        {
-            var cLaranj = System.Drawing.Color.FromArgb(220, 130, 30);
-            var cVerm = System.Drawing.Color.FromArgb(200, 60, 60);
-            var cDark = System.Drawing.Color.FromArgb(16, 16, 22);
-            var cText = System.Drawing.Color.FromArgb(230, 230, 245);
-            var cor = erro ? cVerm : cLaranj;
-            using (var dlg = new Form())
-            {
-                dlg.BackColor = cDark; dlg.ClientSize = new System.Drawing.Size(420, 155);
-                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dlg.StartPosition = FormStartPosition.CenterParent;
-                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
-                dlg.Text = titulo; dlg.Font = new System.Drawing.Font("Segoe UI", 9f);
-                dlg.Controls.Add(new Panel { Dock = DockStyle.Top, Height = 4, BackColor = cor });
-                dlg.Controls.Add(new Label { Text = erro ? "!" : "✓", Font = new System.Drawing.Font("Segoe UI", 20f, System.Drawing.FontStyle.Bold), ForeColor = cor, AutoSize = true, Location = new System.Drawing.Point(18, 22) });
-                dlg.Controls.Add(new Label { Text = texto, Font = new System.Drawing.Font("Segoe UI", 10f), ForeColor = cText, AutoSize = false, Location = new System.Drawing.Point(58, 20), Width = 344, Height = 60, TextAlign = System.Drawing.ContentAlignment.MiddleLeft });
-                var btn = new Button { Text = "OK", Width = 100, Height = 32, Location = new System.Drawing.Point(160, 102), FlatStyle = FlatStyle.Flat, BackColor = cor, ForeColor = System.Drawing.Color.White, Font = new System.Drawing.Font("Segoe UI Semibold", 9f), DialogResult = DialogResult.OK, Cursor = Cursors.Hand };
-                btn.FlatAppearance.BorderSize = 0;
-                dlg.Controls.Add(btn); dlg.AcceptButton = btn;
-                dlg.ShowDialog(this);
-            }
-        }
     }
 }

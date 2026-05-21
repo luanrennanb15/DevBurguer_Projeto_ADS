@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
-using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DevBurguer.Banco;
@@ -13,12 +12,6 @@ namespace DevBurguer
         // ✅ Id em variável separada — não depende de CurrentRow nem binding
         private int _idSelecionado = 0;
 
-        private readonly Color _cRoxo = Color.FromArgb(130, 60, 220);
-        private readonly Color _cVerm = Color.FromArgb(200, 60, 60);
-        private readonly Color _cDark = Color.FromArgb(16, 16, 22);
-        private readonly Color _cText = Color.FromArgb(230, 230, 245);
-        private readonly Color _cMuted = Color.FromArgb(120, 120, 150);
-
         public FormMotoboy()
         {
             InitializeComponent();
@@ -29,10 +22,16 @@ namespace DevBurguer
             txtTelefone1.Mask = "(00) 00000-0000";
             txtTelefone2.Mask = "(00) 00000-0000";
             txtCPF.Mask = "000.000.000-00";
+
+            // ✅ FIX #10: MaxLength em campos texto
+            txtNome.MaxLength = 100;
+            txtEndereco.MaxLength = 200;
+            txtNumero.MaxLength = 10;
+            txtBairro.MaxLength = 100;
+
             await CarregarAsync();
         }
 
-        // ✅ DataTable ReadOnly — grid nunca tenta inserir nada via binding
         private async Task CarregarAsync()
         {
             try
@@ -43,9 +42,10 @@ namespace DevBurguer
                 await Task.Run(() =>
                 {
                     using (var conn = Conexao.GetConnection())
+                    using (var cmd = new SqlCommand("SELECT * FROM Motoboys ORDER BY Nome", conn))
+                    using (var da = new SqlDataAdapter(cmd))
                     {
                         conn.Open();
-                        var da = new SqlDataAdapter("SELECT * FROM Motoboys ORDER BY Nome", conn);
                         dt = new DataTable();
                         da.Fill(dt);
                     }
@@ -70,11 +70,10 @@ namespace DevBurguer
             catch (Exception ex)
             {
                 DevBurguer.Services.ExceptionLogger.Log(ex, "FormMotoboy.CarregarAsync");
-                Msg("Erro ao carregar:\n" + ex.Message, "Erro", true);
+                DialogHelper.Erro("Erro ao carregar.");
             }
         }
 
-        // ✅ Clique carrega campos e guarda ID na variável
         private void dgvMotoboys_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -91,113 +90,103 @@ namespace DevBurguer
 
         private async void btnSalvar_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtNome.Text) ||
-                string.IsNullOrWhiteSpace(txtTelefone1.Text))
-            { Msg("Preencha Nome e Telefone!", "Aviso", true); return; }
-
-            if (!txtCPF.MaskCompleted)
-            { Msg("CPF incompleto!", "Aviso", true); return; }
+            if (!ValidarCampos()) return;
 
             if (await CpfExisteAsync(txtCPF.Text, 0))
-            { Msg("Este CPF ja esta cadastrado!", "CPF Duplicado", true); return; }
+            { DialogHelper.Aviso("Este CPF ja esta cadastrado!", "CPF Duplicado", DialogHelper.Roxo); return; }
 
             try
             {
                 using (var conn = Conexao.GetConnection())
+                using (var cmd = new SqlCommand(
+                    @"INSERT INTO Motoboys (Nome, Endereco, Numero, Bairro, Telefone1, Telefone2, CPF)
+                      VALUES (@n, @e, @num, @b, @t1, @t2, @cpf)", conn))
                 {
                     await conn.OpenAsync();
-                    var cmd = new SqlCommand(
-                        @"INSERT INTO Motoboys (Nome, Endereco, Numero, Bairro, Telefone1, Telefone2, CPF)
-                          VALUES (@n, @e, @num, @b, @t1, @t2, @cpf)", conn);
-                    cmd.Parameters.AddWithValue("@n", txtNome.Text);
-                    cmd.Parameters.AddWithValue("@e", txtEndereco.Text ?? "");
-                    cmd.Parameters.AddWithValue("@num", txtNumero.Text ?? "");
-                    cmd.Parameters.AddWithValue("@b", txtBairro.Text ?? "");
-                    cmd.Parameters.AddWithValue("@t1", txtTelefone1.Text);
-                    cmd.Parameters.AddWithValue("@t2", txtTelefone2.Text ?? "");
-                    cmd.Parameters.AddWithValue("@cpf", txtCPF.Text);
+                    AdicionarParametros(cmd);
                     await cmd.ExecuteNonQueryAsync();
                 }
-                Msg("Motoboy cadastrado com sucesso!", "Sucesso");
+                DialogHelper.Info("Motoboy cadastrado com sucesso!", "Sucesso", DialogHelper.Roxo);
                 LimparCampos();
                 await CarregarAsync();
             }
             catch (Exception ex)
             {
-                DevBurguer.Services.ExceptionLogger.Log(ex, "btnSalvar_Click");
-                Msg("Erro ao salvar:\n" + ex.Message, "Erro", true);
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormMotoboy.btnSalvar_Click");
+                DialogHelper.Erro("Erro ao salvar.");
             }
         }
 
         private async void btnAtualizar_Click(object sender, EventArgs e)
         {
             if (_idSelecionado == 0)
-            { Msg("Selecione um motoboy na tabela!", "Aviso", true); return; }
+            { DialogHelper.Aviso("Selecione um motoboy na tabela!", "Aviso", DialogHelper.Roxo); return; }
 
-            if (!txtCPF.MaskCompleted)
-            { Msg("CPF incompleto!", "Aviso", true); return; }
+            if (!ValidarCampos()) return;
 
             if (await CpfExisteAsync(txtCPF.Text, _idSelecionado))
-            { Msg("Este CPF ja pertence a outro motoboy!", "CPF Duplicado", true); return; }
+            { DialogHelper.Aviso("Este CPF ja pertence a outro motoboy!", "CPF Duplicado", DialogHelper.Roxo); return; }
 
             try
             {
                 using (var conn = Conexao.GetConnection())
+                using (var cmd = new SqlCommand(
+                    @"UPDATE Motoboys SET Nome=@n, Endereco=@e, Numero=@num,
+                      Bairro=@b, Telefone1=@t1, Telefone2=@t2, CPF=@cpf
+                      WHERE Id=@id", conn))
                 {
                     await conn.OpenAsync();
-                    var cmd = new SqlCommand(
-                        @"UPDATE Motoboys SET Nome=@n, Endereco=@e, Numero=@num,
-                          Bairro=@b, Telefone1=@t1, Telefone2=@t2, CPF=@cpf
-                          WHERE Id=@id", conn);
-                    cmd.Parameters.AddWithValue("@n", txtNome.Text);
-                    cmd.Parameters.AddWithValue("@e", txtEndereco.Text ?? "");
-                    cmd.Parameters.AddWithValue("@num", txtNumero.Text ?? "");
-                    cmd.Parameters.AddWithValue("@b", txtBairro.Text ?? "");
-                    cmd.Parameters.AddWithValue("@t1", txtTelefone1.Text);
-                    cmd.Parameters.AddWithValue("@t2", txtTelefone2.Text ?? "");
-                    cmd.Parameters.AddWithValue("@cpf", txtCPF.Text);
+                    AdicionarParametros(cmd);
                     cmd.Parameters.AddWithValue("@id", _idSelecionado);
                     await cmd.ExecuteNonQueryAsync();
                 }
-                Msg("Motoboy atualizado com sucesso!", "Sucesso");
+                DialogHelper.Info("Motoboy atualizado com sucesso!", "Sucesso", DialogHelper.Roxo);
                 LimparCampos();
                 await CarregarAsync();
             }
             catch (Exception ex)
             {
-                DevBurguer.Services.ExceptionLogger.Log(ex, "btnAtualizar_Click");
-                Msg("Erro ao atualizar:\n" + ex.Message, "Erro", true);
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormMotoboy.btnAtualizar_Click");
+                DialogHelper.Erro("Erro ao atualizar.");
             }
         }
 
         private async void btnExcluir_Click(object sender, EventArgs e)
         {
             if (_idSelecionado == 0)
-            { Msg("Selecione um motoboy na tabela!", "Aviso", true); return; }
+            { DialogHelper.Aviso("Selecione um motoboy na tabela!", "Aviso", DialogHelper.Roxo); return; }
 
-            if (!Confirmar("Deseja realmente excluir " + txtNome.Text + "?\nEssa acao nao pode ser desfeita."))
+            // ✅ FIX: Confirmar() não existia — virou DialogHelper.Confirmar
+            if (!DialogHelper.Confirmar(
+                    "Deseja realmente excluir " + txtNome.Text + "?\nEssa acao nao pode ser desfeita.",
+                    "Confirmar", DialogHelper.Roxo))
                 return;
 
             try
             {
                 using (var conn = Conexao.GetConnection())
+                using (var cmd = new SqlCommand("DELETE FROM Motoboys WHERE Id=@id", conn))
                 {
                     await conn.OpenAsync();
-                    var cmd = new SqlCommand("DELETE FROM Motoboys WHERE Id=@id", conn);
                     cmd.Parameters.AddWithValue("@id", _idSelecionado);
                     await cmd.ExecuteNonQueryAsync();
                 }
-                Msg("Motoboy excluido com sucesso!", "Sucesso");
+                DialogHelper.Info("Motoboy excluido com sucesso!", "Sucesso", DialogHelper.Roxo);
                 LimparCampos();
                 await CarregarAsync();
             }
+            // ✅ FIX: trata FK violada pelo número (547) — funciona em qualquer idioma do servidor
+            // (antes usava ex.Message.Contains("REFERENCE") — só funcionava em inglês)
+            catch (SqlException sqlEx) when (sqlEx.Number == 547)
+            {
+                DevBurguer.Services.ExceptionLogger.Log(sqlEx, "FormMotoboy.btnExcluir_Click.FK");
+                DialogHelper.Aviso("Nao e possivel excluir pois ha pagamentos ou pedidos vinculados.",
+                                   "Aviso", DialogHelper.Roxo);
+            }
             catch (Exception ex)
             {
-                DevBurguer.Services.ExceptionLogger.Log(ex, "btnExcluir_Click");
-                if (ex.Message.Contains("REFERENCE"))
-                    Msg("Nao e possivel excluir pois ha pagamentos vinculados.", "Aviso", true);
-                else
-                    Msg("Erro ao excluir:\n" + ex.Message, "Erro", true);
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormMotoboy.btnExcluir_Click");
+                DialogHelper.Erro("Erro ao excluir.");
             }
         }
 
@@ -209,63 +198,73 @@ namespace DevBurguer
             txtTelefone2.Clear(); txtCPF.Clear();
         }
 
-        // ✅ Verifica CPF — ignora o próprio Id no update (ignorarId=0 para insert)
+        // ═══════════════════════════════════════════════════════════
+        //  ✅ HELPERS DE VALIDAÇÃO
+        // ═══════════════════════════════════════════════════════════
+        private bool ValidarCampos()
+        {
+            if (string.IsNullOrWhiteSpace(txtNome.Text) ||
+                string.IsNullOrWhiteSpace(txtTelefone1.Text))
+            {
+                DialogHelper.Aviso("Preencha Nome e Telefone!", "Aviso", DialogHelper.Roxo);
+                return false;
+            }
+
+            if (!txtTelefone1.MaskCompleted)
+            {
+                DialogHelper.Aviso("Telefone principal incompleto!", "Aviso", DialogHelper.Roxo);
+                return false;
+            }
+
+            // Telefone 2 é opcional, mas se preenchido tem que estar completo
+            if (!string.IsNullOrWhiteSpace(txtTelefone2.Text) && !txtTelefone2.MaskCompleted)
+            {
+                DialogHelper.Aviso("Telefone secundario incompleto! Preencha todos os digitos ou deixe em branco.",
+                                   "Aviso", DialogHelper.Roxo);
+                return false;
+            }
+
+            // CPF obrigatório no motoboy — só verifica se está COMPLETO (11 dígitos)
+            // Sem validação de algoritmo (aceita qualquer combinação)
+            if (!txtCPF.MaskCompleted)
+            {
+                DialogHelper.Aviso("CPF incompleto!", "Aviso", DialogHelper.Roxo);
+                return false;
+            }
+
+            return true;
+        }
+
+        private void AdicionarParametros(SqlCommand cmd)
+        {
+            // ✅ FIX: Trim em tudo
+            cmd.Parameters.AddWithValue("@n", txtNome.Text.Trim());
+            cmd.Parameters.AddWithValue("@e", (txtEndereco.Text ?? "").Trim());
+            cmd.Parameters.AddWithValue("@num", (txtNumero.Text ?? "").Trim());
+            cmd.Parameters.AddWithValue("@b", (txtBairro.Text ?? "").Trim());
+            cmd.Parameters.AddWithValue("@t1", txtTelefone1.Text.Trim());
+            cmd.Parameters.AddWithValue("@t2", (txtTelefone2.Text ?? "").Trim());
+            cmd.Parameters.AddWithValue("@cpf", txtCPF.Text.Trim());
+        }
+
         private async Task<bool> CpfExisteAsync(string cpf, int ignorarId)
         {
             try
             {
                 using (var conn = Conexao.GetConnection())
+                using (var cmd = new SqlCommand(
+                    "SELECT COUNT(*) FROM Motoboys WHERE CPF=@cpf AND Id<>@id", conn))
                 {
                     await conn.OpenAsync();
-                    var cmd = new SqlCommand(
-                        "SELECT COUNT(*) FROM Motoboys WHERE CPF=@cpf AND Id<>@id", conn);
-                    cmd.Parameters.AddWithValue("@cpf", cpf);
-                    cmd.Parameters.AddWithValue("@id", ignorarId);
+                    cmd.Parameters.Add(new SqlParameter("@cpf", SqlDbType.NVarChar, 20) { Value = cpf });
+                    cmd.Parameters.Add(new SqlParameter("@id", SqlDbType.Int) { Value = ignorarId });
                     return (int)await cmd.ExecuteScalarAsync() > 0;
                 }
             }
-            catch { return false; }
-        }
-
-        // ── Diálogos dark theme roxo ──────────────────────────────
-        private void Msg(string texto, string titulo = "Aviso", bool erro = false)
-        {
-            var cor = erro ? _cVerm : _cRoxo;
-            using (var dlg = new Form())
+            catch (Exception ex)
             {
-                dlg.BackColor = _cDark; dlg.ClientSize = new Size(420, 155);
-                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dlg.StartPosition = FormStartPosition.CenterParent;
-                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
-                dlg.Text = titulo; dlg.Font = new Font("Segoe UI", 9f);
-                dlg.Controls.Add(new Panel { Dock = DockStyle.Top, Height = 4, BackColor = cor });
-                dlg.Controls.Add(new Label { Text = erro ? "!" : "✓", Font = new Font("Segoe UI", 20f, FontStyle.Bold), ForeColor = cor, AutoSize = true, Location = new Point(18, 22) });
-                dlg.Controls.Add(new Label { Text = texto, Font = new Font("Segoe UI", 10f), ForeColor = _cText, AutoSize = false, Location = new Point(58, 20), Width = 344, Height = 60, TextAlign = ContentAlignment.MiddleLeft });
-                var btn = new Button { Text = "OK", Width = 100, Height = 32, Location = new Point(160, 102), FlatStyle = FlatStyle.Flat, BackColor = cor, ForeColor = Color.White, Font = new Font("Segoe UI Semibold", 9f), DialogResult = DialogResult.OK, Cursor = Cursors.Hand };
-                btn.FlatAppearance.BorderSize = 0;
-                dlg.Controls.Add(btn); dlg.AcceptButton = btn;
-                dlg.ShowDialog(this);
-            }
-        }
-
-        private bool Confirmar(string texto, string titulo = "Confirmar")
-        {
-            using (var dlg = new Form())
-            {
-                dlg.BackColor = _cDark; dlg.ClientSize = new Size(420, 155);
-                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dlg.StartPosition = FormStartPosition.CenterParent;
-                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
-                dlg.Text = titulo; dlg.Font = new Font("Segoe UI", 9f);
-                dlg.Controls.Add(new Panel { Dock = DockStyle.Top, Height = 4, BackColor = _cVerm });
-                dlg.Controls.Add(new Label { Text = "?", Font = new Font("Segoe UI", 20f, FontStyle.Bold), ForeColor = _cVerm, AutoSize = true, Location = new Point(18, 22) });
-                dlg.Controls.Add(new Label { Text = texto, Font = new Font("Segoe UI", 10f), ForeColor = _cText, AutoSize = false, Location = new Point(58, 20), Width = 344, Height = 60, TextAlign = ContentAlignment.MiddleLeft });
-                var btnSim = new Button { Text = "Sim", Width = 100, Height = 32, Location = new Point(100, 102), FlatStyle = FlatStyle.Flat, BackColor = _cVerm, ForeColor = Color.White, Font = new Font("Segoe UI Semibold", 9f), DialogResult = DialogResult.Yes, Cursor = Cursors.Hand };
-                btnSim.FlatAppearance.BorderSize = 0;
-                var btnNao = new Button { Text = "Nao", Width = 100, Height = 32, Location = new Point(216, 102), FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(40, 40, 60), ForeColor = _cMuted, Font = new Font("Segoe UI", 9f), DialogResult = DialogResult.No, Cursor = Cursors.Hand };
-                btnNao.FlatAppearance.BorderColor = Color.FromArgb(60, 60, 90);
-                dlg.Controls.Add(btnSim); dlg.Controls.Add(btnNao);
-                return dlg.ShowDialog(this) == DialogResult.Yes;
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormMotoboy.CpfExisteAsync");
+                return false;
             }
         }
     }

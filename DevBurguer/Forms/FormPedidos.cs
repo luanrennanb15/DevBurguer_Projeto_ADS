@@ -11,14 +11,12 @@ namespace DevBurguer
 {
     public partial class FormPedidos : Form
     {
-        private const decimal TAXA_ENTREGA = 6.00m;
+        // ✅ Fix #30: usa constante centralizada em vez de valor hardcoded
+        private const decimal TAXA_ENTREGA = Configuracoes.TaxaEntrega;
         private DataTable _produtosCache;
 
-        // ── cores para dialogo dark ───────────────────────────────
-        private readonly Color _cLaranj = Color.FromArgb(220, 130, 30);
-        private readonly Color _cVerm = Color.FromArgb(200, 60, 60);
-        private readonly Color _cDark = Color.FromArgb(16, 16, 22);
-        private readonly Color _cText = Color.FromArgb(230, 230, 245);
+        // ✅ NOVO: botão "Limpar Pedido" criado dinamicamente
+        private Button _btnLimpar;
 
         public FormPedidos()
         {
@@ -31,9 +29,39 @@ namespace DevBurguer
             rbRetirada.CheckedChanged += rbRetirada_CheckedChanged;
             txtPreco.ReadOnly = true;
             txtPreco.BackColor = System.Drawing.Color.FromArgb(22, 22, 34);
+
+            // ✅ Cria botão "Limpar Pedido" abaixo dos botões existentes
+            ConstruirBotaoLimpar();
+
             await CarregarProdutosAsync();
             await CarregarClientesAsync();
             await CarregarAdicionaisAsync();
+        }
+
+        // ✅ NOVO: cria o botão "Limpar Pedido" dinamicamente
+        // Posição: mesma coluna do btnAdicionar (x=15) e largura igual aos dois somados
+        // y é detectado pegando a posição do btnRemover + altura + margem
+        private void ConstruirBotaoLimpar()
+        {
+            int x = btnAdicionar.Location.X;
+            int y = btnAdicionar.Location.Y + btnAdicionar.Height + 8;
+            int w = (btnRemover.Location.X + btnRemover.Width) - x;
+
+            _btnLimpar = new Button
+            {
+                Text = "Limpar Pedido",
+                BackColor = System.Drawing.Color.FromArgb(70, 70, 100),
+                ForeColor = System.Drawing.Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new System.Drawing.Font("Segoe UI Semibold", 9.5F),
+                Location = new System.Drawing.Point(x, y),
+                Size = new System.Drawing.Size(w, 30),
+                Cursor = Cursors.Hand,
+                TabIndex = 9
+            };
+            _btnLimpar.FlatAppearance.BorderSize = 0;
+            _btnLimpar.Click += btnLimpar_Click;
+            btnAdicionar.Parent.Controls.Add(_btnLimpar);
         }
 
         // ── carregamentos ─────────────────────────────────────────
@@ -135,21 +163,28 @@ namespace DevBurguer
         private void btnAdicionar_Click(object sender, EventArgs e)
         {
             if (cmbProdutos.SelectedValue == null)
-            { Msg("Selecione um produto!", "Aviso", true); return; }
+            { DialogHelper.Aviso("Selecione um produto!", "Aviso", DialogHelper.Laranja); return; }
 
             if (!int.TryParse(txtQuantidade.Text, out int quantidade) || quantidade <= 0)
-            { Msg("Quantidade invalida! Digite um numero maior que zero.", "Aviso", true); return; }
+            { DialogHelper.Aviso("Quantidade invalida! Digite um numero maior que zero.", "Aviso", DialogHelper.Laranja); return; }
 
-            // ✅ TryParse — não quebra se txtPreco estiver vazio
+            // ✅ Limite de quantidade — evita pedidos absurdos (ex: 9999 burgers)
+            if (quantidade > 50)
+            { DialogHelper.Aviso("Quantidade muito alta! Maximo permitido: 50 unidades por adicao.", "Aviso", DialogHelper.Laranja); return; }
+
             if (!decimal.TryParse(txtPreco.Text, out decimal precoItem) || precoItem <= 0)
-            { Msg("Preco invalido! Selecione um produto primeiro.", "Aviso", true); return; }
+            { DialogHelper.Aviso("Preco invalido! Selecione um produto primeiro.", "Aviso", DialogHelper.Laranja); return; }
 
             string adicionaisTexto = string.Join(", ",
                 clbAdicionais.CheckedItems.Cast<AdicionalItem>().Select(x => x.Nome));
 
+            // ✅ MUDANÇA: cascata de itens — adiciona N linhas com Quantidade=1 cada
+            // Permite obs/adicional individual e remover 1 sem mexer nos outros
             for (int i = 0; i < quantidade; i++)
+            {
                 dgvItens.Rows.Add(cmbProdutos.Text, 1, precoItem,
                     txtObservacao.Text, adicionaisTexto, cmbProdutos.SelectedValue);
+            }
 
             for (int i = 0; i < clbAdicionais.Items.Count; i++) clbAdicionais.SetItemChecked(i, false);
             txtQuantidade.Clear(); txtObservacao.Clear();
@@ -160,20 +195,39 @@ namespace DevBurguer
         {
             if (dgvItens.SelectedRows.Count > 0)
             { dgvItens.Rows.RemoveAt(dgvItens.SelectedRows[0].Index); CalcularTotal(); }
-            else Msg("Selecione um item para remover!", "Aviso", true);
+            else DialogHelper.Aviso("Selecione um item para remover!", "Aviso", DialogHelper.Laranja);
+        }
+
+        // ✅ NOVO: limpa todos os itens e libera o cliente
+        // Pede confirmação se houver itens (evita perda acidental)
+        private void btnLimpar_Click(object sender, EventArgs e)
+        {
+            if (dgvItens.Rows.Count == 0)
+            {
+                DialogHelper.Info("O pedido ja esta vazio.", "Aviso", DialogHelper.Laranja);
+                return;
+            }
+
+            if (!DialogHelper.Confirmar(
+                    "Deseja remover todos os " + dgvItens.Rows.Count + " item(ns) do pedido?\nEssa acao nao pode ser desfeita.",
+                    "Limpar pedido", DialogHelper.Laranja))
+                return;
+
+            dgvItens.Rows.Clear();
+            CalcularTotal(); // libera o cmbClientes automaticamente (já está na lógica de bloqueio)
         }
 
         private async void btnFinalizar_Click(object sender, EventArgs e)
         {
             // ✅ validações antes do try
             if (dgvItens.Rows.Count == 0)
-            { Msg("Adicione itens ao pedido!", "Aviso", true); return; }
+            { DialogHelper.Aviso("Adicione itens ao pedido!", "Aviso", DialogHelper.Laranja); return; }
             if (cmbClientes.SelectedValue == null)
-            { Msg("Selecione o cliente!", "Aviso", true); return; }
+            { DialogHelper.Aviso("Selecione o cliente!", "Aviso", DialogHelper.Laranja); return; }
             if (!rbEntrega.Checked && !rbRetirada.Checked)
-            { Msg("Selecione Entrega ou Retirada!", "Aviso", true); return; }
+            { DialogHelper.Aviso("Selecione Entrega ou Retirada!", "Aviso", DialogHelper.Laranja); return; }
             if (!decimal.TryParse(lblTotal.Text, out decimal total))
-            { Msg("Erro ao calcular total!", "Aviso", true); return; }
+            { DialogHelper.Aviso("Erro ao calcular total!", "Aviso", DialogHelper.Laranja); return; }
 
             try
             {
@@ -200,7 +254,7 @@ namespace DevBurguer
                     var tela = new DevBurguer.Forms.FormEnderecoEntrega(idCliente);
                     tela.SetTotal(total);
                     tela.ShowDialog();
-                    if (!tela.PedidoConfirmado) { Msg("Pedido cancelado.", "Aviso"); return; }
+                    if (!tela.PedidoConfirmado) { DialogHelper.Info("Pedido cancelado.", "Aviso", DialogHelper.Laranja); return; }
                     formaPagamento = tela.FormaPagamento;
                     troco = tela.TrocoPara;
                 }
@@ -208,7 +262,7 @@ namespace DevBurguer
                 {
                     var tela = new DevBurguer.Forms.FormPagamento();
                     tela.ShowDialog();
-                    if (!tela.PagamentoConfirmado) { Msg("Pedido cancelado.", "Aviso"); return; }
+                    if (!tela.PagamentoConfirmado) { DialogHelper.Info("Pedido cancelado.", "Aviso", DialogHelper.Laranja); return; }
                     formaPagamento = tela.FormaPagamento;
                 }
 
@@ -220,7 +274,7 @@ namespace DevBurguer
                     msgFinal += "\nPagamento: " + formaPagamento;
                 if (troco > 0)
                     msgFinal += "\nTroco para: " + troco.ToString("C2");
-                Msg(msgFinal, "Pedido Feito");
+                DialogHelper.Info(msgFinal, "Pedido Feito", DialogHelper.Laranja);
 
                 dgvItens.Rows.Clear();
                 lblTotal.Text = "0,00";
@@ -231,68 +285,9 @@ namespace DevBurguer
             catch (Exception ex)
             {
                 DevBurguer.Services.ExceptionLogger.Log(ex, "btnFinalizar_Click");
-                Msg("Erro ao registrar pedido:\n" + ex.Message, "Erro", true);
+                DialogHelper.Erro("Erro ao registrar pedido.");
             }
         }
 
-        // ── Diálogos dark theme laranja ──────────────────────────
-        private void Msg(string texto, string titulo = "Aviso", bool erro = false)
-        {
-            var cor = erro ? _cVerm : _cLaranj;
-            using (var dlg = new Form())
-            {
-                dlg.BackColor = _cDark;
-                dlg.ClientSize = new System.Drawing.Size(420, 155);
-                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dlg.StartPosition = FormStartPosition.CenterParent;
-                dlg.MaximizeBox = false;
-                dlg.MinimizeBox = false;
-                dlg.Text = titulo;
-                dlg.Font = new System.Drawing.Font("Segoe UI", 9f);
-
-                dlg.Controls.Add(new Panel
-                {
-                    Dock = DockStyle.Top,
-                    Height = 4,
-                    BackColor = cor
-                });
-                dlg.Controls.Add(new Label
-                {
-                    Text = erro ? "!" : "✓",
-                    Font = new System.Drawing.Font("Segoe UI", 20f, System.Drawing.FontStyle.Bold),
-                    ForeColor = cor,
-                    AutoSize = true,
-                    Location = new System.Drawing.Point(18, 22)
-                });
-                dlg.Controls.Add(new Label
-                {
-                    Text = texto,
-                    Font = new System.Drawing.Font("Segoe UI", 10f),
-                    ForeColor = _cText,
-                    AutoSize = false,
-                    Location = new System.Drawing.Point(58, 20),
-                    Width = 344,
-                    Height = 60,
-                    TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-                });
-                var btn = new Button
-                {
-                    Text = "OK",
-                    Width = 100,
-                    Height = 32,
-                    Location = new System.Drawing.Point(160, 102),
-                    FlatStyle = FlatStyle.Flat,
-                    BackColor = cor,
-                    ForeColor = Color.White,
-                    Font = new System.Drawing.Font("Segoe UI Semibold", 9f),
-                    DialogResult = DialogResult.OK,
-                    Cursor = Cursors.Hand
-                };
-                btn.FlatAppearance.BorderSize = 0;
-                dlg.Controls.Add(btn);
-                dlg.AcceptButton = btn;
-                dlg.ShowDialog(this);
-            }
-        }
     }
 }

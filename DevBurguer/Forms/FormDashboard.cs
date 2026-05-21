@@ -210,7 +210,7 @@ namespace DevBurguer.Forms
             var corLocal = cor;
             pnl.Paint += (s, e) =>
             {
-                e.Graphics.FillRectangle(new SolidBrush(corLocal), 0, 0, pnl.Width, 5);
+                using (var _br = new SolidBrush(corLocal)) e.Graphics.FillRectangle(_br, 0, 0, pnl.Width, 5);
                 e.Graphics.DrawRectangle(new Pen(Color.FromArgb(40, 40, 60)), 0, 0, pnl.Width - 1, pnl.Height - 1);
             };
 
@@ -280,23 +280,27 @@ namespace DevBurguer.Forms
                 await Task.Run(() =>
                 {
                     using (var conn = Conexao.GetConnection())
-                    {
-                        conn.Open();
-                        var cmd = new SqlCommand(@"
+                    using (var cmd = new SqlCommand(@"
+                            -- ✅ FIX: removido ISNULL(Data, GETDATE()) — pedidos com Data NULL
+                            -- viravam 'hoje' e bagunçavam os cards
+                            -- ✅ FIX: 'Pedidos Hoje' e 'Mais Vendido' agora usam Status='Finalizado'
+                            -- (pedidos em produção/cancelados não devem entrar)
                             SELECT
                                 -- faturamento hoje (só finalizados)
                                 (SELECT ISNULL(SUM(Total),0)
                                  FROM Pedidos
-                                 WHERE CONVERT(date, ISNULL(Data,GETDATE())) = CONVERT(date,GETDATE())
+                                 WHERE Data IS NOT NULL
+                                   AND CONVERT(date, Data) = CONVERT(date, GETDATE())
                                    AND Status = 'Finalizado') AS FatHoje,
 
-                                -- total pedidos hoje
+                                -- pedidos finalizados hoje (efetivamente saíram)
                                 (SELECT COUNT(*)
                                  FROM Pedidos
-                                 WHERE CONVERT(date, ISNULL(Data,GETDATE())) = CONVERT(date,GETDATE())
-                                   AND Status NOT IN ('Cancelado')) AS PedidosHoje,
+                                 WHERE Data IS NOT NULL
+                                   AND CONVERT(date, Data) = CONVERT(date, GETDATE())
+                                   AND Status = 'Finalizado') AS PedidosHoje,
 
-                                -- em producao agora
+                                -- em producao agora (independe de data — é o estado atual)
                                 (SELECT COUNT(*)
                                  FROM Pedidos
                                  WHERE Status NOT IN ('Finalizado','Cancelado')) AS EmProducao,
@@ -304,33 +308,40 @@ namespace DevBurguer.Forms
                                 -- cancelados hoje
                                 (SELECT COUNT(*)
                                  FROM Pedidos
-                                 WHERE CONVERT(date, ISNULL(Data,GETDATE())) = CONVERT(date,GETDATE())
+                                 WHERE Data IS NOT NULL
+                                   AND CONVERT(date, Data) = CONVERT(date, GETDATE())
                                    AND Status = 'Cancelado') AS Cancelados,
 
                                 -- finalizados hoje
                                 (SELECT COUNT(*)
                                  FROM Pedidos
-                                 WHERE CONVERT(date, ISNULL(Data,GETDATE())) = CONVERT(date,GETDATE())
+                                 WHERE Data IS NOT NULL
+                                   AND CONVERT(date, Data) = CONVERT(date, GETDATE())
                                    AND Status = 'Finalizado') AS Finalizados,
 
-                                -- motoboys na escala
+                                -- motoboys na escala hoje
                                 (SELECT COUNT(DISTINCT IdMotoboy)
                                  FROM EscalaMotoboy
                                  WHERE Ativo = 1) AS MotoboysEscala,
 
-                                -- produto mais vendido hoje
+                                -- produto mais vendido hoje (só de pedidos finalizados)
                                 (SELECT TOP 1 pr.Nome
                                  FROM ItensPedido i
                                  JOIN Produtos pr ON pr.Id = i.IdProduto
                                  JOIN Pedidos p   ON p.Id  = i.IdPedido
-                                 WHERE CONVERT(date, ISNULL(p.Data,GETDATE())) = CONVERT(date,GETDATE())
+                                 WHERE p.Data IS NOT NULL
+                                   AND CONVERT(date, p.Data) = CONVERT(date, GETDATE())
+                                   AND p.Status = 'Finalizado'
                                  GROUP BY pr.Nome
                                  ORDER BY SUM(i.Quantidade) DESC) AS MaisVendido
-                            ", conn);
+                            ", conn))
+                    {
                         cmd.CommandTimeout = 30;
-                        var da = new SqlDataAdapter(cmd);
-                        dt = new DataTable();
-                        da.Fill(dt);
+                        using (var da = new SqlDataAdapter(cmd))
+                        {
+                            dt = new DataTable();
+                            da.Fill(dt);
+                        }
                     }
                 });
 
@@ -376,3 +387,4 @@ namespace DevBurguer.Forms
         }
     }
 }
+

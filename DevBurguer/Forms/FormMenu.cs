@@ -40,7 +40,8 @@ namespace DevBurguer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormMenu.AbrirForm");
+                DialogHelper.Erro("Falha ao abrir tela.");
             }
         }
 
@@ -80,80 +81,8 @@ namespace DevBurguer
 
         private void btnSair_Click(object sender, EventArgs e)
         {
-            if (ConfirmarSaida()) System.Windows.Forms.Application.Exit();
-        }
-
-        private bool ConfirmarSaida()
-        {
-            var cLaranj = System.Drawing.Color.FromArgb(220, 130, 30);
-            var cDark = System.Drawing.Color.FromArgb(16, 16, 22);
-            var cText = System.Drawing.Color.FromArgb(230, 230, 245);
-            var cMuted = System.Drawing.Color.FromArgb(120, 120, 150);
-
-            using (var dlg = new Form())
-            {
-                dlg.BackColor = cDark;
-                dlg.ClientSize = new System.Drawing.Size(400, 155);
-                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dlg.StartPosition = FormStartPosition.CenterScreen;
-                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
-                dlg.Text = "Sair do Sistema";
-                dlg.Font = new System.Drawing.Font("Segoe UI", 9f);
-
-                dlg.Controls.Add(new Panel { Dock = DockStyle.Top, Height = 4, BackColor = cLaranj });
-                dlg.Controls.Add(new Label
-                {
-                    Text = "?",
-                    Font = new System.Drawing.Font("Segoe UI", 20f, FontStyle.Bold),
-                    ForeColor = cLaranj,
-                    AutoSize = true,
-                    Location = new System.Drawing.Point(18, 22)
-                });
-                dlg.Controls.Add(new Label
-                {
-                    Text = "Deseja realmente sair do sistema?",
-                    Font = new System.Drawing.Font("Segoe UI", 10f),
-                    ForeColor = cText,
-                    AutoSize = false,
-                    Location = new System.Drawing.Point(58, 30),
-                    Width = 324,
-                    Height = 40,
-                    TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-                });
-
-                var btnSim = new Button
-                {
-                    Text = "Sim, sair",
-                    Width = 110,
-                    Height = 32,
-                    Location = new System.Drawing.Point(80, 102),
-                    FlatStyle = FlatStyle.Flat,
-                    BackColor = cLaranj,
-                    ForeColor = Color.White,
-                    Font = new System.Drawing.Font("Segoe UI Semibold", 9f),
-                    DialogResult = DialogResult.Yes,
-                    Cursor = Cursors.Hand
-                };
-                btnSim.FlatAppearance.BorderSize = 0;
-
-                var btnNao = new Button
-                {
-                    Text = "Cancelar",
-                    Width = 110,
-                    Height = 32,
-                    Location = new System.Drawing.Point(206, 102),
-                    FlatStyle = FlatStyle.Flat,
-                    BackColor = System.Drawing.Color.FromArgb(40, 40, 60),
-                    ForeColor = cMuted,
-                    Font = new System.Drawing.Font("Segoe UI", 9f),
-                    DialogResult = DialogResult.No,
-                    Cursor = Cursors.Hand
-                };
-                btnNao.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(60, 60, 90);
-
-                dlg.Controls.Add(btnSim); dlg.Controls.Add(btnNao);
-                return dlg.ShowDialog() == DialogResult.Yes;
-            }
+            if (DialogHelper.Confirmar("Deseja realmente sair do sistema?", "Sair do Sistema", DialogHelper.Laranja))
+                System.Windows.Forms.Application.Exit();
         }
     }
 }

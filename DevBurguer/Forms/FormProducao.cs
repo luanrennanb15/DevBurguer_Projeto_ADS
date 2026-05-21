@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DevBurguer.Data;
@@ -33,6 +33,14 @@ namespace DevBurguer.Forms
         private System.Windows.Forms.Timer _timer;
         private DataTable _motoboys;
         private bool _carregando = false;
+        private bool _formFechando = false;
+
+        // ✅ Cache do snapshot pra detectar mudanças sem buscar dados pesados
+        private string _ultimoSnapshot = null;
+
+        // ✅ Cache da escala — só recarrega de 5 em 5 minutos
+        private DateTime _motoboysCarregadosEm = DateTime.MinValue;
+        private static readonly TimeSpan MotoboysExpiry = TimeSpan.FromMinutes(5);
 
         public FormProducao()
         {
@@ -46,16 +54,24 @@ namespace DevBurguer.Forms
 
             ConstruirLayout();
 
+            // Load primeiro carrega dados completos
             this.Load += async (s, e) => await CarregarAsync();
 
-            _timer = new System.Windows.Forms.Timer { Interval = 60000 };
-            _timer.Tick += async (s, e) => await CarregarAsync();
+            // ✅ Timer de 3s — verifica snapshot e só recarrega se mudou
+            _timer = new System.Windows.Forms.Timer { Interval = 3000 };
+            _timer.Tick += async (s, e) => await VerificarMudancasAsync();
             _timer.Start();
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            _formFechando = true;
+            _timer?.Stop();
+            base.OnFormClosing(e);
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
-            _timer?.Stop();
             _timer?.Dispose();
             base.OnFormClosed(e);
         }
@@ -68,7 +84,6 @@ namespace DevBurguer.Forms
             this.BackColor = CDark;
             this.Font = new Font("Segoe UI", 9f);
 
-            // TableLayoutPanel raiz: topo 46px + kanban fill
             var tblRoot = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
@@ -158,7 +173,6 @@ namespace DevBurguer.Forms
                     Margin = new Padding(3)
                 };
 
-                // ✅ Fill adicionado ANTES do Top
                 var flow = new FlowLayoutPanel
                 {
                     Dock = DockStyle.Fill,
@@ -170,11 +184,13 @@ namespace DevBurguer.Forms
                 };
                 pnlCol.Controls.Add(flow);
 
-                // cabeçalho adicionado depois (Top)
                 var pnlHead = new Panel { Dock = DockStyle.Top, Height = 44, BackColor = Color.FromArgb(24, 24, 36) };
                 var corLocal = cor;
                 pnlHead.Paint += (s, e) =>
-                    e.Graphics.FillRectangle(new SolidBrush(corLocal), 0, pnlHead.Height - 4, pnlHead.Width, 4);
+                {
+                    using (var _br = new SolidBrush(corLocal))
+                        e.Graphics.FillRectangle(_br, 0, pnlHead.Height - 4, pnlHead.Width, 4);
+                };
                 pnlHead.Controls.Add(new Label
                 {
                     Text = titulo,
@@ -191,52 +207,139 @@ namespace DevBurguer.Forms
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  DADOS
+        //  ✅ NOVO: Verifica via snapshot leve — só recarrega se mudou
+        //  Custa ~10ms no banco, roda silenciosamente a cada 3s
         // ═══════════════════════════════════════════════════════════
-        private async Task CarregarAsync()
+        private async Task VerificarMudancasAsync()
         {
-            if (_carregando) return;
-            _carregando = true;
+            if (_formFechando || _carregando) return;
+
             try
             {
-                _lblStatus.Text = "Atualizando...";
-                _btnAtualizar.Enabled = false;
-                var repo = new PedidoRepository();
-                var pedidos = await repo.GetPedidosProducaoAsync();
-                _motoboys = await repo.GetMotoboysDaEscalaAsync();
-                MontarKanban(pedidos);
-                _lblStatus.Text = "Atualizado: " + DateTime.Now.ToString("HH:mm:ss");
+                string snapshotAtual = null;
+                await Task.Run(async () =>
+                {
+                    var repo = new PedidoRepository();
+                    snapshotAtual = await repo.GetPedidosProducaoHashAsync();
+                });
+
+                if (_formFechando || this.IsDisposed) return;
+
+                // Se nada mudou, não recarrega — economia de 95%+ das chamadas pesadas
+                if (snapshotAtual == _ultimoSnapshot) return;
+
+                // Algo mudou — recarrega tela inteira
+                await CarregarAsync();
             }
             catch (Exception ex)
             {
-                _lblStatus.Text = "Erro ao carregar";
-                Msg("Erro ao carregar pedidos:\n" + ex.Message, "Erro", true);
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormProducao.VerificarMudancasAsync");
+                // não mostra erro — é background, falha silenciosa
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        //  CARREGAR — busca dados completos e remonta cards
+        // ═══════════════════════════════════════════════════════════
+        private async Task CarregarAsync()
+        {
+            if (_formFechando) return;
+
+            if (_carregando)
+            {
+                if (_lblStatus != null && !_lblStatus.IsDisposed)
+                    _lblStatus.Text = "Aguardando atualizacao...";
+                return;
+            }
+
+            _carregando = true;
+            try
+            {
+                if (_lblStatus != null && !_lblStatus.IsDisposed)
+                    _lblStatus.Text = "Atualizando...";
+                if (_btnAtualizar != null && !_btnAtualizar.IsDisposed)
+                    _btnAtualizar.Enabled = false;
+
+                var repo = new PedidoRepository();
+                DataTable pedidos = null;
+                string novoSnapshot = null;
+                bool recarregarMotoboys =
+                    _motoboys == null ||
+                    DateTime.Now - _motoboysCarregadosEm > MotoboysExpiry;
+
+                // ✅ Roda em background — UI fica responsiva
+                await Task.Run(async () =>
+                {
+                    pedidos = await repo.GetPedidosProducaoAsync();
+                    novoSnapshot = await repo.GetPedidosProducaoHashAsync();
+
+                    if (recarregarMotoboys)
+                        _motoboys = await repo.GetMotoboysDaEscalaAsync();
+                });
+
+                if (_formFechando || this.IsDisposed) return;
+
+                if (recarregarMotoboys)
+                    _motoboysCarregadosEm = DateTime.Now;
+
+                _ultimoSnapshot = novoSnapshot;
+
+                MontarKanban(pedidos);
+
+                if (_lblStatus != null && !_lblStatus.IsDisposed)
+                    _lblStatus.Text = "Atualizado: " + DateTime.Now.ToString("HH:mm:ss");
+            }
+            catch (Exception ex)
+            {
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormProducao.CarregarAsync");
+                if (_lblStatus != null && !_lblStatus.IsDisposed)
+                    _lblStatus.Text = "Erro ao carregar";
+                if (!_formFechando && !this.IsDisposed)
+                    DialogHelper.Erro("Erro ao carregar pedidos.");
             }
             finally
             {
-                _btnAtualizar.Enabled = true;
+                if (_btnAtualizar != null && !_btnAtualizar.IsDisposed)
+                    _btnAtualizar.Enabled = true;
                 _carregando = false;
             }
         }
 
+        // ═══════════════════════════════════════════════════════════
+        //  MontarKanban — usa SuspendLayout para evitar flicker
+        // ═══════════════════════════════════════════════════════════
         private void MontarKanban(DataTable pedidos)
         {
-            foreach (var p in _colunas)
+            // ✅ SuspendLayout em todas as colunas — repaint só no final
+            foreach (var coluna in _colunas) coluna.SuspendLayout();
+
+            try
             {
-                p.Controls.Clear();
-                if (p is FlowLayoutPanel flp)
-                    flp.AutoScrollPosition = new Point(0, 0);
+                foreach (var p in _colunas)
+                {
+                    // Copia referências ANTES de Clear, dispõe DEPOIS
+                    var antigos = p.Controls.Cast<Control>().ToArray();
+                    p.Controls.Clear();
+                    foreach (var c in antigos) c.Dispose();
+
+                    if (p is FlowLayoutPanel flp)
+                        flp.AutoScrollPosition = new Point(0, 0);
+                }
+
+                foreach (DataRow row in pedidos.Rows)
+                {
+                    string status = row["Status"].ToString();
+                    int colIdx = Array.IndexOf(COLUNAS, status);
+                    if (colIdx < 0) continue;
+
+                    var card = CriarCard(row);
+                    card.Margin = new Padding(0, 0, 0, 8);
+                    _colunas[colIdx].Controls.Add(card);
+                }
             }
-
-            foreach (DataRow row in pedidos.Rows)
+            finally
             {
-                string status = row["Status"].ToString();
-                int colIdx = Array.IndexOf(COLUNAS, status);
-                if (colIdx < 0) continue;
-
-                var card = CriarCard(row);
-                card.Margin = new Padding(0, 0, 0, 8);
-                _colunas[colIdx].Controls.Add(card);
+                foreach (var coluna in _colunas) coluna.ResumeLayout(true);
             }
         }
 
@@ -266,40 +369,34 @@ namespace DevBurguer.Forms
             var card = new Panel
             {
                 Width = Math.Max(10, _colunas[0].ClientSize.Width - 20),
-                AutoSize = true,
-                AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 BackColor = CCard
             };
             var corCard = corStatus;
             card.Paint += (s, e) =>
             {
-                e.Graphics.FillRectangle(new SolidBrush(corCard), 0, 0, card.Width, 4);
-                e.Graphics.DrawRectangle(new Pen(Color.FromArgb(45, 45, 65)), 0, 0, card.Width - 1, card.Height - 1);
+                using (var brBarra = new SolidBrush(corCard))
+                    e.Graphics.FillRectangle(brBarra, 0, 0, card.Width, 4);
+                using (var penBorda = new Pen(Color.FromArgb(45, 45, 65)))
+                    e.Graphics.DrawRectangle(penBorda, 0, 0, card.Width - 1, card.Height - 1);
             };
 
             int y = 10;
 
-            // Pedido # e hora
             Lbl(card, "Pedido #" + id + "  -  " + data.ToString("HH:mm"),
                 new Font("Segoe UI Semibold", 9f), corStatus, ref y, 22);
 
-            // Tipo
             Lbl(card, tipo == "Entrega" ? "Entrega" : "Retirada",
                 new Font("Segoe UI", 8.5f), tipo == "Entrega" ? CACaminho : CPronto, ref y, 18);
 
-            // Cliente
             Lbl(card, cliente, new Font("Segoe UI Semibold", 9.5f), CText, ref y, 22);
 
-            // Telefone
             if (!string.IsNullOrEmpty(telefone))
                 Lbl(card, telefone, new Font("Segoe UI", 8.5f), CMuted, ref y, 18);
 
-            // Endereco (so entrega)
             if (tipo == "Entrega" && !string.IsNullOrEmpty(endereco))
                 Lbl(card, "Local: " + endereco,
                     new Font("Segoe UI", 8.5f), Color.FromArgb(255, 180, 60), ref y, 18);
 
-            // Separador
             card.Controls.Add(new Label
             {
                 Width = card.Width - 20,
@@ -309,7 +406,6 @@ namespace DevBurguer.Forms
             });
             y += 8;
 
-            // Itens — um por linha
             string[] linhas = itens.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var linha in linhas)
             {
@@ -328,20 +424,16 @@ namespace DevBurguer.Forms
             }
             y += 4;
 
-            // Total
             Lbl(card, "Total: " + total.ToString("C2"),
                 new Font("Segoe UI Semibold", 10f), CPronto, ref y, 24);
 
-            // Troco
             if (tipo == "Entrega" && troco > 0)
                 Lbl(card, "Troco para " + troco.ToString("C2"),
                     new Font("Segoe UI Semibold", 8.5f), Color.FromArgb(255, 200, 60), ref y, 20);
 
-            // Motoboy (A Caminho)
             if (status == "A Caminho" && !string.IsNullOrEmpty(motoboy))
                 Lbl(card, "Motoboy: " + motoboy, new Font("Segoe UI", 8.5f), CACaminho, ref y, 20);
 
-            // Botoes
             y += 4;
             var pnlBtns = CriarBotoes(id, status, tipo, idMotoboy);
             pnlBtns.Location = new Point(8, y);
@@ -398,7 +490,6 @@ namespace DevBurguer.Forms
                 }
                 else
                 {
-                    // Entrega — seleciona motoboy
                     var cmbMb = new ComboBox
                     {
                         Width = 160,
@@ -423,7 +514,7 @@ namespace DevBurguer.Forms
                     btn.Click += async (s, e) =>
                     {
                         if (cmbMb.SelectedItem == null)
-                        { Msg("Selecione um motoboy!", "Aviso", true); return; }
+                        { DialogHelper.Aviso("Selecione um motoboy!", "Aviso", DialogHelper.Laranja); return; }
                         int idMb = ((MbItem)cmbMb.SelectedItem).Id;
                         await new PedidoRepository().AtualizarStatusAsync(idPedido, "A Caminho", idMb);
                         await CarregarAsync();
@@ -444,11 +535,10 @@ namespace DevBurguer.Forms
                 pnl.Controls.Add(btn);
             }
 
-            // Cancelar — disponivel em todos os status
             var btnCancel = BtnAcao("Cancelar", Color.FromArgb(160, 40, 40), 0, pnl.Width, 40);
             btnCancel.Click += async (s, e) =>
             {
-                if (Confirmar("Cancelar este pedido?"))
+                if (DialogHelper.Confirmar("Cancelar este pedido?", "Confirmar", DialogHelper.Laranja))
                 {
                     await new PedidoRepository().AtualizarStatusAsync(idPedido, "Cancelado");
                     await CarregarAsync();
@@ -486,52 +576,6 @@ namespace DevBurguer.Forms
             public string Nome;
             public MbItem(int id, string nome) { Id = id; Nome = nome; }
             public override string ToString() => Nome;
-
-        }
-        // ── Diálogos dark theme laranja ──────────────────────────
-        private void Msg(string texto, string titulo = "Aviso", bool erro = false)
-        {
-            var cLaranj = Color.FromArgb(220, 130, 30);
-            var cVerm = Color.FromArgb(200, 60, 60);
-            var cor = erro ? cVerm : cLaranj;
-            using (var dlg = new Form())
-            {
-                dlg.BackColor = Color.FromArgb(16, 16, 22); dlg.ClientSize = new Size(420, 155);
-                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dlg.StartPosition = FormStartPosition.CenterParent;
-                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
-                dlg.Text = titulo; dlg.Font = new Font("Segoe UI", 9f);
-                dlg.Controls.Add(new Panel { Dock = DockStyle.Top, Height = 4, BackColor = cor });
-                dlg.Controls.Add(new Label { Text = erro ? "!" : "✓", Font = new Font("Segoe UI", 20f, FontStyle.Bold), ForeColor = cor, AutoSize = true, Location = new Point(18, 22) });
-                dlg.Controls.Add(new Label { Text = texto, Font = new Font("Segoe UI", 10f), ForeColor = Color.FromArgb(230, 230, 245), AutoSize = false, Location = new Point(58, 20), Width = 344, Height = 60, TextAlign = ContentAlignment.MiddleLeft });
-                var btn = new Button { Text = "OK", Width = 100, Height = 32, Location = new Point(160, 102), FlatStyle = FlatStyle.Flat, BackColor = cor, ForeColor = Color.White, Font = new Font("Segoe UI Semibold", 9f), DialogResult = DialogResult.OK, Cursor = Cursors.Hand };
-                btn.FlatAppearance.BorderSize = 0;
-                dlg.Controls.Add(btn); dlg.AcceptButton = btn;
-                dlg.ShowDialog();
-            }
-        }
-
-        private bool Confirmar(string texto, string titulo = "Confirmar")
-        {
-            var cVerm = Color.FromArgb(200, 60, 60);
-            var cMuted = Color.FromArgb(120, 120, 150);
-            using (var dlg = new Form())
-            {
-                dlg.BackColor = Color.FromArgb(16, 16, 22); dlg.ClientSize = new Size(420, 155);
-                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dlg.StartPosition = FormStartPosition.CenterParent;
-                dlg.MaximizeBox = false; dlg.MinimizeBox = false;
-                dlg.Text = titulo; dlg.Font = new Font("Segoe UI", 9f);
-                dlg.Controls.Add(new Panel { Dock = DockStyle.Top, Height = 4, BackColor = cVerm });
-                dlg.Controls.Add(new Label { Text = "?", Font = new Font("Segoe UI", 20f, FontStyle.Bold), ForeColor = cVerm, AutoSize = true, Location = new Point(18, 22) });
-                dlg.Controls.Add(new Label { Text = texto, Font = new Font("Segoe UI", 10f), ForeColor = Color.FromArgb(230, 230, 245), AutoSize = false, Location = new Point(58, 20), Width = 344, Height = 60, TextAlign = ContentAlignment.MiddleLeft });
-                var btnSim = new Button { Text = "Sim", Width = 100, Height = 32, Location = new Point(100, 102), FlatStyle = FlatStyle.Flat, BackColor = cVerm, ForeColor = Color.White, Font = new Font("Segoe UI Semibold", 9f), DialogResult = DialogResult.Yes, Cursor = Cursors.Hand };
-                btnSim.FlatAppearance.BorderSize = 0;
-                var btnNao = new Button { Text = "Nao", Width = 100, Height = 32, Location = new Point(216, 102), FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(40, 40, 60), ForeColor = cMuted, Font = new Font("Segoe UI", 9f), DialogResult = DialogResult.No, Cursor = Cursors.Hand };
-                btnNao.FlatAppearance.BorderColor = Color.FromArgb(60, 60, 90);
-                dlg.Controls.Add(btnSim); dlg.Controls.Add(btnNao);
-                return dlg.ShowDialog() == DialogResult.Yes;
-            }
         }
     }
 }

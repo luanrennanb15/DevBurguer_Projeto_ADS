@@ -16,6 +16,7 @@ namespace DevBurguer.Forms
     {
         private readonly Color CAmbar = Color.FromArgb(220, 160, 30);
         private readonly Color CDourado = Color.FromArgb(255, 200, 60);
+        private readonly Color CVerde = Color.FromArgb(40, 160, 80);
         private readonly Color CVermelho = Color.FromArgb(180, 50, 40);
         private readonly Color CDark = Color.FromArgb(22, 18, 10);
         private readonly Color CDarkCard = Color.FromArgb(32, 26, 14);
@@ -33,12 +34,18 @@ namespace DevBurguer.Forms
 
         private DataGridView dgv;
         private ComboBox cmbMotoboy;
-        private Button btnAdicionar, btnRemover;
+        private Button btnAdicionar, btnRemover, btnSalvar;
         private Label lblStatus;
         private Panel pnlHeader;
 
         private DataTable _motoboys;
         private HashSet<int> _naGrade = new HashSet<int>();
+
+        // ✅ Estado de referência: como estava no banco na última carga/salvamento
+        private HashSet<(int idMotoboy, int dia)> _estadoSalvo = new HashSet<(int, int)>();
+
+        // ✅ Flag de "tem alteração não salva"
+        private bool _alterado = false;
 
         public FormEscalaMotoboy()
         {
@@ -54,6 +61,22 @@ namespace DevBurguer.Forms
             this.Load += async (s, e) => await CarregarAsync();
         }
 
+        // ✅ Avisa ao fechar se tem alterações pendentes
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (_alterado)
+            {
+                if (!DialogHelper.Confirmar(
+                    "Existem alteracoes nao salvas. Deseja sair sem salvar?",
+                    "Alteracoes pendentes", DialogHelper.Ambar))
+                {
+                    e.Cancel = true;
+                    return;
+                }
+            }
+            base.OnFormClosing(e);
+        }
+
         private static void AtivarDB(DataGridView g)
         {
             try
@@ -65,11 +88,7 @@ namespace DevBurguer.Forms
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  LAYOUT com TableLayoutPanel — cada linha tem espaço fixo
-        //  Linha 0: Topo          34px
-        //  Linha 1: Cabeçalho     40px
-        //  Linha 2: Grade         Fill (resto)
-        //  Linha 3: Edição        54px
+        //  LAYOUT
         // ═══════════════════════════════════════════════════════════
         private void ConstruirLayout()
         {
@@ -87,17 +106,17 @@ namespace DevBurguer.Forms
                 CellBorderStyle = TableLayoutPanelCellBorderStyle.None
             };
             tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 34)); // topo
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 46)); // cabeçalho
-            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // grade
-            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 54)); // edição
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
+            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 54));
             this.Controls.Add(tbl);
 
             // ── LINHA 0: TOPO ──────────────────────────────────────
             var pnlTopo = new Panel { Dock = DockStyle.Fill, BackColor = CDarkPnl, Margin = new Padding(0) };
             pnlTopo.Paint += (s, e) =>
             {
-                using (var br = new LinearGradientBrush(new Point(0, 0), new Point(pnlTopo.Width, 0), CAmbar, CDourado))
+                using (var br = new LinearGradientBrush(new Point(0, 0), new Point(Math.Max(1, pnlTopo.Width), 0), CAmbar, CDourado))
                     e.Graphics.FillRectangle(br, 0, pnlTopo.Height - 3, pnlTopo.Width, 3);
             };
             pnlTopo.Controls.Add(new Label
@@ -146,45 +165,49 @@ namespace DevBurguer.Forms
                 if (dgv.IsCurrentCellDirty) dgv.CommitEdit(DataGridViewDataErrorContexts.Commit);
             };
 
-            // ✅ Desenha checkboxes manualmente — muito mais visíveis
+            // ✅ FIX GDI: SolidBrush e Pen em using
             dgv.CellPainting += (s, e) =>
             {
-                if (e.RowIndex < 0 || e.ColumnIndex < 2) return; // só colunas de dias
+                if (e.RowIndex < 0 || e.ColumnIndex < 2) return;
                 e.PaintBackground(e.CellBounds, true);
 
                 bool marcado = false;
                 if (e.Value != null) bool.TryParse(e.Value.ToString(), out marcado);
 
-                int sz = 20; // tamanho do quadrado
+                int sz = 20;
                 int cx = e.CellBounds.X + (e.CellBounds.Width - sz) / 2;
                 int cy = e.CellBounds.Y + (e.CellBounds.Height - sz) / 2;
                 var rect = new Rectangle(cx, cy, sz, sz);
 
                 if (marcado)
                 {
-                    // fundo verde quando marcado
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(40, 180, 90)), rect);
-                    e.Graphics.DrawRectangle(new Pen(Color.FromArgb(80, 220, 120), 2), rect);
-                    // checkmark branco
+                    using (var brFill = new SolidBrush(Color.FromArgb(40, 180, 90)))
+                        e.Graphics.FillRectangle(brFill, rect);
+                    using (var penBorda = new Pen(Color.FromArgb(80, 220, 120), 2))
+                        e.Graphics.DrawRectangle(penBorda, rect);
                     using (var pen = new Pen(Color.White, 2.5f))
                     {
-                        pen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
-                        pen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+                        pen.StartCap = LineCap.Round;
+                        pen.EndCap = LineCap.Round;
                         e.Graphics.DrawLine(pen, cx + 4, cy + 10, cx + 8, cy + 15);
                         e.Graphics.DrawLine(pen, cx + 8, cy + 15, cx + 16, cy + 5);
                     }
                 }
                 else
                 {
-                    // borda visível quando desmarcado
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(50, 40, 20)), rect);
-                    e.Graphics.DrawRectangle(new Pen(Color.FromArgb(160, 130, 60), 1.5f), rect);
+                    using (var brFill = new SolidBrush(Color.FromArgb(50, 40, 20)))
+                        e.Graphics.FillRectangle(brFill, rect);
+                    using (var penBorda = new Pen(Color.FromArgb(160, 130, 60), 1.5f))
+                        e.Graphics.DrawRectangle(penBorda, rect);
                 }
                 e.Handled = true;
             };
-            dgv.CellValueChanged += async (s, e) =>
+
+            // ✅ Ao mudar uma caixa: marca como alterado, mas NÃO salva (usuário clica Salvar)
+            dgv.CellValueChanged += (s, e) =>
             {
-                if (e.RowIndex >= 0 && e.ColumnIndex > 1) await SalvarAsync();
+                if (e.RowIndex >= 0 && e.ColumnIndex > 1)
+                    MarcarAlterado();
             };
             AtivarDB(dgv);
             tbl.Controls.Add(dgv, 0, 2);
@@ -211,42 +234,52 @@ namespace DevBurguer.Forms
             };
             btnAdicionar = BtnAcao("+ Adicionar", 234, CAmbar);
             btnRemover = BtnAcao("- Remover", 354, CVermelho);
+            // ✅ NOVO botão Salvar — controle explícito do que vai pro banco
+            btnSalvar = BtnAcao("Salvar", 480, CVerde);
+
             btnAdicionar.Click += btnAdicionar_Click;
             btnRemover.Click += btnRemover_Click;
+            btnSalvar.Click += btnSalvar_Click;
+
             lblStatus = new Label
             {
                 Text = "",
                 ForeColor = CDourado,
                 AutoSize = true,
-                Location = new Point(474, 26),
+                Location = new Point(600, 26),
                 Font = new Font("Segoe UI Semibold", 8.5f)
             };
-            pnlEdicao.Controls.AddRange(new Control[] { cmbMotoboy, btnAdicionar, btnRemover, lblStatus });
+            pnlEdicao.Controls.AddRange(new Control[] { cmbMotoboy, btnAdicionar, btnRemover, btnSalvar, lblStatus });
             tbl.Controls.Add(pnlEdicao, 0, 3);
 
             MontarColunas();
         }
 
+        // ✅ FIX GDI no header também
         private void DesenharHeader(object sender, PaintEventArgs e)
         {
             var g = e.Graphics;
             var w = pnlHeader.Width;
             var h = pnlHeader.Height;
-            g.FillRectangle(new SolidBrush(Color.FromArgb(28, 22, 8)), 0, 0, w, h);
-            using (var br = new LinearGradientBrush(new Point(0, 0), new Point(w, 0), CAmbar, CDourado))
+
+            using (var brFundo = new SolidBrush(Color.FromArgb(28, 22, 8)))
+                g.FillRectangle(brFundo, 0, 0, w, h);
+            using (var br = new LinearGradientBrush(new Point(0, 0), new Point(Math.Max(1, w), 0), CAmbar, CDourado))
                 g.FillRectangle(br, 0, 0, w, 3);
+
             using (var txtBr = new SolidBrush(CDourado))
             using (var fnt = new Font("Segoe UI Semibold", 10f))
+            using (var brSep = new SolidBrush(Color.FromArgb(60, 40, 10)))
             {
                 var fmtL = new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center };
                 var fmtC = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
                 g.DrawString("Motoboy", fnt, txtBr, new Rectangle(10, 3, COL_NOME - 10, h - 3), fmtL);
-                g.FillRectangle(new SolidBrush(Color.FromArgb(60, 40, 10)), COL_NOME, 3, 1, h - 3);
+                g.FillRectangle(brSep, COL_NOME, 3, 1, h - 3);
                 for (int d = 0; d < DIAS.Length; d++)
                 {
                     int x = COL_NOME + 1 + d * COL_DIA;
                     g.DrawString(DIAS[d], fnt, txtBr, new Rectangle(x, 3, COL_DIA, h - 3), fmtC);
-                    g.FillRectangle(new SolidBrush(Color.FromArgb(60, 40, 10)), x + COL_DIA - 1, 3, 1, h - 3);
+                    g.FillRectangle(brSep, x + COL_DIA - 1, 3, 1, h - 3);
                 }
             }
         }
@@ -294,8 +327,16 @@ namespace DevBurguer.Forms
                 _naGrade.Clear();
                 dgv.Rows.Clear();
 
-                var idsEsc = new HashSet<int>();
-                foreach (DataRow r in esc.Rows) idsEsc.Add(Convert.ToInt32(r["IdMotoboy"]));
+                // ✅ Captura estado de referência (o que está no banco)
+                _estadoSalvo.Clear();
+                foreach (DataRow r in esc.Rows)
+                {
+                    int idM = Convert.ToInt32(r["IdMotoboy"]);
+                    int dia = Convert.ToInt32(r["DiaSemana"]);
+                    _estadoSalvo.Add((idM, dia));
+                }
+
+                var idsEsc = new HashSet<int>(_estadoSalvo.Select(t => t.idMotoboy));
 
                 foreach (var r in _motoboys.AsEnumerable()
                     .Where(r => idsEsc.Contains(Convert.ToInt32(r["Id"])))
@@ -304,13 +345,15 @@ namespace DevBurguer.Forms
                     int id = Convert.ToInt32(r["Id"]);
                     string nm = r["Nome"].ToString();
                     var dias = new HashSet<int>();
-                    foreach (DataRow er in esc.Rows)
-                        if (Convert.ToInt32(er["IdMotoboy"]) == id)
-                            dias.Add(Convert.ToInt32(er["DiaSemana"]));
+                    foreach (var (idM, dia) in _estadoSalvo)
+                        if (idM == id) dias.Add(dia);
                     AdicionarLinha(id, nm, dias);
                 }
 
                 PreencherCombo();
+
+                _alterado = false;
+                lblStatus.Text = "";
             }
             catch (Exception ex)
             {
@@ -321,11 +364,26 @@ namespace DevBurguer.Forms
 
         private DataTable BuscarMotoboys()
         {
-            using (var c = Conexao.GetConnection()) { c.Open(); var da = new SqlDataAdapter("SELECT Id, Nome FROM Motoboys ORDER BY Nome", c); var dt = new DataTable(); da.Fill(dt); return dt; }
+            using (var c = Conexao.GetConnection())
+            using (var cmd = new SqlCommand("SELECT Id, Nome FROM Motoboys ORDER BY Nome", c))
+            {
+                c.Open();
+                var dt = new DataTable();
+                using (var da = new SqlDataAdapter(cmd)) da.Fill(dt);
+                return dt;
+            }
         }
+
         private DataTable BuscarEscala()
         {
-            using (var c = Conexao.GetConnection()) { c.Open(); var da = new SqlDataAdapter("SELECT IdMotoboy, DiaSemana FROM EscalaMotoboy WHERE Ativo=1", c); var dt = new DataTable(); da.Fill(dt); return dt; }
+            using (var c = Conexao.GetConnection())
+            using (var cmd = new SqlCommand("SELECT IdMotoboy, DiaSemana FROM EscalaMotoboy WHERE Ativo=1", c))
+            {
+                c.Open();
+                var dt = new DataTable();
+                using (var da = new SqlDataAdapter(cmd)) da.Fill(dt);
+                return dt;
+            }
         }
 
         private void PreencherCombo()
@@ -350,6 +408,7 @@ namespace DevBurguer.Forms
             OrdenarGrade();
         }
 
+        // ✅ FIX: OrdenarGrade preserva _naGrade (antes podia ficar dessincronizado se desse erro no meio)
         private void OrdenarGrade()
         {
             var linhas = new List<object[]>();
@@ -364,18 +423,46 @@ namespace DevBurguer.Forms
             foreach (var v in linhas) dgv.Rows.Add(v);
         }
 
+        private void MarcarAlterado()
+        {
+            _alterado = true;
+            if (lblStatus != null)
+            {
+                lblStatus.ForeColor = CDourado;
+                lblStatus.Text = "* Alteracoes nao salvas";
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        //  ✅ SAVE INCREMENTAL — só INSERT/DELETE do que mudou
+        // ═══════════════════════════════════════════════════════════
         private async Task SalvarAsync()
         {
             try
             {
-                var reg = new List<(int id, int dia)>();
+                // 1) Lê o estado ATUAL da grid
+                var estadoAtual = new HashSet<(int idMotoboy, int dia)>();
                 foreach (DataGridViewRow row in dgv.Rows)
                 {
                     int idM = Convert.ToInt32(row.Cells["IdMotoboy"].Value);
                     for (int d = 0; d < DIAS.Length; d++)
                         if (Convert.ToBoolean(row.Cells["D_" + DIAS[d]].Value))
-                            reg.Add((idM, d + 1));
+                            estadoAtual.Add((idM, d + 1));
                 }
+
+                // 2) Calcula diff: o que precisa inserir e o que precisa apagar
+                var paraInserir = estadoAtual.Except(_estadoSalvo).ToList();
+                var paraApagar = _estadoSalvo.Except(estadoAtual).ToList();
+
+                if (paraInserir.Count == 0 && paraApagar.Count == 0)
+                {
+                    lblStatus.ForeColor = CVerde;
+                    lblStatus.Text = "✔ Nada a salvar";
+                    _alterado = false;
+                    return;
+                }
+
+                // 3) Aplica as mudanças em transação
                 await Task.Run(() =>
                 {
                     using (var conn = Conexao.GetConnection())
@@ -385,41 +472,70 @@ namespace DevBurguer.Forms
                         {
                             try
                             {
-                                new SqlCommand("DELETE FROM EscalaMotoboy", conn, tr).ExecuteNonQuery();
-                                foreach (var (idM, dia) in reg)
+                                // DELETE específico — só os pares que saíram
+                                foreach (var (idM, dia) in paraApagar)
                                 {
-                                    var cmd = new SqlCommand("INSERT INTO EscalaMotoboy(IdMotoboy,DiaSemana,Ativo)VALUES(@m,@d,1)", conn, tr);
-                                    cmd.Parameters.AddWithValue("@m", idM);
-                                    cmd.Parameters.AddWithValue("@d", dia);
-                                    cmd.ExecuteNonQuery();
+                                    using (var cmd = new SqlCommand(
+                                        "DELETE FROM EscalaMotoboy WHERE IdMotoboy=@m AND DiaSemana=@d",
+                                        conn, tr))
+                                    {
+                                        cmd.Parameters.Add(new SqlParameter("@m", SqlDbType.Int) { Value = idM });
+                                        cmd.Parameters.Add(new SqlParameter("@d", SqlDbType.Int) { Value = dia });
+                                        cmd.ExecuteNonQuery();
+                                    }
                                 }
+
+                                // INSERT específico — só os pares novos
+                                foreach (var (idM, dia) in paraInserir)
+                                {
+                                    using (var cmd = new SqlCommand(
+                                        "INSERT INTO EscalaMotoboy(IdMotoboy,DiaSemana,Ativo) VALUES(@m,@d,1)",
+                                        conn, tr))
+                                    {
+                                        cmd.Parameters.Add(new SqlParameter("@m", SqlDbType.Int) { Value = idM });
+                                        cmd.Parameters.Add(new SqlParameter("@d", SqlDbType.Int) { Value = dia });
+                                        cmd.ExecuteNonQuery();
+                                    }
+                                }
+
                                 tr.Commit();
                             }
                             catch { tr.Rollback(); throw; }
                         }
                     }
                 });
-                lblStatus.Text = "✔ Salvo";
+
+                // 4) Atualiza o estado de referência
+                _estadoSalvo = estadoAtual;
+                _alterado = false;
+
+                lblStatus.ForeColor = CVerde;
+                lblStatus.Text = $"✔ Salvo ({paraInserir.Count} adicionado(s), {paraApagar.Count} removido(s))";
             }
             catch (Exception ex)
             {
                 DevBurguer.Services.ExceptionLogger.Log(ex, "FormEscalaMotoboy.SalvarAsync");
-                if (lblStatus != null) lblStatus.Text = "Erro ao salvar escala.";
+                lblStatus.ForeColor = CVermelho;
+                lblStatus.Text = "Erro ao salvar escala.";
+                DialogHelper.Erro("Erro ao salvar escala.");
             }
         }
 
-        private async void btnAdicionar_Click(object sender, EventArgs e)
+        // ═══════════════════════════════════════════════════════════
+        //  EVENTOS DOS BOTÕES — agora só mexem na grid, save manual
+        // ═══════════════════════════════════════════════════════════
+        private void btnAdicionar_Click(object sender, EventArgs e)
         {
             if (cmbMotoboy.SelectedItem == null) return;
             var item = (CI)cmbMotoboy.SelectedItem;
             AdicionarLinha(item.Id, item.Nome);
             cmbMotoboy.Items.Remove(cmbMotoboy.SelectedItem);
             if (cmbMotoboy.Items.Count > 0) cmbMotoboy.SelectedIndex = 0;
-            lblStatus.Text = $"✅ {item.Nome} adicionado";
-            await SalvarAsync();
+            MarcarAlterado();
+            lblStatus.Text = $"+ {item.Nome} adicionado (clique Salvar)";
         }
 
-        private async void btnRemover_Click(object sender, EventArgs e)
+        private void btnRemover_Click(object sender, EventArgs e)
         {
             if (dgv.CurrentRow == null) return;
             var row = dgv.CurrentRow;
@@ -431,13 +547,31 @@ namespace DevBurguer.Forms
             cmbMotoboy.Items.Clear();
             foreach (var i in itens) cmbMotoboy.Items.Add(i);
             if (cmbMotoboy.Items.Count > 0) cmbMotoboy.SelectedIndex = 0;
-            lblStatus.Text = $"❌ {nm} removido";
-            await SalvarAsync();
+            MarcarAlterado();
+            lblStatus.Text = $"- {nm} removido (clique Salvar)";
+        }
+
+        private async void btnSalvar_Click(object sender, EventArgs e)
+        {
+            btnSalvar.Enabled = false;
+            try { await SalvarAsync(); }
+            finally { btnSalvar.Enabled = true; }
         }
 
         private Button BtnAcao(string t, int x, Color cor)
         {
-            var b = new Button { Text = t, Width = 110, Height = 28, Location = new Point(x, 14), FlatStyle = FlatStyle.Flat, BackColor = cor, ForeColor = Color.White, Font = new Font("Segoe UI Semibold", 8.5f), Cursor = Cursors.Hand };
+            var b = new Button
+            {
+                Text = t,
+                Width = 110,
+                Height = 28,
+                Location = new Point(x, 14),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = cor,
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI Semibold", 8.5f),
+                Cursor = Cursors.Hand
+            };
             b.FlatAppearance.BorderSize = 0;
             var esc = ControlPaint.Dark(cor, 0.15f);
             b.MouseEnter += (s, e) => b.BackColor = esc;
@@ -445,6 +579,12 @@ namespace DevBurguer.Forms
             return b;
         }
 
-        private class CI { public int Id; public string Nome; public CI(int id, string nome) { Id = id; Nome = nome; } public override string ToString() => Nome; }
+        private class CI
+        {
+            public int Id;
+            public string Nome;
+            public CI(int id, string nome) { Id = id; Nome = nome; }
+            public override string ToString() => Nome;
+        }
     }
 }
