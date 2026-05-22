@@ -16,9 +16,9 @@ Pedidos em produção :white_check_mark:<br>
 Previsão :white_check_mark:<br>
 Configuração :white_check_mark:<br>
 Dashboard :white_check_mark:<br>
-Aceitar pedidos pelo site<br>
+Aceitar pedidos pelo sitema desktop :white_check_mark:<br>
 
 <br>
 banco de dados: SQL SERVER local :white_check_mark:<br>
-Site: HTML5 CSS JS<br>
-API<br>
+Site: HTML5 CSS JS :white_check_mark:<br>
+API :white_check_mark:<br>
