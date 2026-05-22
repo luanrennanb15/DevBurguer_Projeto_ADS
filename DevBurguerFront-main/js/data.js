@@ -1,56 +1,138 @@
 /**
  * DATA.JS
- * Base de dados de produtos com imagens locais.
+ * Base de dados de produtos — vinda da API (banco de dados real).
+ *
+ * A lista PRODUTOS começa vazia e é preenchida por carregarProdutosDaAPI(),
+ * chamada na inicialização (main.js).
+ *
+ * As imagens ficam mapeadas aqui (IMAGENS_POR_ID) porque o banco não
+ * guarda imagem — cada arquivo da pasta img/ é associado ao ID do banco.
  */
 
-const PRODUTOS = [
-    // ── TRADICIONAIS ──────────────────────────────────────────────────────────
-    { id: 1,  nome: 'xDEV-Bacon',             preco: 33.00, categoria: 'tradicionais', emoji: '🍔', destaque: true, imagem: 'img/xdev-bacon.jpeg',     descricao: 'Hamburguer, Bacon, Mussarela, Presunto, Alface, Tomate, Milho, Maionese, Catchup e Mostarda.' },
-    { id: 2,  nome: 'xDEV-Burguer',           preco: 20.00, categoria: 'tradicionais', emoji: '🍔',               imagem: 'img/xdev-burguer.jpeg',   descricao: 'Hamburguer, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.' },
-    { id: 3,  nome: 'xDEV-Egg',               preco: 27.00, categoria: 'tradicionais', emoji: '🍳',               imagem: 'img/xdev-egg.jpeg',       descricao: 'Hamburguer, Ovo, Alface, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.' },
-    { id: 4,  nome: 'xDEV-Salada',            preco: 24.00, categoria: 'tradicionais', emoji: '🥗',               imagem: 'img/xdev-salada.jpeg',    descricao: 'Hamburguer, Alface, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.' },
-    { id: 5,  nome: 'xDEV-Frango',            preco: 28.00, categoria: 'tradicionais', emoji: '🍗',               imagem: 'img/xdev-frango.jpeg',    descricao: 'Frango desfiado, Catupiry, Alface, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.' },
-    { id: 6,  nome: 'xDEV-Calabresa',         preco: 30.00, categoria: 'tradicionais', emoji: '🌭',               imagem: 'img/xdev-calabresa.jpeg', descricao: 'Calabresa, Hamburguer, Alface, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.' },
-    { id: 7,  nome: 'xDEV-Churrasco',         preco: 35.00, categoria: 'tradicionais', emoji: '🥩',               imagem: 'img/xdev-churrasco.jpeg', descricao: 'Contra Filé, Mussarela, Alface, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.' },
-    { id: 8,  nome: 'xDEV-Tudo',              preco: 43.00, categoria: 'tradicionais', emoji: '🍔',               imagem: 'img/xdev-tudo.jpeg',      descricao: 'Hamburguer, Calabresa, Bacon, Ovo, Frango Desfiado, Mussarela, Catupiry, Alface, Tomate, Milho, Ervilha, Maionese, Catchup e Mostarda.' },
+// Lista de produtos — preenchida pela API ao carregar a página
+let PRODUTOS = [];
 
-    // ── GOURMET ───────────────────────────────────────────────────────────────
-    { id: 9,  nome: 'DevClassic',              preco: 32.90, categoria: 'gourmet',      emoji: '🥓', destaque: true, imagem: 'img/devclassic.jpeg',     descricao: 'Blend 180g, cheddar, tomate e molho da casa.' },
-    { id: 10, nome: 'Bug Spicy',               preco: 36.90, categoria: 'gourmet',      emoji: '🌶️',               imagem: 'img/bug-spicy.jpeg',      descricao: 'Blend 180g, Bacon, Cheddar, Alface, Tomate e molho da casa.' },
-    { id: 11, nome: 'Byte Burger',             preco: 37.90, categoria: 'gourmet',      emoji: '🧅',               imagem: 'img/byte-burger.jpeg',    descricao: 'Blend 180g, cheddar, bacon, onion rings, molho barbecue.' },
-    { id: 12, nome: '404 Burger Not Found',    preco: 39.90, categoria: 'gourmet',      emoji: '🍖',               imagem: 'img/404-burger.jpeg',     descricao: 'Costela desfiada, molho barbecue, cebola caramelizada e alface crocante.' },
+// Lista do "Top 3" (mais vendidos reais) — preenchida pela API
+let TOP_VENDIDOS = [];
 
-    // ── BEBIDAS ───────────────────────────────────────────────────────────────
-    { id: 13, nome: 'Coca-Cola Lata 350 ML',      preco: 7.00, categoria: 'bebidas', emoji: '🥤', imagem: 'img/coca-cola.jpeg',     descricao: 'Refrigerante gelado' },
-    { id: 14, nome: 'Coca-Cola Zero Lata 350 ML', preco: 7.00, categoria: 'bebidas', emoji: '🥤', imagem: 'img/coca-zero.jpeg',     descricao: 'Refrigerante zero açúcar' },
-    { id: 15, nome: 'Guaraná Lata 350 ML',        preco: 7.00, categoria: 'bebidas', emoji: '🥤', imagem: 'img/guarana.jpeg',       descricao: 'Refrigerante gelado' },
-    { id: 16, nome: 'Fanta Laranja Lata 350 ML',  preco: 7.00, categoria: 'bebidas', emoji: '🥤', imagem: 'img/fanta-laranja.jpeg', descricao: 'Refrigerante gelado' },
-    { id: 17, nome: 'Fanta Uva Lata 350 ML',      preco: 7.00, categoria: 'bebidas', emoji: '🥤', imagem: 'img/fanta-uva.jpeg',     descricao: 'Refrigerante gelado' },
-    { id: 18, nome: 'Pepsi Lata 350 ML',          preco: 7.00, categoria: 'bebidas', emoji: '🥤', imagem: 'img/pepsi.jpeg',         descricao: 'Refrigerante gelado' },
-    { id: 19, nome: 'Água sem gás',               preco: 4.00, categoria: 'bebidas', emoji: '💧', imagem: 'img/agua.jpeg',          descricao: 'Água mineral' },
-    { id: 20, nome: 'Água com gás',               preco: 5.00, categoria: 'bebidas', emoji: '💧', imagem: 'img/agua-gas.jpeg',      descricao: 'Água mineral com gás' },
+/**
+ * Mapa: ID do produto no banco  ->  arquivo de imagem na pasta img/
+ * Se um produto não estiver aqui, o site mostra um emoji no lugar.
+ */
+const IMAGENS_POR_ID = {
+    // ── Lanches tradicionais ──
+    4:  'img/xdev-bacon.jpeg',
+    5:  'img/xdev-burguer.jpeg',
+    6:  'img/xdev-egg.jpeg',
+    7:  'img/xdev-salada.jpeg',
+    8:  'img/xdev-frango.jpeg',
+    9:  'img/xdev-calabresa.jpeg',
+    10: 'img/xdev-churrasco.jpeg',
+    11: 'img/xdev-tudo.jpeg',
+    // ── Lanches gourmet ──
+    22: 'img/devclassic.jpeg',
+    23: 'img/bug-spicy.jpeg',
+    24: 'img/byte-burger.jpeg',
+    25: 'img/404-burger.jpeg',
+    // ── Combos ──
+    42: 'img/combo-devclassic.jpeg',
+    43: 'img/combo-bug-spicy.jpeg',
+    44: 'img/combo-byte-burger.jpeg',
+    45: 'img/combo-404-burger.jpeg',
+    // ── Bebidas ──
+    12: 'img/coca-cola.jpeg',
+    13: 'img/coca-zero.jpeg',
+    26: 'img/guarana.jpeg',
+    27: 'img/fanta-laranja.jpeg',
+    28: 'img/fanta-uva.jpeg',
+    29: 'img/pepsi.jpeg',
+    14: 'img/agua.jpeg',
+    33: 'img/agua.jpeg',
+    34: 'img/agua-gas.jpeg',
+    16: 'img/suco-laranja.jpeg',
+    // ── Sucos ──
+    30: 'img/suco-laranja.jpeg',
+    31: 'img/suco-limao.jpeg',
+    32: 'img/suco-maracuja.jpeg',
+    // ── Bebidas alcoólicas ──
+    35: 'img/skol.jpeg',
+    36: 'img/brahma.jpeg',
+    37: 'img/heineken.jpeg',
+    // ── Milkshakes ──
+    39: 'img/shake-chocolate.jpeg',
+    40: 'img/shake-morango.jpeg',
+    41: 'img/shake-ovomaltine.jpeg',
+};
 
-    // ── SUCOS ─────────────────────────────────────────────────────────────────
-    { id: 21, nome: 'Suco de Laranja',  preco: 12.00, categoria: 'sucos', emoji: '🍊', imagem: 'img/suco-laranja.jpeg',  descricao: 'Suco natural 400ml' },
-    { id: 22, nome: 'Suco de Limão',    preco: 12.00, categoria: 'sucos', emoji: '🍋', imagem: 'img/suco-limao.jpeg',    descricao: 'Suco natural 400ml' },
-    { id: 23, nome: 'Suco de Maracujá', preco: 12.00, categoria: 'sucos', emoji: '🧃', imagem: 'img/suco-maracuja.jpeg', descricao: 'Suco natural 400ml' },
+/**
+ * Converte um produto cru da API para o formato que o site usa.
+ */
+function adaptarProduto(p) {
+    return {
+        id:        p.id,
+        nome:      p.nome,
+        preco:     p.preco,
+        categoria: p.categoria,                  // a API já manda o slug certo
+        descricao: p.descricao || '',
+        emoji:     emojiPorCategoria(p.categoria),
+        imagem:    IMAGENS_POR_ID[p.id] || null, // null = site usa emoji
+    };
+}
 
-    // ── BEBIDAS ALCOÓLICAS ────────────────────────────────────────────────────
-    { id: 24, nome: 'Skol Lata 350 ML',     preco:  7.00, categoria: 'alcoolicas', emoji: '🍺',  imagem: 'img/skol.jpeg',     descricao: 'Cerveja gelada' },
-    { id: 25, nome: 'Brahma Lata 350 ML',   preco:  7.00, categoria: 'alcoolicas', emoji: '🍺',  imagem: 'img/brahma.jpeg',   descricao: 'Cerveja gelada' },
-    { id: 26, nome: 'Heineken Lata 350 ML', preco: 10.00, categoria: 'alcoolicas', emoji: '🍻', imagem: 'img/heineken.jpeg', descricao: 'Cerveja gelada' },
+/**
+ * Busca os produtos da API e preenche a lista PRODUTOS.
+ * Retorna true se deu certo, false se falhou.
+ */
+async function carregarProdutosDaAPI() {
+    try {
+        const resposta = await fetch(`${CONFIG.api.baseUrl}/produtos`);
+        if (!resposta.ok) throw new Error('Resposta nao OK da API');
 
-    // ── MILKSHAKES ────────────────────────────────────────────────────────────
-    { id: 27, nome: 'Milkshake Chocolate',  preco: 15.00, categoria: 'milkshakes', emoji: '🍫', imagem: 'img/shake-chocolate.jpeg',  descricao: 'Copo 400 ML' },
-    { id: 28, nome: 'Milkshake Morango',    preco: 15.00, categoria: 'milkshakes', emoji: '🍓', imagem: 'img/shake-morango.jpeg',    descricao: 'Copo 400 ML' },
-    { id: 29, nome: 'Milkshake Ovomaltine', preco: 15.00, categoria: 'milkshakes', emoji: '🥛', imagem: 'img/shake-ovomaltine.jpeg', descricao: 'Copo 400 ML' },
+        const dados = await resposta.json();
+        PRODUTOS = dados.map(adaptarProduto);
 
-    // ── COMBOS ────────────────────────────────────────────────────────────────
-    { id: 30, nome: 'Combo DevClassic',    preco: 39.90, categoria: 'combos', emoji: '🍔🍟', promo: true, tag: 'COMBO', imagem: 'img/combo-devclassic.jpeg',  descricao: 'DevClassic + Fritas c/ Cheddar e Bacon' },
-    { id: 31, nome: 'Combo Bug Spicy',     preco: 43.90, categoria: 'combos', emoji: '🌶️🍟', promo: true, tag: 'COMBO', imagem: 'img/combo-bug-spicy.jpeg',   descricao: 'Bug Spicy + Fritas c/ Cheddar e Bacon' },
-    { id: 32, nome: 'Combo Byte Burger',   preco: 44.90, categoria: 'combos', emoji: '🧅🍟', promo: true, tag: 'COMBO', imagem: 'img/combo-byte-burger.jpeg', descricao: 'Byte Burger + Fritas c/ Cheddar e Bacon' },
-    { id: 33, nome: 'Combo 404 Not Found', preco: 46.90, categoria: 'combos', emoji: '🍖🍟', promo: true, tag: 'COMBO', imagem: 'img/combo-404-burger.jpeg',  descricao: '404 Burger Not Found + Fritas c/ Cheddar e Bacon' },
-];
+        console.log(`✅ ${PRODUTOS.length} produtos carregados da API.`);
+        return true;
+    } catch (erro) {
+        console.error('❌ Falha ao carregar produtos da API:', erro);
+        return false;
+    }
+}
+
+/**
+ * Busca os produtos mais vendidos (ranking real) da API.
+ * Preenche TOP_VENDIDOS. Se falhar, deixa vazio (não quebra o site).
+ */
+async function carregarMaisVendidosDaAPI() {
+    try {
+        const resposta = await fetch(`${CONFIG.api.baseUrl}/mais-vendidos?top=3`);
+        if (!resposta.ok) throw new Error('Resposta nao OK da API');
+
+        const dados = await resposta.json();
+        TOP_VENDIDOS = dados.map(adaptarProduto);
+
+        console.log(`✅ Top ${TOP_VENDIDOS.length} mais vendidos carregados.`);
+        return true;
+    } catch (erro) {
+        console.error('⚠️ Falha ao carregar mais vendidos:', erro);
+        TOP_VENDIDOS = [];
+        return false;
+    }
+}
+
+/** Define um emoji padrão por categoria (usado quando não há imagem). */
+function emojiPorCategoria(cat) {
+    const mapa = {
+        tradicionais: '🍔',
+        gourmet:      '🥓',
+        combos:       '🔥',
+        bebidas:      '🥤',
+        sucos:        '🧃',
+        alcoolicas:   '🍺',
+        milkshakes:   '🥛',
+    };
+    return mapa[cat] || '🍴';
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -65,9 +147,15 @@ function getProdutosByCategoria(categoria) {
     return PRODUTOS.filter(p => p.categoria === categoria);
 }
 
-/** Retorna um array de produtos a partir de uma lista de IDs. */
+/**
+ * Retorna os produtos em destaque (Top 3).
+ * Agora ignora a lista de IDs fixa e usa os MAIS VENDIDOS reais (do banco).
+ * O parâmetro 'ids' é mantido só por compatibilidade — não é mais usado.
+ */
 function getProdutosDestaque(ids) {
-    return ids.map(id => getProdutoById(id)).filter(Boolean);
-}
+    // Se conseguiu carregar os mais vendidos, usa eles
+    if (TOP_VENDIDOS.length > 0) return TOP_VENDIDOS;
 
-console.log(`✅ Data.js carregado — ${PRODUTOS.length} produtos disponíveis.`);
+    // Fallback: se a API de mais vendidos falhou, mostra os 3 primeiros produtos
+    return PRODUTOS.slice(0, 3);
+}

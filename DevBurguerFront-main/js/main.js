@@ -4,7 +4,20 @@
  */
 
 /** Inicializa todos os módulos */
-function inicializarApp() {
+async function inicializarApp() {
+    // ✅ PRIMEIRO: busca os produtos da API (banco de dados real)
+    const ok = await carregarProdutosDaAPI();
+    if (!ok) {
+        alert('Nao foi possivel carregar o cardapio.\n\n' +
+              'Verifique se a API esta ligada e tente recarregar a pagina.');
+        return;
+    }
+
+    // ✅ Busca o Top 3 (mais vendidos reais). Se falhar, o site usa
+    // os 3 primeiros produtos como fallback — não trava.
+    await carregarMaisVendidosDaAPI();
+
+    // ✅ DEPOIS: monta a tela (agora PRODUTOS já está preenchido)
     renderizarCategorias();
     renderizarTopProdutos();
     renderizarProdutos();
@@ -314,8 +327,8 @@ window.addEventListener('beforeunload', () => {
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', () => {
-    inicializarApp();
+document.addEventListener('DOMContentLoaded', async () => {
+    await inicializarApp();
     iniciarFeedbackTelefone();
     iniciarFeedbackTroco();
     iniciarControleDeTema();

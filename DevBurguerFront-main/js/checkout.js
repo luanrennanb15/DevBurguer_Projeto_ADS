@@ -1,10 +1,14 @@
 /**
  * CHECKOUT.JS
  * Lógica de finalização de pedido, histórico e utilitários de formatação.
+ *
+ * Agora o pedido é enviado para a API (em vez de abrir o WhatsApp).
+ * O pedido entra no sistema da lanchonete como "Aguardando" e aparece
+ * no Kanban do desktop para aprovação.
  */
 
 /**
- * Finaliza o pedido e envia para o WhatsApp.
+ * Finaliza o pedido enviando para a API.
  * @param {Event} event
  */
 async function finalizarPedido(event) {
@@ -17,49 +21,82 @@ async function finalizarPedido(event) {
         submitBtn.textContent = 'Enviando...';
     }
 
-    const dados = {
-        nome:        ELEMENTS.clientName.value.trim(),
-        telefone:    ELEMENTS.clientPhone.value.trim(),
-        tipoEntrega: document.querySelector('input[name="deliveryType"]:checked').value,
+    // Tipo de entrega: o radio tem valor 'delivery' ou 'pickup'
+    const tipoRadio = document.querySelector('input[name="deliveryType"]:checked').value;
+
+    // Monta o objeto no formato que a API espera
+    const pedido = {
+        cliente: {
+            nome:     ELEMENTS.clientName.value.trim(),
+            telefone: ELEMENTS.clientPhone.value.trim(),
+        },
+        tipoEntrega: tipoRadio === 'delivery' ? 'Entrega' : 'Retirada',
         endereco:    ELEMENTS.address.value.trim(),
+        numero:      '',  // o site não tem campo de número separado
         bairro:      ELEMENTS.neighborhood.value.trim(),
-        complemento: ELEMENTS.complement.value.trim(),
-        pagamento:   document.getElementById('paymentMethod').value,
-        tipoCartao:  document.getElementById('cardType')?.value ?? null,
-        troco:       ELEMENTS.changeAmount.value ? parseFloat(ELEMENTS.changeAmount.value) : null,
+        troco:       ELEMENTS.changeAmount.value
+                        ? parseFloat(ELEMENTS.changeAmount.value)
+                        : 0,
+        itens: carrinhoGlobal.itens.map(item => ({
+            idProduto:  item.id,
+            quantidade: item.quantidade,
+            observacao: item.observacao || '',
+        })),
     };
 
-    const resumo     = carrinhoGlobal.gerarResumo(dados);
-    const urlWhatsApp = `https://api.whatsapp.com/send?phone=${CONSTANTES.WHATSAPP_NUMERO}&text=${encodeURIComponent(resumo)}`;
+    try {
+        const resposta = await fetch(`${CONFIG.api.baseUrl}/pedidos`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(pedido),
+        });
 
-    window.open(urlWhatsApp, '_blank');
+        const resultado = await resposta.json();
 
-    salvarPedidoNoHistorico(dados, resumo);
-    carrinhoGlobal.limpar();
-    ELEMENTS.checkoutForm.reset();
-    updateDeliveryType(); // Restaura o estado visual do formulário
-    fecharCheckout();
+        if (!resposta.ok) {
+            // A API recusou (dados inválidos, produto inexistente, etc.)
+            const msg = resultado.detalhes
+                ? resultado.detalhes.join('\n')
+                : (resultado.erro || 'Erro ao enviar pedido.');
+            mostrarToast('❌ ' + msg, 'warning');
+            return;
+        }
 
-    mostrarToast('✅ Pedido enviado! Aguarde contato no WhatsApp.');
+        // ─── Sucesso ───
+        salvarPedidoNoHistorico(pedido, resultado);
+        carrinhoGlobal.limpar();
+        ELEMENTS.checkoutForm.reset();
+        updateDeliveryType();   // restaura o estado visual do formulário
+        fecharCheckout();
 
-    if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Confirmar e Enviar pelo WhatsApp';
+        mostrarToast(
+            `✅ Pedido #${resultado.idPedido} enviado! ` +
+            `Aguarde a confirmacao da lanchonete.`
+        );
+
+    } catch (erro) {
+        console.error('Erro ao enviar pedido:', erro);
+        mostrarToast('❌ Nao foi possivel conectar. Verifique sua conexao e tente novamente.', 'warning');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Confirmar Pedido';
+        }
     }
 }
 
-// ─── Histórico de pedidos ─────────────────────────────────────────────────────
+// ─── Histórico de pedidos (guardado no navegador do cliente) ──────────────────
 
-function salvarPedidoNoHistorico(dados, resumo) {
+function salvarPedidoNoHistorico(pedido, resultado) {
     try {
         const historico = recuperarHistoricoPedidos();
         historico.push({
-            id:       Date.now(),
+            id:       resultado.idPedido,
             data:     new Date().toISOString(),
-            cliente:  dados.nome,
-            telefone: dados.telefone,
-            resumo,
-            status:   'pendente',
+            cliente:  pedido.cliente.nome,
+            telefone: pedido.cliente.telefone,
+            total:    resultado.total,
+            status:   resultado.status,   // "Aguardando"
         });
         localStorage.setItem('devburger_pedidos', JSON.stringify(historico));
     } catch (e) {
@@ -83,7 +120,7 @@ function gerarRelatorioPedidos() {
     return {
         totalPedidos:     historico.length,
         pedidosHoje:      historico.filter(p => new Date(p.data).toDateString() === hoje).length,
-        pedidosPendentes: historico.filter(p => p.status === 'pendente').length,
+        pedidosPendentes: historico.filter(p => p.status === 'Aguardando').length,
         ultimoPedido:     historico[historico.length - 1],
         historico,
     };

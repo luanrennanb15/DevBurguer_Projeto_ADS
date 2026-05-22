@@ -124,6 +124,9 @@ namespace DevBurguer.Data
         /// Snapshot ultra-leve: retorna apenas Id + Status + IdMotoboy dos pedidos ativos.
         /// Custa ~10ms mesmo com 10k pedidos antigos (com índice em Status).
         /// Use isso a cada 3s para detectar SE precisa recarregar a tela inteira.
+        ///
+        /// ✅ Inclui 'Aguardando' (pedidos do site) — assim o Kanban detecta
+        /// quando chega um pedido novo do site e dispara o alerta sonoro.
         /// </summary>
         public async Task<string> GetPedidosProducaoHashAsync()
         {
@@ -187,7 +190,54 @@ namespace DevBurguer.Data
                 FROM Pedidos p
                 JOIN Clientes c      ON c.Id = p.IdCliente
                 LEFT JOIN Motoboys m ON m.Id = p.IdMotoboy
-                WHERE p.Status NOT IN ('Finalizado', 'Cancelado')
+                WHERE p.Status NOT IN ('Finalizado', 'Cancelado', 'Aguardando')
+                ORDER BY p.Data ASC";
+
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new SqlCommand(sql, conn) { CommandTimeout = 60 })
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    var dt = new DataTable();
+                    dt.Load(reader);
+                    return dt;
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        //  ✅ NOVO: pedidos "Aguardando" — vindos do site, pendentes de
+        //  aprovação. Aparecem no painel destacado do topo do Kanban.
+        // ═══════════════════════════════════════════════════════════
+        public async Task<DataTable> GetPedidosAguardandoAsync()
+        {
+            const string sql = @"
+                SELECT
+                    p.Id,
+                    c.Nome                      AS Cliente,
+                    c.Telefone                  AS Telefone,
+                    ISNULL(c.Endereco, '') + ', ' + ISNULL(c.Numero, '') + ' - ' + ISNULL(c.Bairro, '') AS Endereco,
+                    p.Total,
+                    ISNULL(p.TipoEntrega, '')   AS TipoEntrega,
+                    p.Data,
+                    ISNULL(p.TrocoPara, 0)      AS TrocoPara,
+                    ISNULL(p.Origem, 'Site')    AS Origem,
+                    (
+                        SELECT STRING_AGG(
+                            CONCAT(
+                                i.Quantidade, 'x ', pr.Nome,
+                                CASE WHEN ISNULL(i.Observacao,'') <> '' THEN ' [' + i.Observacao + ']' ELSE '' END
+                            ),
+                            CHAR(10)
+                        ) WITHIN GROUP (ORDER BY i.Id)
+                        FROM ItensPedido i
+                        JOIN Produtos pr ON pr.Id = i.IdProduto
+                        WHERE i.IdPedido = p.Id
+                    ) AS Itens
+                FROM Pedidos p
+                JOIN Clientes c ON c.Id = p.IdCliente
+                WHERE p.Status = 'Aguardando'
                 ORDER BY p.Data ASC";
 
             using (var conn = DevBurguer.Banco.Conexao.GetConnection())

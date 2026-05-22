@@ -14,8 +14,14 @@ const CONFIG = {
         taxa:    6.00,
         tagline: 'Uma lanchonete que se destaca com a taxa de entrega que cabe no seu bolso.',
     },
-    // IDs dos produtos exibidos no Top 3
-    topProducts: [1, 2, 3],
+    // ✅ NOVO: endereço da API. Quando publicar o site de verdade,
+    // troque 'localhost:3001' pelo endereço real onde a API estiver.
+    api: {
+        baseUrl: 'http://localhost:3001/api',
+    },
+    // IDs dos produtos exibidos no Top 3 (IDs reais do banco)
+    // 4 = xDEV-Bacon, 22 = DevClassic, 25 = 404 Burger Not Found
+    topProducts: [4, 22, 25],
     categorias: [
         { id: 'todos',        label: 'Todos',          icon: '📋' },
         { id: 'tradicionais', label: 'Tradicionais',   icon: '🍔' },

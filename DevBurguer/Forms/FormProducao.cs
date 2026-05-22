@@ -42,6 +42,14 @@ namespace DevBurguer.Forms
         private DateTime _motoboysCarregadosEm = DateTime.MinValue;
         private static readonly TimeSpan MotoboysExpiry = TimeSpan.FromMinutes(5);
 
+        // ── PAINEL "AGUARDANDO" (pedidos do site) ─────────────────
+        private readonly Color CAguardando = Color.FromArgb(230, 70, 110); // rosa/vermelho destaque
+        private TableLayoutPanel _tblRoot;     // referência pra mostrar/esconder a faixa
+        private Panel _pnlAguardando;          // faixa container
+        private FlowLayoutPanel _flowAguardando; // cards rolam na horizontal
+        private Label _lblAguardandoTitulo;
+        private int _qtdAguardandoAnterior = 0; // pra detectar pedido NOVO e tocar som
+
         public FormProducao()
         {
             this.SuspendLayout();
@@ -88,15 +96,16 @@ namespace DevBurguer.Forms
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
-                RowCount = 2,
+                RowCount = 3,
                 BackColor = CDark,
                 Padding = new Padding(0),
                 Margin = new Padding(0),
                 CellBorderStyle = TableLayoutPanelCellBorderStyle.None
             };
             tblRoot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            tblRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
-            tblRoot.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            tblRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));   // topo
+            tblRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 0));    // ✅ faixa Aguardando (0 = escondida)
+            tblRoot.RowStyles.Add(new RowStyle(SizeType.Percent, 100));   // kanban
             this.Controls.Add(tblRoot);
 
             // ── TOPO ──────────────────────────────────────────────
@@ -143,6 +152,56 @@ namespace DevBurguer.Forms
             _pnlTopo.Controls.Add(_lblStatus);
             tblRoot.Controls.Add(_pnlTopo, 0, 0);
 
+            // ── FAIXA "AGUARDANDO" (pedidos do site) ──────────────
+            // Fica escondida (altura 0) até chegar pedido do site
+            _pnlAguardando = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(40, 20, 28),
+                Margin = new Padding(0)
+            };
+            _pnlAguardando.Paint += (s, e) =>
+            {
+                // borda superior e inferior em destaque
+                using (var br = new SolidBrush(CAguardando))
+                {
+                    e.Graphics.FillRectangle(br, 0, 0, _pnlAguardando.Width, 3);
+                    e.Graphics.FillRectangle(br, 0, _pnlAguardando.Height - 3, _pnlAguardando.Width, 3);
+                }
+            };
+
+            _lblAguardandoTitulo = new Label
+            {
+                Text = "PEDIDOS DO SITE AGUARDANDO APROVACAO",
+                Font = new Font("Segoe UI Semibold", 10f),
+                ForeColor = CAguardando,
+                AutoSize = true,
+                Location = new Point(14, 8)
+            };
+            _pnlAguardando.Controls.Add(_lblAguardandoTitulo);
+
+            _flowAguardando = new FlowLayoutPanel
+            {
+                Location = new Point(8, 32),
+                BackColor = Color.Transparent,
+                AutoScroll = true,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                Padding = new Padding(4)
+            };
+            _pnlAguardando.Controls.Add(_flowAguardando);
+            _pnlAguardando.Resize += (s, e) =>
+            {
+                // o flow ocupa a largura toda menos margens
+                _flowAguardando.Size = new Size(
+                    Math.Max(10, _pnlAguardando.Width - 16),
+                    Math.Max(10, _pnlAguardando.Height - 40));
+            };
+            tblRoot.Controls.Add(_pnlAguardando, 0, 1);
+
+            // guarda referência ao tblRoot pra poder mostrar/esconder a faixa
+            _tblRoot = tblRoot;
+
             // ── KANBAN 3 colunas ──────────────────────────────────
             _tbl = new TableLayoutPanel
             {
@@ -156,7 +215,7 @@ namespace DevBurguer.Forms
             for (int i = 0; i < 3; i++)
                 _tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33f));
             _tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            tblRoot.Controls.Add(_tbl, 0, 1);
+            tblRoot.Controls.Add(_tbl, 0, 2);
 
             Color[] cores = { CEmProd, CPronto, CACaminho };
             _colunas = new Panel[3];
@@ -262,6 +321,7 @@ namespace DevBurguer.Forms
 
                 var repo = new PedidoRepository();
                 DataTable pedidos = null;
+                DataTable aguardando = null;
                 string novoSnapshot = null;
                 bool recarregarMotoboys =
                     _motoboys == null ||
@@ -271,6 +331,7 @@ namespace DevBurguer.Forms
                 await Task.Run(async () =>
                 {
                     pedidos = await repo.GetPedidosProducaoAsync();
+                    aguardando = await repo.GetPedidosAguardandoAsync();
                     novoSnapshot = await repo.GetPedidosProducaoHashAsync();
 
                     if (recarregarMotoboys)
@@ -285,6 +346,7 @@ namespace DevBurguer.Forms
                 _ultimoSnapshot = novoSnapshot;
 
                 MontarKanban(pedidos);
+                MontarPainelAguardando(aguardando);
 
                 if (_lblStatus != null && !_lblStatus.IsDisposed)
                     _lblStatus.Text = "Atualizado: " + DateTime.Now.ToString("HH:mm:ss");
@@ -341,6 +403,195 @@ namespace DevBurguer.Forms
             {
                 foreach (var coluna in _colunas) coluna.ResumeLayout(true);
             }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        //  ✅ PAINEL AGUARDANDO — pedidos do site pendentes de aprovação
+        // ═══════════════════════════════════════════════════════════
+        private void MontarPainelAguardando(DataTable aguardando)
+        {
+            int qtd = aguardando == null ? 0 : aguardando.Rows.Count;
+
+            // ── Toca som se chegou pedido NOVO (qtd subiu) ──
+            if (qtd > _qtdAguardandoAnterior)
+            {
+                try { System.Media.SystemSounds.Exclamation.Play(); }
+                catch { /* som é opcional, ignora se falhar */ }
+            }
+            _qtdAguardandoAnterior = qtd;
+
+            // ── Mostra ou esconde a faixa ──
+            // Linha 1 do tblRoot = a faixa Aguardando. 0 = escondida, 188 = visível.
+            if (_tblRoot != null && _tblRoot.RowStyles.Count > 1)
+                _tblRoot.RowStyles[1].Height = (qtd > 0) ? 188 : 0;
+
+            if (_lblAguardandoTitulo != null)
+                _lblAguardandoTitulo.Text =
+                    "PEDIDOS DO SITE AGUARDANDO APROVACAO  (" + qtd + ")";
+
+            // ── Remonta os cards ──
+            _flowAguardando.SuspendLayout();
+            try
+            {
+                var antigos = _flowAguardando.Controls.Cast<Control>().ToArray();
+                _flowAguardando.Controls.Clear();
+                foreach (var c in antigos) c.Dispose();
+
+                if (qtd > 0)
+                {
+                    foreach (DataRow row in aguardando.Rows)
+                    {
+                        var card = CriarCardAguardando(row);
+                        card.Margin = new Padding(0, 0, 10, 0);
+                        _flowAguardando.Controls.Add(card);
+                    }
+                }
+            }
+            finally
+            {
+                _flowAguardando.ResumeLayout(true);
+            }
+        }
+
+        private Panel CriarCardAguardando(DataRow row)
+        {
+            int id = row["Id"] == DBNull.Value ? 0 : Convert.ToInt32(row["Id"]);
+            string cliente = row["Cliente"] == DBNull.Value ? "" : row["Cliente"].ToString();
+            string telefone = row["Telefone"] == DBNull.Value ? "" : row["Telefone"].ToString();
+            string endereco = row["Endereco"] == DBNull.Value ? "" : row["Endereco"].ToString();
+            string itens = row["Itens"] == DBNull.Value ? "" : row["Itens"].ToString();
+            decimal total = row["Total"] == DBNull.Value ? 0m : Convert.ToDecimal(row["Total"]);
+            string tipo = row["TipoEntrega"] == DBNull.Value ? "" : row["TipoEntrega"].ToString();
+            DateTime data = row["Data"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(row["Data"]);
+            decimal troco = row["TrocoPara"] == DBNull.Value ? 0 : Convert.ToDecimal(row["TrocoPara"]);
+
+            var card = new Panel
+            {
+                Width = 290,
+                Height = 150,
+                BackColor = Color.FromArgb(34, 24, 30)
+            };
+            card.Paint += (s, e) =>
+            {
+                using (var brBarra = new SolidBrush(CAguardando))
+                    e.Graphics.FillRectangle(brBarra, 0, 0, card.Width, 4);
+                using (var pen = new Pen(Color.FromArgb(70, 45, 58)))
+                    e.Graphics.DrawRectangle(pen, 0, 0, card.Width - 1, card.Height - 1);
+            };
+
+            int y = 9;
+            card.Controls.Add(new Label
+            {
+                Text = "Pedido #" + id + "  -  " + data.ToString("HH:mm") + "  (" + tipo + ")",
+                Font = new Font("Segoe UI Semibold", 9f),
+                ForeColor = CAguardando,
+                AutoSize = true,
+                Location = new Point(10, y)
+            });
+            y += 21;
+
+            card.Controls.Add(new Label
+            {
+                Text = cliente + (string.IsNullOrEmpty(telefone) ? "" : "  -  " + telefone),
+                Font = new Font("Segoe UI Semibold", 8.5f),
+                ForeColor = CText,
+                AutoSize = false,
+                Width = card.Width - 20,
+                Height = 16,
+                Location = new Point(10, y)
+            });
+            y += 18;
+
+            if (tipo == "Entrega" && !string.IsNullOrEmpty(endereco))
+            {
+                card.Controls.Add(new Label
+                {
+                    Text = endereco,
+                    Font = new Font("Segoe UI", 7.5f),
+                    ForeColor = CMuted,
+                    AutoSize = false,
+                    Width = card.Width - 20,
+                    Height = 15,
+                    Location = new Point(10, y)
+                });
+                y += 16;
+            }
+
+            // itens — resumido (primeira linha + contador se houver mais)
+            string[] linhas = itens.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            string resumoItens = linhas.Length > 0 ? linhas[0].Trim() : "";
+            if (linhas.Length > 1) resumoItens += "  (+" + (linhas.Length - 1) + " item/itens)";
+            card.Controls.Add(new Label
+            {
+                Text = resumoItens,
+                Font = new Font("Segoe UI", 7.5f),
+                ForeColor = Color.FromArgb(180, 180, 200),
+                AutoSize = false,
+                Width = card.Width - 20,
+                Height = 15,
+                Location = new Point(10, y)
+            });
+            y += 18;
+
+            string txtTotal = "Total: " + total.ToString("C2");
+            if (tipo == "Entrega" && troco > 0) txtTotal += "   Troco p/ " + troco.ToString("C2");
+            card.Controls.Add(new Label
+            {
+                Text = txtTotal,
+                Font = new Font("Segoe UI Semibold", 8.5f),
+                ForeColor = CPronto,
+                AutoSize = true,
+                Location = new Point(10, y)
+            });
+
+            // ── Botões Aceitar / Recusar ──
+            var btnAceitar = new Button
+            {
+                Text = "Aceitar",
+                Width = 130,
+                Height = 28,
+                Location = new Point(10, card.Height - 36),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = CPronto,
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI Semibold", 8.5f),
+                Cursor = Cursors.Hand
+            };
+            btnAceitar.FlatAppearance.BorderSize = 0;
+            btnAceitar.Click += async (s, e) =>
+            {
+                await new PedidoRepository().AtualizarStatusAsync(id, "Em Producao");
+                await CarregarAsync();
+            };
+
+            var btnRecusar = new Button
+            {
+                Text = "Recusar",
+                Width = 130,
+                Height = 28,
+                Location = new Point(150, card.Height - 36),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(160, 40, 40),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI Semibold", 8.5f),
+                Cursor = Cursors.Hand
+            };
+            btnRecusar.FlatAppearance.BorderSize = 0;
+            btnRecusar.Click += async (s, e) =>
+            {
+                // ✅ Recusar pede confirmação
+                if (DialogHelper.Confirmar(
+                        "Recusar o pedido #" + id + " do site?\nO cliente sera notificado do cancelamento.",
+                        "Recusar pedido", DialogHelper.Laranja))
+                {
+                    await new PedidoRepository().AtualizarStatusAsync(id, "Cancelado");
+                    await CarregarAsync();
+                }
+            };
+
+            card.Controls.Add(btnAceitar);
+            card.Controls.Add(btnRecusar);
+            return card;
         }
 
         // ═══════════════════════════════════════════════════════════

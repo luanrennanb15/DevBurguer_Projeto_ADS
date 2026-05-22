@@ -92,6 +92,7 @@ function renderizarTopProdutos() {
                             alt="${produto.nome}"
                             class="card-img-top"
                             loading="lazy"
+                            onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=&quot;card-img-emoji&quot;>${produto.emoji}</div>');"
                         >
                         <span class="badge-ranking ${medalha.classe}" aria-label="${medalha.icone}">${medalha.icone}</span>
                     </div>
@@ -131,6 +132,7 @@ function _renderizarCard(produto) {
                     alt="${produto.nome}"
                     class="card-img-top"
                     loading="lazy"
+                    onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=&quot;card-img-emoji&quot;>${produto.emoji}</div>');"
                 >
             </div>
             <div class="card-content">

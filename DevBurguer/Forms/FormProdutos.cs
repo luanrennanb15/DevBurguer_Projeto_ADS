@@ -21,11 +21,42 @@ namespace DevBurguer
 
         private async void FormProdutos_Load(object sender, EventArgs e)
         {
+            // ✅ FIX #10: MaxLength em campos texto
+            txtNome.MaxLength = 100;
+            txtPreco.MaxLength = 12;
+            txtCategoria.MaxLength = 50;
+            txtIngredientes.MaxLength = 500;
+
+            // ✅ Cria botão "Reativar" dinamicamente, ao lado do Excluir
+            ConstruirBotaoReativar();
+
             await CarregarProdutosAsync();
             await CarregarCategoriasAsync();
 
             cmbCategoria.SelectedIndexChanged += cmbCategoria_SelectedIndexChanged;
             txtCategoria.TextChanged += txtCategoria_TextChanged;
+        }
+
+        // ✅ NOVO: botão "Reativar Produto" criado em código (sem mexer no Designer)
+        private void ConstruirBotaoReativar()
+        {
+            int x = btnExcluir.Location.X;
+            int y = btnExcluir.Location.Y + btnExcluir.Height + 8;
+
+            var btnReativar = new Button
+            {
+                Text = "Reativar Produto",
+                BackColor = System.Drawing.Color.FromArgb(40, 130, 80),
+                ForeColor = System.Drawing.Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new System.Drawing.Font("Segoe UI Semibold", 9F),
+                Location = new System.Drawing.Point(x, y),
+                Size = new System.Drawing.Size(btnExcluir.Width, 32),
+                Cursor = Cursors.Hand
+            };
+            btnReativar.FlatAppearance.BorderSize = 0;
+            btnReativar.Click += btnReativar_Click;
+            btnExcluir.Parent.Controls.Add(btnReativar);
         }
 
         private async Task CarregarCategoriasAsync()
@@ -247,31 +278,80 @@ namespace DevBurguer
                 return;
             }
 
-            if (!DialogHelper.Confirmar("Deseja realmente excluir este produto?\nEssa acao nao pode ser desfeita.", "Confirmar", DialogHelper.Verde))
+            if (!DialogHelper.Confirmar(
+                    "Deseja excluir este produto?\n\n" +
+                    "Se o produto ja tiver pedidos vinculados, ele sera apenas " +
+                    "INATIVADO (some do site e de novos pedidos, mas mantem o historico).",
+                    "Confirmar", DialogHelper.Verde))
                 return;
+
+            var repo = new DevBurguer.Data.ProdutoRepository();
             try
             {
-                var repo = new DevBurguer.Data.ProdutoRepository();
+                // Tenta excluir de verdade primeiro
                 await repo.DeleteAsync(idSelecionado);
 
                 DialogHelper.Info("Produto excluido com sucesso!", "Sucesso", DialogHelper.Verde);
-
                 LimparCampos();
                 await CarregarProdutosAsync();
                 await CarregarCategoriasAsync();
             }
-            // ✅ Trata FK violada — produto com pedidos não pode ser excluído
+            // ✅ FK violada — produto tem pedidos. Em vez de só recusar,
+            // oferece INATIVAR (solução correta: preserva o histórico)
             catch (System.Data.SqlClient.SqlException sqlEx) when (sqlEx.Number == 547)
             {
                 DevBurguer.Services.ExceptionLogger.Log(sqlEx, "FormProdutos.btnExcluir_Click.FK");
-                DialogHelper.Aviso("Nao e possivel excluir pois ha pedidos vinculados a este produto.",
-                                   "Aviso", DialogHelper.Verde);
+
+                if (DialogHelper.Confirmar(
+                        "Este produto nao pode ser excluido pois ha pedidos vinculados.\n\n" +
+                        "Deseja INATIVAR o produto?\n" +
+                        "Ele vai sumir do site e de novos pedidos, mas continua " +
+                        "valido no historico e nos relatorios.",
+                        "Inativar produto?", DialogHelper.Verde))
+                {
+                    try
+                    {
+                        await repo.SetAtivoAsync(idSelecionado, false);
+                        DialogHelper.Info("Produto inativado com sucesso!", "Sucesso", DialogHelper.Verde);
+                        LimparCampos();
+                        await CarregarProdutosAsync();
+                    }
+                    catch (Exception ex2)
+                    {
+                        DevBurguer.Services.ExceptionLogger.Log(ex2, "FormProdutos.btnExcluir_Click.Inativar");
+                        DialogHelper.Aviso("Falha ao inativar. Tente novamente.", "Erro", DialogHelper.Verde);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                // ✅ FIX: agora loga o erro (antes era perdido)
                 DevBurguer.Services.ExceptionLogger.Log(ex, "FormProdutos.btnExcluir_Click");
                 DialogHelper.Aviso("Falha na operacao. Tente novamente.", "Erro", DialogHelper.Verde);
+            }
+        }
+
+        // ✅ NOVO: reativa um produto que estava inativo
+        private async void btnReativar_Click(object sender, EventArgs e)
+        {
+            if (idSelecionado == 0)
+            {
+                DialogHelper.Aviso("Selecione um produto na tabela!", "Aviso", DialogHelper.Verde);
+                return;
+            }
+
+            try
+            {
+                var repo = new DevBurguer.Data.ProdutoRepository();
+                await repo.SetAtivoAsync(idSelecionado, true);
+                DialogHelper.Info("Produto reativado! Ja aparece no site novamente.",
+                                  "Sucesso", DialogHelper.Verde);
+                LimparCampos();
+                await CarregarProdutosAsync();
+            }
+            catch (Exception ex)
+            {
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormProdutos.btnReativar_Click");
+                DialogHelper.Aviso("Falha ao reativar. Tente novamente.", "Erro", DialogHelper.Verde);
             }
         }
 

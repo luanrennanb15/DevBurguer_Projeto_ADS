@@ -159,6 +159,17 @@
     transform: scale(1.08);
 }
 
+/* Emoji exibido quando a imagem do produto falha ao carregar */
+.card-img-emoji {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4.5rem;
+    background: var(--cor-fundo-suave, #1a1a26);
+}
+
 .card-content {
     display: flex;
     flex-direction: column;
