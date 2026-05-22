@@ -3,11 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|c:\\users\\pc\\onedrive\\\u00E1rea de trabalho\\estoy louco\\devburguer\\forms\\formrelatoriofaturamento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formrelatoriofaturamento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\PC\\Downloads\\FormRelatorioFaturamento_19.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|c:\\users\\pc\\onedrive\\\u00E1rea de trabalho\\estoy louco\\devburguer\\forms\\formprodutos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{31AC3ECD-DE10-4921-923D-EA08776BB0CD}|DevBurguer.csproj|solutionrelative:forms\\formprodutos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,27 +27,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "FormRelatorioFaturamento.cs",
-              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormRelatorioFaturamento.cs",
-              "RelativeDocumentMoniker": "Forms\\FormRelatorioFaturamento.cs",
-              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormRelatorioFaturamento.cs*",
-              "RelativeToolTip": "Forms\\FormRelatorioFaturamento.cs*",
-              "ViewState": "AgIAAAIBAAAAAAAAAAAiwBABAAAJAAAAAAAAAA==",
+              "Title": "FormProdutos.cs",
+              "DocumentMoniker": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormProdutos.cs",
+              "RelativeDocumentMoniker": "Forms\\FormProdutos.cs",
+              "ToolTip": "C:\\Users\\PC\\OneDrive\\\u00C1rea de Trabalho\\Estoy louco\\DevBurguer\\Forms\\FormProdutos.cs",
+              "RelativeToolTip": "Forms\\FormProdutos.cs",
+              "ViewState": "AgIAAFYBAAAAAAAAAAAYwG8BAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-01T21:04:14.985Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "FormRelatorioFaturamento_19.cs",
-              "DocumentMoniker": "C:\\Users\\PC\\Downloads\\FormRelatorioFaturamento_19.cs",
-              "RelativeDocumentMoniker": "..\\..\\..\\..\\Downloads\\FormRelatorioFaturamento_19.cs",
-              "ToolTip": "C:\\Users\\PC\\Downloads\\FormRelatorioFaturamento_19.cs",
-              "RelativeToolTip": "..\\..\\..\\..\\Downloads\\FormRelatorioFaturamento_19.cs",
-              "ViewState": "AgIAABABAAAAAAAAAAAiwCoBAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-01T21:04:04.888Z",
+              "WhenOpened": "2026-05-22T09:57:23.43Z",
               "EditorCaption": ""
             }
           ]

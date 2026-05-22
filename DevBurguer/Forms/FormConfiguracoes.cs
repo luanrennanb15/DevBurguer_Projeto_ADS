@@ -292,7 +292,7 @@ namespace DevBurguer.Forms
         private void btnSalvar_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtConexaoCompleta.Text))
-            { MessageBox.Show("A string de conexao nao pode ser vazia."); return; }
+            { DialogHelper.Aviso("A string de conexao nao pode ser vazia.", "Aviso", DialogHelper.Ambar); return; }
 
             Conexao.SalvarConnectionString(txtConexaoCompleta.Text);
             lblResultado.Text = "Configuracoes salvas com sucesso!";

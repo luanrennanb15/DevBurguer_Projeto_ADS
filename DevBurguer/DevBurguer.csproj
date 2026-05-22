@@ -49,8 +49,10 @@
   <ItemGroup>
     <Compile Include="Banco\Conexao.cs" />
     <Compile Include="Data\ClienteRepository.cs" />
+    <Compile Include="Data\Configuracoes.cs" />
     <Compile Include="Data\DbHelper.cs" />
     <Compile Include="Data\DbHelperAdapter.cs" />
+    <Compile Include="Data\DialogHelper.cs" />
     <Compile Include="Data\Mappers.cs" />
     <Compile Include="Data\MotoboyRepository.cs" />
     <Compile Include="Data\PagamentoMotoboyRepository.cs" />
@@ -58,6 +60,7 @@
     <Compile Include="Data\ProdutoRepository.cs" />
     <Compile Include="Data\RelatorioService.cs" />
     <Compile Include="Data\SqlLoader.cs" />
+    <Compile Include="Data\StatusPedido.cs" />
     <Compile Include="Forms\FormBase.cs">
       <SubType>Form</SubType>
     </Compile>

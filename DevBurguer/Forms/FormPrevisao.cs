@@ -232,7 +232,7 @@ namespace DevBurguer.Forms
                 var corLocal = cor;
                 pnl.Paint += (s, e) =>
                 {
-                    e.Graphics.FillRectangle(new SolidBrush(corLocal), 0, 0, pnl.Width, 4);
+                    using (var _br = new SolidBrush(corLocal)) e.Graphics.FillRectangle(_br, 0, 0, pnl.Width, 4);
                     e.Graphics.DrawRectangle(new Pen(Color.FromArgb(40, 40, 60)), 0, 0, pnl.Width - 1, pnl.Height - 1);
                 };
 
@@ -302,7 +302,8 @@ namespace DevBurguer.Forms
 
                 if (historico == null || historico.Count < 5)
                 {
-                    _lblStatus2.Text = "Dados insuficientes (minimo 5 dias)";
+                    int qtd = historico?.Count ?? 0;
+                    _lblStatus2.Text = "Dados insuficientes — " + qtd + " de 5 dias minimos com pedidos finalizados";
                     return;
                 }
 
@@ -322,32 +323,37 @@ namespace DevBurguer.Forms
             {
                 ExceptionLogger.Log(ex, "FormPrevisao.CarregarAsync");
                 _lblStatus2.Text = "Erro ao carregar previsao";
-                MessageBox.Show("Erro:\n" + ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                DialogHelper.Erro("Erro ao carregar previsao.", "Erro");
             }
         }
 
         private List<(DateTime data, decimal valor)> BuscarHistorico()
         {
             var lista = new List<(DateTime, decimal)>();
+            // ✅ FIX: removido ISNULL(Data, GETDATE()) — pedidos com Data NULL
+            // viravam "hoje" e inflavam o faturamento do dia atual
             const string sql = @"
                 SELECT
-                    CONVERT(date, ISNULL(Data, GETDATE())) AS Dia,
+                    CONVERT(date, Data) AS Dia,
                     SUM(Total) AS Faturamento
                 FROM Pedidos
-                WHERE ISNULL(Data, GETDATE()) >= DATEADD(day, -30, GETDATE())
+                WHERE Data IS NOT NULL
+                  AND Data >= DATEADD(day, -30, GETDATE())
                   AND ISNULL(Status,'') = 'Finalizado'
-                GROUP BY CONVERT(date, ISNULL(Data, GETDATE()))
+                GROUP BY CONVERT(date, Data)
                 ORDER BY Dia ASC";
 
             using (var conn = Conexao.GetConnection())
+            using (var cmd = new SqlCommand(sql, conn) { CommandTimeout = 60 })
             {
                 conn.Open();
-                var cmd = new SqlCommand(sql, conn) { CommandTimeout = 60 };
-                var da = new SqlDataAdapter(cmd);
-                var dt = new DataTable();
-                da.Fill(dt);
-                foreach (DataRow r in dt.Rows)
-                    lista.Add((Convert.ToDateTime(r["Dia"]), Convert.ToDecimal(r["Faturamento"])));
+                using (var da = new SqlDataAdapter(cmd))
+                {
+                    var dt = new DataTable();
+                    da.Fill(dt);
+                    foreach (DataRow r in dt.Rows)
+                        lista.Add((Convert.ToDateTime(r["Dia"]), Convert.ToDecimal(r["Faturamento"])));
+                }
             }
             return lista;
         }
@@ -374,9 +380,12 @@ namespace DevBurguer.Forms
             double mediaX = somaX / n;
             double mediaY = somaY / n;
 
-            // coeficiente angular (tendência por dia)
-            double b = (somaXY - n * mediaX * mediaY) / (somaX2 - n * mediaX * mediaX);
-            // intercepto
+            // ✅ FIX: protege contra divisão por zero (impossível com x=0..n-1, mas defensivo)
+            double denominador = somaX2 - n * mediaX * mediaX;
+            if (Math.Abs(denominador) < 1e-9)
+                return (mediaY, 0); // sem variação em x — assume tendência zero
+
+            double b = (somaXY - n * mediaX * mediaY) / denominador;
             double a = mediaY - b * mediaX;
 
             return (a, b);
@@ -393,6 +402,10 @@ namespace DevBurguer.Forms
             {
                 double x = baseIdx + i - 1;
                 double y = a + b * x;
+
+                // ✅ FIX: protege contra NaN/Infinity antes de cast pra decimal (evita OverflowException)
+                if (double.IsNaN(y) || double.IsInfinity(y)) y = 0;
+
                 decimal previsto = Math.Max(0, (decimal)y); // nunca negativo
                 previsoes.Add((ultimoDia.AddDays(i), previsto));
             }
@@ -433,16 +446,27 @@ namespace DevBurguer.Forms
             List<(DateTime data, decimal valor)> previsoes,
             double b)
         {
-            // tendência
-            string tendencia;
-            if (b > 50) tendencia = "Crescimento";
-            else if (b > 0) tendencia = "Leve Alta";
-            else if (b > -50) tendencia = "Leve Queda";
-            else tendencia = "Queda";
+            // ✅ FIX: usar média do histórico em vez de historico[0]
+            // (primeiro dia pode ter sido atípico ou zero, distorcia tudo)
+            double mediaY = 0;
+            foreach (var (_, v) in historico) mediaY += (double)v;
+            mediaY /= historico.Count;
 
-            double pct = historico.Count > 0
-                ? (b / (double)historico[0].valor) * 100
+            // ✅ FIX: pct = inclinação em % da média; protegido contra divisão por zero
+            double pct = (mediaY > 0.01)
+                ? (b / mediaY) * 100
                 : 0;
+
+            // ✅ FIX: protege contra NaN/Infinity caso restem casos extremos
+            if (double.IsNaN(pct) || double.IsInfinity(pct)) pct = 0;
+
+            // ✅ FIX: thresholds agora em PORCENTAGEM (5% / 0% / -5%)
+            // Antes era R$50 absoluto, o que não fazia sentido pra lojas de portes diferentes
+            string tendencia;
+            if (pct > 5) tendencia = "Crescimento";
+            else if (pct > 0) tendencia = "Leve Alta";
+            else if (pct > -5) tendencia = "Leve Queda";
+            else tendencia = "Queda";
 
             if (_lblTendencia != null)
                 _lblTendencia.Text = tendencia + "\n" + (pct >= 0 ? "+" : "") + pct.ToString("F1") + "% /dia";
@@ -466,7 +490,8 @@ namespace DevBurguer.Forms
                 foreach (var p in previsoes)
                     if (p.valor > melhor.valor) melhor = p;
 
-                var cult = new System.Globalization.CultureInfo("pt-BR");
+                // ✅ FIX: CultureInfo cacheada (antes criava nova instância a cada refresh)
+                var cult = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
                 _lblMelhorDia.Text = melhor.data.ToString("dddd", cult);
             }
         }
