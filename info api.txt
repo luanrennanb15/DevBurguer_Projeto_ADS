@@ -1,0 +1,9 @@
+API
+
+cd "C:\Users\PC\OneDrive\Área de Trabalho\Estoy louco\DevBurguer-API\api"
+
+npm start
+
+node.js command
+
+. Um pedido pode estar associado a um entregador, no caso de pedidos com entrega

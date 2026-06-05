@@ -1,6 +1,8 @@
-﻿using DevBurguer.Forms;
+﻿using DevBurguer.Data;
+using DevBurguer.Forms;
 using System;
 using System.Drawing;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DevBurguer
@@ -8,6 +10,11 @@ namespace DevBurguer
     public partial class FormMenu : Form
     {
         private Form formAtivo = null;
+
+        // ── Alerta global de pedido do site ───────────────────────
+        // Fica no menu (sempre aberto), então toca em QUALQUER tela.
+        private System.Windows.Forms.Timer _timerAlerta;
+        private bool _alertaOcupado = false; // evita sobreposição de consultas
 
         public FormMenu()
         {
@@ -19,6 +26,45 @@ namespace DevBurguer
             // ✅ abre o Dashboard por padrão ao entrar no sistema
             AtivarBotao(btnDashboard);
             AbrirForm(new FormDashboard());
+
+            // ✅ Alerta sonoro repetitivo de pedidos do site aguardando aprovação.
+            // Verifica a cada 8s; enquanto houver pedido pendente, toca de novo —
+            // independente da tela aberta. Para sozinho quando o operador aprova.
+            _timerAlerta = new System.Windows.Forms.Timer { Interval = 8000 };
+            _timerAlerta.Tick += async (s, ev) => await VerificarPedidosSiteAsync();
+            _timerAlerta.Start();
+            _ = VerificarPedidosSiteAsync(); // primeira checagem imediata
+        }
+
+        private async Task VerificarPedidosSiteAsync()
+        {
+            if (_alertaOcupado) return;
+            _alertaOcupado = true;
+            try
+            {
+                int qtd = await new PedidoRepository().GetQtdAguardandoAsync();
+                if (qtd > 0) TocarAlerta();
+            }
+            catch (Exception ex)
+            {
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormMenu.VerificarPedidosSiteAsync");
+            }
+            finally { _alertaOcupado = false; }
+        }
+
+        /// <summary>
+        /// Toca o alerta sonoro (toque agradável, estilo app de delivery).
+        /// </summary>
+        private void TocarAlerta()
+        {
+            DevBurguer.Services.AlertaSonoro.Tocar();
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            _timerAlerta?.Stop();
+            _timerAlerta?.Dispose();
+            base.OnFormClosed(e);
         }
 
         private void AbrirForm(Form novoForm)

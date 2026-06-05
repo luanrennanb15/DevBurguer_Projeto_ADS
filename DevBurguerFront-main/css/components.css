@@ -283,6 +283,13 @@
     gap: var(--spacing-md);
 }
 
+/* Linha Rua + Número: rua ocupa a maior parte, número fica estreito */
+.form-row-endereco {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: var(--spacing-md);
+}
+
 .form-fieldset {
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-lg);

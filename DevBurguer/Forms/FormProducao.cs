@@ -412,12 +412,8 @@ namespace DevBurguer.Forms
         {
             int qtd = aguardando == null ? 0 : aguardando.Rows.Count;
 
-            // ── Toca som se chegou pedido NOVO (qtd subiu) ──
-            if (qtd > _qtdAguardandoAnterior)
-            {
-                try { System.Media.SystemSounds.Exclamation.Play(); }
-                catch { /* som é opcional, ignora se falhar */ }
-            }
+            // ── Alerta sonoro movido para o FormMenu (global e repetitivo,
+            //    toca em qualquer tela). Evita bipe duplicado aqui. ──
             _qtdAguardandoAnterior = qtd;
 
             // ── Mostra ou esconde a faixa ──
@@ -560,7 +556,20 @@ namespace DevBurguer.Forms
             btnAceitar.FlatAppearance.BorderSize = 0;
             btnAceitar.Click += async (s, e) =>
             {
-                await new PedidoRepository().AtualizarStatusAsync(id, "Em Producao");
+                var repo = new PedidoRepository();
+                await repo.AtualizarStatusAsync(id, "Em Producao");
+
+                // ✅ Ao aceitar o pedido do site, imprime o cupom da cozinha
+                try
+                {
+                    var cupom = await repo.GetPedidoParaCupomAsync(id);
+                    DevBurguer.Services.CupomPrinter.Imprimir(cupom);
+                }
+                catch (Exception exImp)
+                {
+                    DevBurguer.Services.ExceptionLogger.Log(exImp, "FormProducao.ImprimirCupom");
+                }
+
                 await CarregarAsync();
             };
 
@@ -660,11 +669,14 @@ namespace DevBurguer.Forms
             string[] linhas = itens.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var linha in linhas)
             {
+                // Linha de adicional (começa com "+") é exibida indentada e em outra cor,
+                // logo abaixo do produto a que pertence.
+                bool isAdicional = linha.TrimStart().StartsWith("+");
                 var lbl = new Label
                 {
-                    Text = "- " + linha.Trim(),
+                    Text = isAdicional ? "      " + linha.Trim() : "- " + linha.Trim(),
                     Font = new Font("Segoe UI", 8.5f),
-                    ForeColor = Color.FromArgb(180, 180, 210),
+                    ForeColor = isAdicional ? Color.FromArgb(150, 205, 150) : Color.FromArgb(180, 180, 210),
                     Location = new Point(10, y),
                     Width = card.Width - 20,
                     Height = 18,
@@ -674,6 +686,11 @@ namespace DevBurguer.Forms
                 y += 19;
             }
             y += 4;
+
+            // ✅ Taxa do motoboy (só em pedidos de entrega) — vem antes do total
+            if (tipo == "Entrega")
+                Lbl(card, "Taxa do motoboy: " + Configuracoes.TaxaEntrega.ToString("C2"),
+                    new Font("Segoe UI Semibold", 8.5f), Color.FromArgb(255, 180, 60), ref y, 20);
 
             Lbl(card, "Total: " + total.ToString("C2"),
                 new Font("Segoe UI Semibold", 10f), CPronto, ref y, 24);

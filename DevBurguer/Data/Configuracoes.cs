@@ -20,5 +20,12 @@
 
         /// <summary>Intervalo de auto-refresh do kanban de produção (ms).</summary>
         public const int IntervalKanbanMs = 60000;
+
+        /// <summary>
+        /// Se true, mostra a pré-visualização do cupom antes de imprimir
+        /// (útil sem impressora física / com "Microsoft Print to PDF").
+        /// Troque para false para imprimir direto na impressora padrão.
+        /// </summary>
+        public const bool ImpressaoPreview = true;
     }
 }

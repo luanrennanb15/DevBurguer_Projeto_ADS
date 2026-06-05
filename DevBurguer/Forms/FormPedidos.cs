@@ -267,7 +267,18 @@ namespace DevBurguer
                 }
 
                 var repo = new DevBurguer.Data.PedidoRepository();
-                await repo.InsertPedidoAsync(idCliente, total, itens, tipoEntrega, troco);
+                int idPedido = await repo.InsertPedidoAsync(idCliente, total, itens, tipoEntrega, troco);
+
+                // ✅ Imprime o cupom da cozinha (não derruba o fluxo se falhar)
+                try
+                {
+                    var cupom = await repo.GetPedidoParaCupomAsync(idPedido);
+                    DevBurguer.Services.CupomPrinter.Imprimir(cupom);
+                }
+                catch (Exception exImp)
+                {
+                    DevBurguer.Services.ExceptionLogger.Log(exImp, "FormPedidos.ImprimirCupom");
+                }
 
                 string msgFinal = "Pedido registrado com sucesso!";
                 if (!string.IsNullOrEmpty(formaPagamento))

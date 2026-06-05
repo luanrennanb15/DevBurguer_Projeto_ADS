@@ -32,7 +32,7 @@ async function finalizarPedido(event) {
         },
         tipoEntrega: tipoRadio === 'delivery' ? 'Entrega' : 'Retirada',
         endereco:    ELEMENTS.address.value.trim(),
-        numero:      '',  // o site não tem campo de número separado
+        numero:      ELEMENTS.numero.value.trim(),   // ✅ agora é campo separado
         bairro:      ELEMENTS.neighborhood.value.trim(),
         troco:       ELEMENTS.changeAmount.value
                         ? parseFloat(ELEMENTS.changeAmount.value)
