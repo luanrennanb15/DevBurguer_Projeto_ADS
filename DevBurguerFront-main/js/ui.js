@@ -212,6 +212,7 @@ function updateDeliveryType() {
     addressLegend.textContent  = isPickup ? '🏪 Endereço para Retirada' : '🏠 Endereço de Entrega';
 
     ELEMENTS.address.required      = !isPickup;
+    ELEMENTS.numero.required       = !isPickup;
     ELEMENTS.neighborhood.required = !isPickup;
 
     updatePaymentMethod();
@@ -391,13 +392,19 @@ function validarFormulario() {
     if (tipoEntrega === 'delivery') {
         const endereco = ELEMENTS.address.value.trim();
         if (!endereco) {
-            mostrarToast('Por favor, informe a Rua e o Número.', 'error');
+            mostrarToast('Por favor, informe a Rua.', 'error');
             ELEMENTS.address.focus();
             return false;
         }
-        if (!/[a-zA-ZÀ-ÿ]/.test(endereco) || !/\d/.test(endereco)) {
-            mostrarToast('Informe a Rua e o Número corretamente (ex: Rua das Flores, 123).', 'error');
+        if (!/[a-zA-ZÀ-ÿ]/.test(endereco)) {
+            mostrarToast('Informe o nome da Rua corretamente.', 'error');
             ELEMENTS.address.focus();
+            return false;
+        }
+        // ✅ Número agora é campo separado
+        if (!ELEMENTS.numero.value.trim()) {
+            mostrarToast('Por favor, informe o Número.', 'error');
+            ELEMENTS.numero.focus();
             return false;
         }
         if (!ELEMENTS.neighborhood.value.trim()) {

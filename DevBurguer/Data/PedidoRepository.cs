@@ -175,16 +175,29 @@ namespace DevBurguer.Data
                     ISNULL(p.IdMotoboy, 0)      AS IdMotoboy,
                     ISNULL(p.TrocoPara, 0)      AS TrocoPara,
                     (
-                        SELECT STRING_AGG(
-                            CONCAT(
-                                i.Quantidade, 'x ', pr.Nome,
-                                CASE WHEN ISNULL(i.Adicionais,'') <> '' THEN ' (+' + i.Adicionais + ')' ELSE '' END,
-                                CASE WHEN ISNULL(i.Observacao,'') <> '' THEN ' [' + i.Observacao + ']' ELSE '' END
-                            ),
-                            CHAR(10)
-                        ) WITHIN GROUP (ORDER BY i.Id)
+                        -- ✅ Cada produto mostra o valor na frente; adicionais entram
+                        -- em linha própria abaixo, também com o valor de cada um.
+                        SELECT STRING_AGG(b.bloco, CHAR(10)) WITHIN GROUP (ORDER BY i.Id)
                         FROM ItensPedido i
                         JOIN Produtos pr ON pr.Id = i.IdProduto
+                        CROSS APPLY (
+                            SELECT
+                                SUM(a.Preco) AS Total,
+                                STRING_AGG(
+                                    CONCAT(N'   + ', a.Nome, N' — R$ ', FORMAT(a.Preco, 'N2', 'pt-BR')),
+                                    CHAR(10)
+                                ) WITHIN GROUP (ORDER BY a.Nome) AS Detalhe
+                            FROM STRING_SPLIT(NULLIF(i.Adicionais, ''), ',') s
+                            JOIN Adicionais a ON a.Nome = LTRIM(RTRIM(s.value))
+                        ) ad
+                        CROSS APPLY (
+                            SELECT CONCAT(
+                                i.Quantidade, 'x ', pr.Nome,
+                                N' — R$ ', FORMAT(i.Preco - ISNULL(ad.Total, 0), 'N2', 'pt-BR'),
+                                CASE WHEN ISNULL(i.Observacao,'') <> '' THEN ' [' + i.Observacao + ']' ELSE '' END,
+                                CASE WHEN ad.Detalhe IS NOT NULL THEN CHAR(10) + ad.Detalhe ELSE '' END
+                            ) AS bloco
+                        ) b
                         WHERE i.IdPedido = p.Id
                     ) AS Itens
                 FROM Pedidos p
@@ -224,15 +237,29 @@ namespace DevBurguer.Data
                     ISNULL(p.TrocoPara, 0)      AS TrocoPara,
                     ISNULL(p.Origem, 'Site')    AS Origem,
                     (
-                        SELECT STRING_AGG(
-                            CONCAT(
-                                i.Quantidade, 'x ', pr.Nome,
-                                CASE WHEN ISNULL(i.Observacao,'') <> '' THEN ' [' + i.Observacao + ']' ELSE '' END
-                            ),
-                            CHAR(10)
-                        ) WITHIN GROUP (ORDER BY i.Id)
+                        -- ✅ Valor na frente de cada produto; adicionais em linha
+                        -- própria abaixo, também com o valor de cada um.
+                        SELECT STRING_AGG(b.bloco, CHAR(10)) WITHIN GROUP (ORDER BY i.Id)
                         FROM ItensPedido i
                         JOIN Produtos pr ON pr.Id = i.IdProduto
+                        CROSS APPLY (
+                            SELECT
+                                SUM(a.Preco) AS Total,
+                                STRING_AGG(
+                                    CONCAT(N'   + ', a.Nome, N' — R$ ', FORMAT(a.Preco, 'N2', 'pt-BR')),
+                                    CHAR(10)
+                                ) WITHIN GROUP (ORDER BY a.Nome) AS Detalhe
+                            FROM STRING_SPLIT(NULLIF(i.Adicionais, ''), ',') s
+                            JOIN Adicionais a ON a.Nome = LTRIM(RTRIM(s.value))
+                        ) ad
+                        CROSS APPLY (
+                            SELECT CONCAT(
+                                i.Quantidade, 'x ', pr.Nome,
+                                N' — R$ ', FORMAT(i.Preco - ISNULL(ad.Total, 0), 'N2', 'pt-BR'),
+                                CASE WHEN ISNULL(i.Observacao,'') <> '' THEN ' [' + i.Observacao + ']' ELSE '' END,
+                                CASE WHEN ad.Detalhe IS NOT NULL THEN CHAR(10) + ad.Detalhe ELSE '' END
+                            ) AS bloco
+                        ) b
                         WHERE i.IdPedido = p.Id
                     ) AS Itens
                 FROM Pedidos p
@@ -251,6 +278,104 @@ namespace DevBurguer.Data
                     return dt;
                 }
             }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        //  ✅ Consulta leve: quantos pedidos do site estão aguardando
+        //  aprovação. Usada pelo alerta sonoro global do menu principal.
+        // ═══════════════════════════════════════════════════════════
+        public async Task<int> GetQtdAguardandoAsync()
+        {
+            const string sql = "SELECT COUNT(*) FROM Pedidos WHERE Status = 'Aguardando'";
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            using (var cmd = new SqlCommand(sql, conn) { CommandTimeout = 15 })
+            {
+                await conn.OpenAsync();
+                var r = await cmd.ExecuteScalarAsync();
+                return (r == null || r == DBNull.Value) ? 0 : Convert.ToInt32(r);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        //  ✅ Carrega um pedido (cabeçalho + itens) para impressão do cupom.
+        // ═══════════════════════════════════════════════════════════
+        public async Task<DevBurguer.Services.CupomDados> GetPedidoParaCupomAsync(int idPedido)
+        {
+            var d = new DevBurguer.Services.CupomDados { NumeroPedido = idPedido };
+
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+
+                using (var cmd = new SqlCommand(@"
+                    SELECT p.Data,
+                           ISNULL(p.TipoEntrega, '')                                          AS Tipo,
+                           ISNULL(p.Origem, 'Balcao')                                         AS Origem,
+                           p.Total,
+                           ISNULL(p.TrocoPara, 0)                                             AS Troco,
+                           c.Nome                                                             AS Cliente,
+                           ISNULL(c.Telefone, '')                                             AS Telefone,
+                           ISNULL(c.Endereco,'') + ', ' + ISNULL(c.Numero,'') + ' - ' + ISNULL(c.Bairro,'') AS Endereco
+                    FROM Pedidos p
+                    JOIN Clientes c ON c.Id = p.IdCliente
+                    WHERE p.Id = @id", conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPedido);
+                    using (var r = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await r.ReadAsync())
+                        {
+                            d.DataHora = r["Data"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(r["Data"]);
+                            d.Tipo = r["Tipo"].ToString();
+                            d.Origem = r["Origem"].ToString();
+                            d.Total = Convert.ToDecimal(r["Total"]);
+                            d.Troco = Convert.ToDecimal(r["Troco"]);
+                            d.Cliente = r["Cliente"].ToString();
+                            d.Telefone = r["Telefone"].ToString();
+                            d.Endereco = r["Endereco"].ToString();
+                        }
+                    }
+                }
+
+                using (var cmd = new SqlCommand(@"
+                    SELECT i.Quantidade,
+                           pr.Nome,
+                           i.Preco,
+                           ISNULL(i.Adicionais, '') AS Adicionais,
+                           ISNULL(i.Observacao, '') AS Observacao,
+                           (SELECT ISNULL(SUM(a.Preco), 0)
+                            FROM STRING_SPLIT(NULLIF(i.Adicionais, ''), ',') s
+                            JOIN Adicionais a ON a.Nome = LTRIM(RTRIM(s.value))) AS AdicValor
+                    FROM ItensPedido i
+                    JOIN Produtos pr ON pr.Id = i.IdProduto
+                    WHERE i.IdPedido = @id
+                    ORDER BY i.Id", conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idPedido);
+                    using (var r = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await r.ReadAsync())
+                        {
+                            d.Itens.Add(new DevBurguer.Services.CupomItem
+                            {
+                                Quantidade = Convert.ToInt32(r["Quantidade"]),
+                                Nome = r["Nome"].ToString(),
+                                Preco = Convert.ToDecimal(r["Preco"]),
+                                Adicionais = r["Adicionais"].ToString(),
+                                AdicionaisValor = Convert.ToDecimal(r["AdicValor"]),
+                                Observacao = r["Observacao"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Taxa de entrega (mesma regra do resto do sistema)
+            d.Taxa = (d.Tipo ?? "").Trim().Equals("Entrega", StringComparison.OrdinalIgnoreCase)
+                        ? Configuracoes.TaxaEntrega
+                        : 0m;
+
+            return d;
         }
 
         public async Task AtualizarStatusAsync(int idPedido, string novoStatus, int? idMotoboy = null)

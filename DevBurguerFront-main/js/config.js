@@ -81,6 +81,7 @@ const ELEMENTS = {
     deliveryType:    document.getElementById('deliveryType'),
     pickupType:      document.getElementById('pickupType'),
     address:         document.getElementById('address'),
+    numero:          document.getElementById('numero'),
     neighborhood:    document.getElementById('neighborhood'),
     complement:      document.getElementById('complement'),
     changeAmount:    document.getElementById('changeAmount'),

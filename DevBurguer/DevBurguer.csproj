@@ -178,6 +178,8 @@
     <Compile Include="PedidoEventos.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\AlertaSonoro.cs" />
+    <Compile Include="Services\CupomPrinter.cs" />
     <Compile Include="Services\ExceptionLogger.cs" />
     <EmbeddedResource Include="Forms\FormClientes.resx">
       <DependentUpon>FormClientes.cs</DependentUpon>
@@ -218,6 +220,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="Forms\ClassDiagram1.cd" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -231,9 +234,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Model\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="Sql\PagamentoMotoboy\Delete.sql" />
     <Content Include="Sql\PagamentoMotoboy\Insert.sql" />

@@ -59,6 +59,12 @@
         gap: var(--spacing-md);
     }
 
+    /* Rua + Número continuam lado a lado mesmo no mobile (número é curto) */
+    .form-row-endereco {
+        grid-template-columns: 3fr 1fr;
+        gap: var(--spacing-sm);
+    }
+
     .payment-options {
         grid-template-columns: 1fr 1fr;
     }

@@ -1,0 +1,305 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="DevBurguer.Banco.Conexao" Collapsed="true">
+    <Position X="13.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAEAAAEACAAAABAAAAAAAAIACAAABgAAAA=</HashCode>
+      <FileName>Banco\Conexao.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Data.ClienteRepository" Collapsed="true">
+    <Position X="11.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAIA=</HashCode>
+      <FileName>Data\ClienteRepository.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Data.DbHelper" Collapsed="true">
+    <Position X="18.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAACAAAAAAECAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Data\DbHelper.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Data.DbHelperAdapter" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="20.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Data\DbHelperAdapter.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="DevBurguer.Data.Mappers" Collapsed="true">
+    <Position X="13.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIAAAACAAAAAAAAAAAAEAAAAAAAABAAAAAAA=</HashCode>
+      <FileName>Data\Mappers.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Data.MotoboyRepository" Collapsed="true">
+    <Position X="16.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAIA=</HashCode>
+      <FileName>Data\MotoboyRepository.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Data.PagamentoMotoboyRepository" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="22" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACIAgAAEAAAAAAAAAAAAAAAgAAAAAAAgAAIA=</HashCode>
+      <FileName>Data\PagamentoMotoboyRepository.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="DevBurguer.Data.PedidoRepository" Collapsed="true">
+    <Position X="13.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQAAgAAACBgAAAAAAACAACAAAAgAAAAAIBAEA=</HashCode>
+      <FileName>Data\PedidoRepository.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Data.ProdutoRepository" Collapsed="true">
+    <Position X="15" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACAAAAAAAIAAAAAAAAAAAAAgCAAAAACAAAIA=</HashCode>
+      <FileName>Data\ProdutoRepository.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Data.RelatorioService" Collapsed="true">
+    <Position X="18.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAggAEgAAAAAAAEAABCiBAAgABAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Data\RelatorioService.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Data.SqlLoader" Collapsed="true">
+    <Position X="11.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Data\SqlLoader.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Configuracoes" Collapsed="true">
+    <Position X="15" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEAAAAAAIAAAAAAAAAAAAAAQAAAAAAIAAAAEAAAA=</HashCode>
+      <FileName>Data\Configuracoes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.DialogHelper" Collapsed="true">
+    <Position X="22" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>DAAIACAAAAQAAAEEpAQIAAAAgCAQAIAAAAAAQEAAAAA=</HashCode>
+      <FileName>Data\DialogHelper.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.StatusPedido" Collapsed="true">
+    <Position X="13.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAABAAAAAAAAAACAEAAAAAAAAAAAAAAAAAABAEAAA=</HashCode>
+      <FileName>Data\StatusPedido.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.FormClientes" Collapsed="true">
+    <Position X="13.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ICSwAAABICgAABAAAECAAAgiDAAQAAQjBAQEghAiAAA=</HashCode>
+      <FileName>Forms\FormClientes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.FormFaturamentoMotoboy" Collapsed="true">
+    <Position X="18.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IUBkgACAAHgCAAKEAASIAhIgCJIREIQAAOAAAAAACEA=</HashCode>
+      <FileName>Forms\FormFaturamentoMotoboy.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.FormLogin" Collapsed="true">
+    <Position X="20.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAACCAEASAAACAAAACAICACEAAAABAAABAAAA=</HashCode>
+      <FileName>Forms\FormLogin.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.FormMenu" Collapsed="true">
+    <Position X="11.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAMgEAAACGACAAAABHQCBACAJGCCAQAAAlAEcCIAJI=</HashCode>
+      <FileName>Forms\FormMenu.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.FormMotoboy" Collapsed="true">
+    <Position X="13.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACCwAAABICoBANACAECAAUAiAAAAAgBjBAQMghgiAAA=</HashCode>
+      <FileName>Forms\FormMotoboy.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.FormPagamentoMotoboy" Collapsed="true">
+    <Position X="16.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>YGDIESTgACAiAgAEAJCoQAAciAQAAIQACCgcIgACGNE=</HashCode>
+      <FileName>Forms\FormPagamentoMotoboy.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.FormPedidos" Collapsed="true">
+    <Position X="18.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>MEAIAAQYBCApABAIGEKAIQACQwREAAkCBUAAKCAALYg=</HashCode>
+      <FileName>Forms\FormPedidos.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.FormProdutos" Collapsed="true">
+    <Position X="11.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>MKCQCCRAJKAgAAIggAGAAQACAAAACRCBAAwACgAiABA=</HashCode>
+      <FileName>Forms\FormProdutos.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.PedidoEventos" Collapsed="true">
+    <Position X="11.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAA=</HashCode>
+      <FileName>PedidoEventos.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Program" Collapsed="true">
+    <Position X="16.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Forms.FormBase" Collapsed="true">
+    <Position X="6.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAICAAAAACAAAIAAAACwAAECAAAAAAAIIAIAIAAAAAA=</HashCode>
+      <FileName>Forms\FormBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Forms.FormConfiguracoes" Collapsed="true">
+    <Position X="4.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAWAABQAAiCoAIEBQBCAogACAABAAEYICAEEAAACAAA=</HashCode>
+      <FileName>Forms\FormConfiguracoes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Forms.FormDashboard" Collapsed="true">
+    <Position X="6.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAKCAMCAaAIAGAACIAhAGCBAAgIQgBAAIAAAACAA=</HashCode>
+      <FileName>Forms\FormDashboard.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Forms.FormEnderecoEntrega" Collapsed="true">
+    <Position X="15" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAACIBBICoMEIBRAECBAAWSEERAAAAiBABAgBAAACA=</HashCode>
+      <FileName>Forms\FormEnderecoEntrega.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Forms.FormEscalaMotoboy" Collapsed="true">
+    <Position X="16.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEDJBIQMAiAICIAFUEKIKiAADUACQIRACAAQAAADAQE=</HashCode>
+      <FileName>Forms\FormEscalaMotoboy.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Forms.FormMaisVendidos" Collapsed="true">
+    <Position X="22" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AWAAggCAgGIiAKAEAASIAhQgDBARAIQAIoAChAAAiEA=</HashCode>
+      <FileName>Forms\FormMaisVendidos.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Forms.FormPagamento" Collapsed="true">
+    <Position X="15" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAACIIEIARAACAAAQCEARAAACAAAAAAAAAAAA=</HashCode>
+      <FileName>Forms\FormPagamento.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Forms.FormPrevisao" Collapsed="true">
+    <Position X="20.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BBABgAAAIGAAAIIFgACoAAgGKIABEIQAAAAEAAAAAAA=</HashCode>
+      <FileName>Forms\FormPrevisao.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Forms.FormProducao" Collapsed="true">
+    <Position X="22" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAjAAKBgoAAgA4QEABIYAAAwHEAUgMQACAJUAAAADQA=</HashCode>
+      <FileName>Forms\FormProducao.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Forms.FormRelatorioFaturamento" Collapsed="true">
+    <Position X="9" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AUAkggCCgGICAIAEIASIABQkWBIREIQAAIAAAAIAiEA=</HashCode>
+      <FileName>Forms\FormRelatorioFaturamento.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Models.DashboardTotal" Collapsed="true">
+    <Position X="16.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAAAAAAAQAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\DashboardTotal.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Models.Motoboy" Collapsed="true">
+    <Position X="15" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>Models\Motoboy.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Models.OrderItem" Collapsed="true">
+    <Position X="18.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAIAAAAAAAAIAAAAAAAAAAAAAAAUAAAAAgA=</HashCode>
+      <FileName>Models\OrderItem.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Models.PagamentoMotoboy" Collapsed="true">
+    <Position X="20.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAQAAAAAAAAAAAAAAIAAAAQIAABAAAAEABCAAAAA=</HashCode>
+      <FileName>Models\PagamentoMotoboy.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Properties.Resources" Collapsed="true">
+    <Position X="20.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAABEAAAAQAAAAAAAAAAAAAAAIA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Properties.Settings" Collapsed="true">
+    <Position X="22" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAIAAAAAABAAAAAAAAAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DevBurguer.Services.ExceptionLogger" Collapsed="true">
+    <Position X="11.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAAAAAgAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Services\ExceptionLogger.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="DevBurguer.Interfaces.IDbHelper" Collapsed="true">
+    <Position X="11.5" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces\IDbHelper.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="DevBurguer.Interfaces.IPagamentoRepository" Collapsed="true">
+    <Position X="13.25" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACIAAAAAAAAAAAAAAAAAAAAgAAAAAAAgAAIA=</HashCode>
+      <FileName>Interfaces\IPagamentoRepository.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

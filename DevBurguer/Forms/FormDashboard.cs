@@ -181,9 +181,14 @@ namespace DevBurguer.Forms
 
             // Linha 2: mais detalhes
             var c5 = CriarCard("MAIS VENDIDO HOJE", "-", CAmbar, "", out _lblMaisVendido);
-            var c6 = CriarCard("MOTOBOYS NA ESCALA", "-", CAzul, "", out _lblMotoboys);
+            var c6 = CriarCard("ESCALA — MOTOBOYS / DIA", "-", CAzul, "", out _lblMotoboys);
             var c7 = CriarCard("PEDIDOS CANCELADOS", "-", Color.FromArgb(180, 50, 50), "#", out _lblCancelados);
             var c8 = CriarCard("PEDIDOS FINALIZADOS", "-", CVerde, "#", out _lblFinalizados);
+
+            // ✅ O card de escala lista a quantidade de motoboys por dia da semana,
+            // então o valor vira uma lista multi-linha (fonte monoespaçada p/ alinhar).
+            _lblMotoboys.Font = new Font("Consolas", 11f, FontStyle.Bold);
+            _lblMotoboys.TextAlign = ContentAlignment.TopLeft;
 
             gridCards.Controls.Add(c5, 0, 1);
             gridCards.Controls.Add(c6, 1, 1);
@@ -353,7 +358,6 @@ namespace DevBurguer.Forms
                 int emProd = row["EmProducao"] == DBNull.Value ? 0 : Convert.ToInt32(row["EmProducao"]);
                 int cancel = row["Cancelados"] == DBNull.Value ? 0 : Convert.ToInt32(row["Cancelados"]);
                 int final = row["Finalizados"] == DBNull.Value ? 0 : Convert.ToInt32(row["Finalizados"]);
-                int motos = row["MotoboysEscala"] == DBNull.Value ? 0 : Convert.ToInt32(row["MotoboysEscala"]);
                 string maisV = row["MaisVendido"] == DBNull.Value ? "-" : row["MaisVendido"].ToString();
                 decimal ticket = pedidos > 0 ? fat / pedidos : 0;
 
@@ -363,14 +367,54 @@ namespace DevBurguer.Forms
                 _lblTicket.Text = ticket.ToString("N2");
                 _lblEmProducao.Text = emProd.ToString();
                 _lblMaisVendido.Text = maisV;
-                _lblMotoboys.Text = motos.ToString();
                 _lblCancelados.Text = cancel.ToString();
                 if (_lblFinalizados != null) _lblFinalizados.Text = final.ToString();
+
+                // ✅ Card de escala: total de motoboys escalados por dia da semana
+                _lblMotoboys.Text = await ObterEscalaPorDiaAsync();
             }
             catch (Exception ex)
             {
                 TratarErro(ex, "FormDashboard.CarregarAsync");
             }
+        }
+
+        /// <summary>
+        /// Retorna, por dia da semana, quantos motoboys estão escalados (Ativo=1).
+        /// Texto multi-linha pronto para o card "ESCALA — MOTOBOYS / DIA".
+        /// </summary>
+        private async Task<string> ObterEscalaPorDiaAsync()
+        {
+            var contagem = new int[8]; // posições 1..7 = Seg..Dom
+
+            await Task.Run(() =>
+            {
+                using (var conn = Conexao.GetConnection())
+                using (var cmd = new SqlCommand(
+                    @"SELECT DiaSemana, COUNT(DISTINCT IdMotoboy) AS Qtd
+                      FROM EscalaMotoboy
+                      WHERE Ativo = 1
+                      GROUP BY DiaSemana", conn))
+                {
+                    cmd.CommandTimeout = 30;
+                    conn.Open();
+                    using (var dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            int dia = Convert.ToInt32(dr["DiaSemana"]);
+                            if (dia >= 1 && dia <= 7)
+                                contagem[dia] = Convert.ToInt32(dr["Qtd"]);
+                        }
+                    }
+                }
+            });
+
+            string[] nomes = { "", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom" };
+            var sb = new System.Text.StringBuilder();
+            for (int d = 1; d <= 7; d++)
+                sb.AppendLine(string.Format("{0}  {1,2}", nomes[d], contagem[d]));
+            return sb.ToString().TrimEnd();
         }
 
         private void AtualizarRelogio()

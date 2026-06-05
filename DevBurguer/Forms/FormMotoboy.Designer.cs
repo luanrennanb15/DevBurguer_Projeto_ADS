@@ -73,8 +73,8 @@
             M_Txt(pnl, this.txtEndereco, fInp, cCard, cText, x, y, 360, 30, 4); y += 44;
             M_Lbl(pnl, this.lblBairro, "Bairro", fLbl, cMuted, x, y); y += 20;
             M_Txt(pnl, this.txtBairro, fInp, cCard, cText, x, y, 250, 30, 5); y += 44;
-            M_Lbl(pnl, this.lblNumero, "Numero", fLbl, cMuted, x + 260, y - 44);
-            M_Txt(pnl, this.txtNumero, fInp, cCard, cText, x + 260, y - 20, 100, 30, 6);
+            M_Lbl(pnl, this.lblNumero, "Numero", fLbl, cMuted, x + 260, y - 64);
+            M_Txt(pnl, this.txtNumero, fInp, cCard, cText, x + 260, y - 44, 100, 30, 6);
 
             M_Btn(pnl, this.btnSalvar, "Salvar", cVerde, fBtn, x, y + 10, 100, 34, 7);
             M_Btn(pnl, this.lblAtualizar, "Atualizar", cAzul, fBtn, x + 110, y + 10, 110, 34, 8);
