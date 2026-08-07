@@ -61,6 +61,7 @@
     <Compile Include="Data\RelatorioService.cs" />
     <Compile Include="Data\SqlLoader.cs" />
     <Compile Include="Data\StatusPedido.cs" />
+    <Compile Include="Data\UsuarioRepository.cs" />
     <Compile Include="Forms\FormBase.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -181,6 +182,7 @@
     <Compile Include="Services\AlertaSonoro.cs" />
     <Compile Include="Services\CupomPrinter.cs" />
     <Compile Include="Services\ExceptionLogger.cs" />
+    <Compile Include="Services\SecurityHelper.cs" />
     <EmbeddedResource Include="Forms\FormClientes.resx">
       <DependentUpon>FormClientes.cs</DependentUpon>
     </EmbeddedResource>

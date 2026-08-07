@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.SqlClient; // só para tratar o erro de FK (547) na exclusão
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DevBurguer.Banco;
+using DevBurguer.Data;
 
 namespace DevBurguer
 {
     public partial class FormClientes : Form
     {
+        // Acesso a dados fica todo no repositório — a tela não conhece SQL.
+        private readonly ClienteRepository _repo = new ClienteRepository();
+
         public FormClientes()
         {
             InitializeComponent();
@@ -18,7 +21,6 @@ namespace DevBurguer
         private async void FormClientes_Load(object sender, EventArgs e)
         {
             // ✅ FIX #10: MaxLength em todos os campos texto
-            // Evita usuário colar texto enorme que estoura o INSERT no banco
             txtNome.MaxLength = 100;
             txtEndereco.MaxLength = 200;
             txtNumero.MaxLength = 10;
@@ -32,18 +34,7 @@ namespace DevBurguer
         {
             try
             {
-                DataTable dt = await Task.Run(() =>
-                {
-                    using (var conn = Conexao.GetConnection())
-                    using (var cmd = new SqlCommand("SELECT * FROM Clientes ORDER BY Nome", conn))
-                    using (var da = new SqlDataAdapter(cmd))
-                    {
-                        conn.Open();
-                        var table = new DataTable();
-                        da.Fill(table);
-                        return table;
-                    }
-                });
+                DataTable dt = await _repo.GetAllAsync();
 
                 dgvClientes.DataSource = dt;
                 dgvClientes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -76,35 +67,23 @@ namespace DevBurguer
             // ✅ FIX #9: verifica CPF duplicado antes de inserir (CPF é opcional aqui)
             if (!string.IsNullOrWhiteSpace(txtCPF.Text) && txtCPF.MaskCompleted)
             {
-                if (await CpfExisteAsync(txtCPF.Text, 0))
-                {
-                    DialogHelper.Aviso("Este CPF ja esta cadastrado para outro cliente!",
-                                       "CPF Duplicado", DialogHelper.Azul);
+                if (await CpfDuplicadoAsync(txtCPF.Text.Trim(), 0,
+                        "Este CPF ja esta cadastrado para outro cliente!"))
                     return;
-                }
             }
 
             try
             {
-                await Task.Run(() =>
-                {
-                    using (var conn = Conexao.GetConnection())
-                    using (var cmd = new SqlCommand(
-                        @"INSERT INTO Clientes (Nome, Telefone, Endereco, Numero, Bairro, CPF)
-                          VALUES (@n, @t, @e, @num, @b, @cpf)", conn))
-                    {
-                        conn.Open();
-                        AdicionarParametros(cmd);
-                        cmd.ExecuteNonQuery();
-                    }
-                });
+                await _repo.InsertAsync(
+                    txtNome.Text.Trim(), txtTelefone.Text.Trim(), txtEndereco.Text.Trim(),
+                    txtNumero.Text.Trim(), txtBairro.Text.Trim(), txtCPF.Text.Trim());
+
                 DialogHelper.Info("Cliente cadastrado com sucesso!", "Sucesso", DialogHelper.Azul);
                 LimparCampos();
                 await CarregarClientesAsync();
             }
             catch (Exception ex)
             {
-                // ✅ FIX: catch agora loga o erro (antes era catch vazio — perdia tudo)
                 DevBurguer.Services.ExceptionLogger.Log(ex, "FormClientes.btnSalvar_Click");
                 DialogHelper.Aviso("Falha ao salvar. Tente novamente.", "Erro", DialogHelper.Azul);
             }
@@ -122,29 +101,17 @@ namespace DevBurguer
             // ✅ FIX #9: CPF duplicado também na atualização (ignorando o próprio Id)
             if (!string.IsNullOrWhiteSpace(txtCPF.Text) && txtCPF.MaskCompleted)
             {
-                if (await CpfExisteAsync(txtCPF.Text, id))
-                {
-                    DialogHelper.Aviso("Este CPF ja pertence a outro cliente!",
-                                       "CPF Duplicado", DialogHelper.Azul);
+                if (await CpfDuplicadoAsync(txtCPF.Text.Trim(), id,
+                        "Este CPF ja pertence a outro cliente!"))
                     return;
-                }
             }
 
             try
             {
-                await Task.Run(() =>
-                {
-                    using (var conn = Conexao.GetConnection())
-                    using (var cmd = new SqlCommand(
-                        @"UPDATE Clientes SET Nome=@n, Telefone=@t, Endereco=@e,
-                          Numero=@num, Bairro=@b, CPF=@cpf WHERE Id=@id", conn))
-                    {
-                        conn.Open();
-                        AdicionarParametros(cmd);
-                        cmd.Parameters.AddWithValue("@id", id);
-                        cmd.ExecuteNonQuery();
-                    }
-                });
+                await _repo.UpdateAsync(id,
+                    txtNome.Text.Trim(), txtTelefone.Text.Trim(), txtEndereco.Text.Trim(),
+                    txtNumero.Text.Trim(), txtBairro.Text.Trim(), txtCPF.Text.Trim());
+
                 DialogHelper.Info("Cliente atualizado com sucesso!", "Sucesso", DialogHelper.Azul);
                 LimparCampos();
                 await CarregarClientesAsync();
@@ -168,16 +135,8 @@ namespace DevBurguer
             int id = Convert.ToInt32(dgvClientes.CurrentRow.Cells["Id"].Value);
             try
             {
-                await Task.Run(() =>
-                {
-                    using (var conn = Conexao.GetConnection())
-                    using (var cmd = new SqlCommand("DELETE FROM Clientes WHERE Id=@id", conn))
-                    {
-                        conn.Open();
-                        cmd.Parameters.AddWithValue("@id", id);
-                        cmd.ExecuteNonQuery();
-                    }
-                });
+                await _repo.DeleteAsync(id);
+
                 DialogHelper.Info("Cliente excluido com sucesso!", "Sucesso", DialogHelper.Azul);
                 LimparCampos();
                 await CarregarClientesAsync();
@@ -197,7 +156,7 @@ namespace DevBurguer
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  HELPERS
+        //  HELPERS (só de interface — sem SQL)
         // ═══════════════════════════════════════════════════════════
         private bool ValidarCampos()
         {
@@ -211,7 +170,6 @@ namespace DevBurguer
                 return false;
             }
 
-            // Telefone deve estar completo (evita salvar parcial)
             if (!txtTelefone.MaskCompleted)
             {
                 DialogHelper.Aviso("Telefone incompleto!", "Aviso", DialogHelper.Azul);
@@ -219,7 +177,6 @@ namespace DevBurguer
             }
 
             // ✅ FIX #8: CPF é opcional, mas SE preenchido tem que estar completo
-            // (sem validação de algoritmo — aceita qualquer combinação de 11 dígitos)
             if (!string.IsNullOrWhiteSpace(txtCPF.Text) && !txtCPF.MaskCompleted)
             {
                 DialogHelper.Aviso("CPF incompleto! Preencha todos os digitos ou deixe em branco.",
@@ -230,43 +187,32 @@ namespace DevBurguer
             return true;
         }
 
-        private void AdicionarParametros(SqlCommand cmd)
+        /// <summary>
+        /// Consulta o repositório e, se o CPF já existir em outro cliente,
+        /// avisa o usuário e retorna true (indicando que deve interromper).
+        /// </summary>
+        private async Task<bool> CpfDuplicadoAsync(string cpf, int ignorarId, string mensagem)
         {
-            // ✅ FIX: Trim em todos os textos pra evitar espaços inúteis no banco
-            cmd.Parameters.AddWithValue("@n", txtNome.Text.Trim());
-            cmd.Parameters.AddWithValue("@t", txtTelefone.Text.Trim());
-            cmd.Parameters.AddWithValue("@e", txtEndereco.Text.Trim());
-            cmd.Parameters.AddWithValue("@num", txtNumero.Text.Trim());
-            cmd.Parameters.AddWithValue("@b", txtBairro.Text.Trim());
-            cmd.Parameters.AddWithValue("@cpf", txtCPF.Text.Trim());
+            try
+            {
+                if (await _repo.CpfExisteAsync(cpf, ignorarId))
+                {
+                    DialogHelper.Aviso(mensagem, "CPF Duplicado", DialogHelper.Azul);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormClientes.CpfDuplicadoAsync");
+                // se a checagem falhar, não bloqueia o cadastro
+            }
+            return false;
         }
 
         private void LimparCampos()
         {
             txtNome.Clear(); txtTelefone.Clear(); txtEndereco.Clear();
             txtNumero.Clear(); txtBairro.Clear(); txtCPF.Clear();
-        }
-
-        // ✅ FIX #9: verifica CPF duplicado (ignorando o próprio Id no update)
-        private async Task<bool> CpfExisteAsync(string cpf, int ignorarId)
-        {
-            try
-            {
-                using (var conn = Conexao.GetConnection())
-                using (var cmd = new SqlCommand(
-                    "SELECT COUNT(*) FROM Clientes WHERE CPF=@cpf AND Id<>@id", conn))
-                {
-                    await conn.OpenAsync();
-                    cmd.Parameters.Add(new SqlParameter("@cpf", SqlDbType.NVarChar, 20) { Value = cpf });
-                    cmd.Parameters.Add(new SqlParameter("@id", SqlDbType.Int) { Value = ignorarId });
-                    return (int)await cmd.ExecuteScalarAsync() > 0;
-                }
-            }
-            catch (Exception ex)
-            {
-                DevBurguer.Services.ExceptionLogger.Log(ex, "FormClientes.CpfExisteAsync");
-                return false;
-            }
         }
     }
 }
