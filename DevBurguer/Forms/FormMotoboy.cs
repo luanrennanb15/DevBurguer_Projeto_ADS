@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.SqlClient; // só para tratar o erro de FK (547) na exclusão
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DevBurguer.Banco;
+using DevBurguer.Data;
 
 namespace DevBurguer
 {
@@ -11,6 +11,9 @@ namespace DevBurguer
     {
         // ✅ Id em variável separada — não depende de CurrentRow nem binding
         private int _idSelecionado = 0;
+
+        // Acesso a dados fica todo no repositório — a tela não conhece SQL.
+        private readonly MotoboyRepository _repo = new MotoboyRepository();
 
         public FormMotoboy()
         {
@@ -38,18 +41,7 @@ namespace DevBurguer
             {
                 dgvMotoboys.DataSource = null;
 
-                DataTable dt = null;
-                await Task.Run(() =>
-                {
-                    using (var conn = Conexao.GetConnection())
-                    using (var cmd = new SqlCommand("SELECT * FROM Motoboys ORDER BY Nome", conn))
-                    using (var da = new SqlDataAdapter(cmd))
-                    {
-                        conn.Open();
-                        dt = new DataTable();
-                        da.Fill(dt);
-                    }
-                });
+                DataTable dt = await _repo.GetAllAsync();
 
                 foreach (DataColumn col in dt.Columns)
                     col.ReadOnly = true;
@@ -92,20 +84,16 @@ namespace DevBurguer
         {
             if (!ValidarCampos()) return;
 
-            if (await CpfExisteAsync(txtCPF.Text, 0))
+            if (await CpfExisteAsync(txtCPF.Text.Trim(), 0))
             { DialogHelper.Aviso("Este CPF ja esta cadastrado!", "CPF Duplicado", DialogHelper.Roxo); return; }
 
             try
             {
-                using (var conn = Conexao.GetConnection())
-                using (var cmd = new SqlCommand(
-                    @"INSERT INTO Motoboys (Nome, Endereco, Numero, Bairro, Telefone1, Telefone2, CPF)
-                      VALUES (@n, @e, @num, @b, @t1, @t2, @cpf)", conn))
-                {
-                    await conn.OpenAsync();
-                    AdicionarParametros(cmd);
-                    await cmd.ExecuteNonQueryAsync();
-                }
+                await _repo.InsertAsync(
+                    txtNome.Text.Trim(), (txtEndereco.Text ?? "").Trim(), (txtNumero.Text ?? "").Trim(),
+                    (txtBairro.Text ?? "").Trim(), txtTelefone1.Text.Trim(),
+                    (txtTelefone2.Text ?? "").Trim(), txtCPF.Text.Trim());
+
                 DialogHelper.Info("Motoboy cadastrado com sucesso!", "Sucesso", DialogHelper.Roxo);
                 LimparCampos();
                 await CarregarAsync();
@@ -124,22 +112,16 @@ namespace DevBurguer
 
             if (!ValidarCampos()) return;
 
-            if (await CpfExisteAsync(txtCPF.Text, _idSelecionado))
+            if (await CpfExisteAsync(txtCPF.Text.Trim(), _idSelecionado))
             { DialogHelper.Aviso("Este CPF ja pertence a outro motoboy!", "CPF Duplicado", DialogHelper.Roxo); return; }
 
             try
             {
-                using (var conn = Conexao.GetConnection())
-                using (var cmd = new SqlCommand(
-                    @"UPDATE Motoboys SET Nome=@n, Endereco=@e, Numero=@num,
-                      Bairro=@b, Telefone1=@t1, Telefone2=@t2, CPF=@cpf
-                      WHERE Id=@id", conn))
-                {
-                    await conn.OpenAsync();
-                    AdicionarParametros(cmd);
-                    cmd.Parameters.AddWithValue("@id", _idSelecionado);
-                    await cmd.ExecuteNonQueryAsync();
-                }
+                await _repo.UpdateAsync(_idSelecionado,
+                    txtNome.Text.Trim(), (txtEndereco.Text ?? "").Trim(), (txtNumero.Text ?? "").Trim(),
+                    (txtBairro.Text ?? "").Trim(), txtTelefone1.Text.Trim(),
+                    (txtTelefone2.Text ?? "").Trim(), txtCPF.Text.Trim());
+
                 DialogHelper.Info("Motoboy atualizado com sucesso!", "Sucesso", DialogHelper.Roxo);
                 LimparCampos();
                 await CarregarAsync();
@@ -156,7 +138,6 @@ namespace DevBurguer
             if (_idSelecionado == 0)
             { DialogHelper.Aviso("Selecione um motoboy na tabela!", "Aviso", DialogHelper.Roxo); return; }
 
-            // ✅ FIX: Confirmar() não existia — virou DialogHelper.Confirmar
             if (!DialogHelper.Confirmar(
                     "Deseja realmente excluir " + txtNome.Text + "?\nEssa acao nao pode ser desfeita.",
                     "Confirmar", DialogHelper.Roxo))
@@ -164,19 +145,13 @@ namespace DevBurguer
 
             try
             {
-                using (var conn = Conexao.GetConnection())
-                using (var cmd = new SqlCommand("DELETE FROM Motoboys WHERE Id=@id", conn))
-                {
-                    await conn.OpenAsync();
-                    cmd.Parameters.AddWithValue("@id", _idSelecionado);
-                    await cmd.ExecuteNonQueryAsync();
-                }
+                await _repo.DeleteAsync(_idSelecionado);
+
                 DialogHelper.Info("Motoboy excluido com sucesso!", "Sucesso", DialogHelper.Roxo);
                 LimparCampos();
                 await CarregarAsync();
             }
-            // ✅ FIX: trata FK violada pelo número (547) — funciona em qualquer idioma do servidor
-            // (antes usava ex.Message.Contains("REFERENCE") — só funcionava em inglês)
+            // ✅ trata FK violada pelo número (547) — funciona em qualquer idioma do servidor
             catch (SqlException sqlEx) when (sqlEx.Number == 547)
             {
                 DevBurguer.Services.ExceptionLogger.Log(sqlEx, "FormMotoboy.btnExcluir_Click.FK");
@@ -199,7 +174,7 @@ namespace DevBurguer
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  ✅ HELPERS DE VALIDAÇÃO
+        //  HELPERS (só de interface — sem SQL)
         // ═══════════════════════════════════════════════════════════
         private bool ValidarCampos()
         {
@@ -225,7 +200,6 @@ namespace DevBurguer
             }
 
             // CPF obrigatório no motoboy — só verifica se está COMPLETO (11 dígitos)
-            // Sem validação de algoritmo (aceita qualquer combinação)
             if (!txtCPF.MaskCompleted)
             {
                 DialogHelper.Aviso("CPF incompleto!", "Aviso", DialogHelper.Roxo);
@@ -235,31 +209,15 @@ namespace DevBurguer
             return true;
         }
 
-        private void AdicionarParametros(SqlCommand cmd)
-        {
-            // ✅ FIX: Trim em tudo
-            cmd.Parameters.AddWithValue("@n", txtNome.Text.Trim());
-            cmd.Parameters.AddWithValue("@e", (txtEndereco.Text ?? "").Trim());
-            cmd.Parameters.AddWithValue("@num", (txtNumero.Text ?? "").Trim());
-            cmd.Parameters.AddWithValue("@b", (txtBairro.Text ?? "").Trim());
-            cmd.Parameters.AddWithValue("@t1", txtTelefone1.Text.Trim());
-            cmd.Parameters.AddWithValue("@t2", (txtTelefone2.Text ?? "").Trim());
-            cmd.Parameters.AddWithValue("@cpf", txtCPF.Text.Trim());
-        }
-
+        /// <summary>
+        /// Pergunta ao repositório se o CPF já existe. Em caso de falha na
+        /// checagem, não bloqueia o cadastro (retorna false).
+        /// </summary>
         private async Task<bool> CpfExisteAsync(string cpf, int ignorarId)
         {
             try
             {
-                using (var conn = Conexao.GetConnection())
-                using (var cmd = new SqlCommand(
-                    "SELECT COUNT(*) FROM Motoboys WHERE CPF=@cpf AND Id<>@id", conn))
-                {
-                    await conn.OpenAsync();
-                    cmd.Parameters.Add(new SqlParameter("@cpf", SqlDbType.NVarChar, 20) { Value = cpf });
-                    cmd.Parameters.Add(new SqlParameter("@id", SqlDbType.Int) { Value = ignorarId });
-                    return (int)await cmd.ExecuteScalarAsync() > 0;
-                }
+                return await _repo.CpfExisteAsync(cpf, ignorarId);
             }
             catch (Exception ex)
             {

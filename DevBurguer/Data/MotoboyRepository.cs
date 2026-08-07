@@ -9,14 +9,34 @@ namespace DevBurguer.Data
     {
         public async Task<DataTable> GetAllAsync()
         {
-            const string sql = "SELECT * FROM Motoboys";
+            const string sql = "SELECT * FROM Motoboys ORDER BY Nome";
             try
             {
-                return await DbHelper.ExecuteDataTableAsync(sql); // ❌ removido ConfigureAwait
+                return await DbHelper.ExecuteDataTableAsync(sql);
             }
             catch (System.Exception ex)
             {
                 ExceptionLogger.Log(ex, "MotoboyRepository.GetAllAsync");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// True se o CPF já existe em OUTRO motoboy (passe 0 para novo cadastro).
+        /// </summary>
+        public async Task<bool> CpfExisteAsync(string cpf, int ignorarId)
+        {
+            const string sql = "SELECT COUNT(*) AS Qtd FROM Motoboys WHERE CPF=@cpf AND Id<>@id";
+            try
+            {
+                var dt = await DbHelper.ExecuteDataTableAsync(sql,
+                    new SqlParameter("@cpf", SqlDbType.NVarChar, 20) { Value = (object)cpf ?? string.Empty },
+                    new SqlParameter("@id", SqlDbType.Int) { Value = ignorarId });
+                return dt.Rows.Count > 0 && System.Convert.ToInt32(dt.Rows[0]["Qtd"]) > 0;
+            }
+            catch (System.Exception ex)
+            {
+                ExceptionLogger.Log(ex, "MotoboyRepository.CpfExisteAsync");
                 throw;
             }
         }
