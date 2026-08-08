@@ -77,10 +77,10 @@ Cada tela com SQL inline passa a chamar um repositório. Ordem sugerida
 
 - [x] **FormClientes** → `ClienteRepository` *(feito — caso-modelo do padrão)*
 - [x] **FormLogin** → `UsuarioRepository` + `SecurityHelper` *(feito)*
-- [ ] FormConfiguracoes → `ConfiguracaoRepository`
-- [ ] FormMotoboy → `MotoboyRepository` (já existe, completar)
+- [x] **FormConfiguracoes** → *sem mudança: já usa a camada de config (`Conexao`), sem SQL na tela*
+- [x] **FormMotoboy** → `MotoboyRepository` *(feito)*
 - [ ] FormEscalaMotoboy → `EscalaMotoboyRepository`
-- [ ] FormDashboard → `DashboardRepository`/`RelatorioService`
+- [x] **FormDashboard** → `DashboardRepository` *(feito)*
 - [ ] FormFaturamentoMotoboy → `RelatorioService`
 - [ ] FormPrevisao → `PrevisaoRepository` (só a busca de dados; o cálculo da
       regressão linear fica num serviço `PrevisaoService`)
@@ -124,4 +124,7 @@ telas testáveis. Opcional nesta fase; recomendado antes da Fase 3.
 | jun/2026 | Diagnóstico + plano | ✅ |
 | jun/2026 | FormClientes → ClienteRepository (caso-modelo) | ✅ |
 | jun/2026 | FormLogin → UsuarioRepository + SecurityHelper | ✅ |
-| — | Próximas telas (ver checklist 1.1) | ⏳ |
+| jun/2026 | FormMotoboy → MotoboyRepository | ✅ |
+| jun/2026 | FormConfiguracoes (revisado — já estava correto) | ✅ |
+| jun/2026 | FormDashboard → DashboardRepository | ✅ |
+| — | Faltam: FormEscalaMotoboy, FormFaturamentoMotoboy, FormPrevisao | ⏳ |

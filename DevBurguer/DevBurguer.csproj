@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="Banco\Conexao.cs" />
     <Compile Include="Data\ClienteRepository.cs" />
+    <Compile Include="Data\DashboardRepository.cs" />
     <Compile Include="Data\Configuracoes.cs" />
     <Compile Include="Data\DbHelper.cs" />
     <Compile Include="Data\DbHelperAdapter.cs" />
