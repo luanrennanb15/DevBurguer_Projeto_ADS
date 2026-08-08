@@ -1,12 +1,10 @@
-﻿using System;
-using System.Data;
-using System.Data.SqlClient;
+using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DevBurguer.Banco;
+using DevBurguer.Data;
 
 namespace DevBurguer.Forms
 {
@@ -27,6 +25,9 @@ namespace DevBurguer.Forms
         private readonly Color CAzul = Color.FromArgb(50, 140, 220);
         private readonly Color CRoxo = Color.FromArgb(140, 70, 220);
         private readonly Color CAmbar = Color.FromArgb(220, 180, 40);
+
+        // acesso a dados (nenhum SQL fica na tela)
+        private readonly DashboardRepository _repo = new DashboardRepository();
 
         // labels dos cards
         private Label _lblFaturamento, _lblPedidos, _lblTicket, _lblEmProducao;
@@ -275,103 +276,25 @@ namespace DevBurguer.Forms
         // ═══════════════════════════════════════════════════════════
         /// <summary>
         /// Implementação concreta do método abstrato de FormBase.
-        /// Carrega todos os indicadores do dia do banco de dados.
+        /// Carrega os indicadores do dia (via repositório) e preenche os cards.
         /// </summary>
         protected override async Task CarregarAsync()
         {
             try
             {
-                DataTable dt = null;
-                await Task.Run(() =>
-                {
-                    using (var conn = Conexao.GetConnection())
-                    using (var cmd = new SqlCommand(@"
-                            -- ✅ FIX: removido ISNULL(Data, GETDATE()) — pedidos com Data NULL
-                            -- viravam 'hoje' e bagunçavam os cards
-                            -- ✅ FIX: 'Pedidos Hoje' e 'Mais Vendido' agora usam Status='Finalizado'
-                            -- (pedidos em produção/cancelados não devem entrar)
-                            SELECT
-                                -- faturamento hoje (só finalizados)
-                                (SELECT ISNULL(SUM(Total),0)
-                                 FROM Pedidos
-                                 WHERE Data IS NOT NULL
-                                   AND CONVERT(date, Data) = CONVERT(date, GETDATE())
-                                   AND Status = 'Finalizado') AS FatHoje,
+                var ind = await _repo.GetIndicadoresDiaAsync();
+                decimal ticket = ind.Pedidos > 0 ? ind.Faturamento / ind.Pedidos : 0;
 
-                                -- pedidos finalizados hoje (efetivamente saíram)
-                                (SELECT COUNT(*)
-                                 FROM Pedidos
-                                 WHERE Data IS NOT NULL
-                                   AND CONVERT(date, Data) = CONVERT(date, GETDATE())
-                                   AND Status = 'Finalizado') AS PedidosHoje,
-
-                                -- em producao agora (independe de data — é o estado atual)
-                                (SELECT COUNT(*)
-                                 FROM Pedidos
-                                 WHERE Status NOT IN ('Finalizado','Cancelado')) AS EmProducao,
-
-                                -- cancelados hoje
-                                (SELECT COUNT(*)
-                                 FROM Pedidos
-                                 WHERE Data IS NOT NULL
-                                   AND CONVERT(date, Data) = CONVERT(date, GETDATE())
-                                   AND Status = 'Cancelado') AS Cancelados,
-
-                                -- finalizados hoje
-                                (SELECT COUNT(*)
-                                 FROM Pedidos
-                                 WHERE Data IS NOT NULL
-                                   AND CONVERT(date, Data) = CONVERT(date, GETDATE())
-                                   AND Status = 'Finalizado') AS Finalizados,
-
-                                -- motoboys na escala hoje
-                                (SELECT COUNT(DISTINCT IdMotoboy)
-                                 FROM EscalaMotoboy
-                                 WHERE Ativo = 1) AS MotoboysEscala,
-
-                                -- produto mais vendido hoje (só de pedidos finalizados)
-                                (SELECT TOP 1 pr.Nome
-                                 FROM ItensPedido i
-                                 JOIN Produtos pr ON pr.Id = i.IdProduto
-                                 JOIN Pedidos p   ON p.Id  = i.IdPedido
-                                 WHERE p.Data IS NOT NULL
-                                   AND CONVERT(date, p.Data) = CONVERT(date, GETDATE())
-                                   AND p.Status = 'Finalizado'
-                                 GROUP BY pr.Nome
-                                 ORDER BY SUM(i.Quantidade) DESC) AS MaisVendido
-                            ", conn))
-                    {
-                        cmd.CommandTimeout = 30;
-                        using (var da = new SqlDataAdapter(cmd))
-                        {
-                            dt = new DataTable();
-                            da.Fill(dt);
-                        }
-                    }
-                });
-
-                if (dt == null || dt.Rows.Count == 0) return;
-                var row = dt.Rows[0];
-
-                decimal fat = row["FatHoje"] == DBNull.Value ? 0 : Convert.ToDecimal(row["FatHoje"]);
-                int pedidos = row["PedidosHoje"] == DBNull.Value ? 0 : Convert.ToInt32(row["PedidosHoje"]);
-                int emProd = row["EmProducao"] == DBNull.Value ? 0 : Convert.ToInt32(row["EmProducao"]);
-                int cancel = row["Cancelados"] == DBNull.Value ? 0 : Convert.ToInt32(row["Cancelados"]);
-                int final = row["Finalizados"] == DBNull.Value ? 0 : Convert.ToInt32(row["Finalizados"]);
-                string maisV = row["MaisVendido"] == DBNull.Value ? "-" : row["MaisVendido"].ToString();
-                decimal ticket = pedidos > 0 ? fat / pedidos : 0;
-
-                // atualiza UI na thread principal
-                _lblFaturamento.Text = fat.ToString("N2");
-                _lblPedidos.Text = pedidos.ToString();
+                _lblFaturamento.Text = ind.Faturamento.ToString("N2");
+                _lblPedidos.Text = ind.Pedidos.ToString();
                 _lblTicket.Text = ticket.ToString("N2");
-                _lblEmProducao.Text = emProd.ToString();
-                _lblMaisVendido.Text = maisV;
-                _lblCancelados.Text = cancel.ToString();
-                if (_lblFinalizados != null) _lblFinalizados.Text = final.ToString();
+                _lblEmProducao.Text = ind.EmProducao.ToString();
+                _lblMaisVendido.Text = ind.MaisVendido;
+                _lblCancelados.Text = ind.Cancelados.ToString();
+                if (_lblFinalizados != null) _lblFinalizados.Text = ind.Finalizados.ToString();
 
                 // ✅ Card de escala: total de motoboys escalados por dia da semana
-                _lblMotoboys.Text = await ObterEscalaPorDiaAsync();
+                _lblMotoboys.Text = FormatarEscala(await _repo.GetEscalaPorDiaAsync());
             }
             catch (Exception ex)
             {
@@ -380,36 +303,11 @@ namespace DevBurguer.Forms
         }
 
         /// <summary>
-        /// Retorna, por dia da semana, quantos motoboys estão escalados (Ativo=1).
-        /// Texto multi-linha pronto para o card "ESCALA — MOTOBOYS / DIA".
+        /// Formata a contagem de motoboys por dia da semana em texto multi-linha
+        /// para o card "ESCALA — MOTOBOYS / DIA".
         /// </summary>
-        private async Task<string> ObterEscalaPorDiaAsync()
+        private static string FormatarEscala(int[] contagem)
         {
-            var contagem = new int[8]; // posições 1..7 = Seg..Dom
-
-            await Task.Run(() =>
-            {
-                using (var conn = Conexao.GetConnection())
-                using (var cmd = new SqlCommand(
-                    @"SELECT DiaSemana, COUNT(DISTINCT IdMotoboy) AS Qtd
-                      FROM EscalaMotoboy
-                      WHERE Ativo = 1
-                      GROUP BY DiaSemana", conn))
-                {
-                    cmd.CommandTimeout = 30;
-                    conn.Open();
-                    using (var dr = cmd.ExecuteReader())
-                    {
-                        while (dr.Read())
-                        {
-                            int dia = Convert.ToInt32(dr["DiaSemana"]);
-                            if (dia >= 1 && dia <= 7)
-                                contagem[dia] = Convert.ToInt32(dr["Qtd"]);
-                        }
-                    }
-                }
-            });
-
             string[] nomes = { "", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom" };
             var sb = new System.Text.StringBuilder();
             for (int d = 1; d <= 7; d++)
@@ -431,4 +329,3 @@ namespace DevBurguer.Forms
         }
     }
 }
-
