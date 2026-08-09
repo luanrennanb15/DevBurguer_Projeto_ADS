@@ -54,9 +54,22 @@ O que precisa melhorar:
 Deixar o desktop coeso, sem SQL nas telas, em camadas de verdade. Baixo risco,
 é a fundação pro resto.
 
-### Fase 2 — Deploy da web
+### Fase 2 — Deploy da web  ← **EM ANDAMENTO**
 Banco na nuvem, API hospedada, site publicado. Config por ambiente, CORS
 travado, autenticação na API. Aprende deploy sem mexer muito no desktop.
+
+Progresso da API (testada no sandbox — sobe e responde):
+- [x] CORS configurável por ambiente (`CORS_ORIGIN`); `*` só em dev.
+- [x] `.env.exemplo` limpo — **removida a senha real** que estava exposta ali
+      (ver alerta abaixo). Agora só placeholders, com notas de nuvem vs local.
+- [ ] Provisionar banco gerenciado (Azure SQL / outro) e migrar o schema.
+- [ ] Hospedar a API (Render / Railway / Fly) com as variáveis de ambiente.
+- [ ] Publicar o site (Netlify / Vercel) apontando `CONFIG.api.baseUrl` para a API.
+- [ ] Autenticação simples na API (chave/token) antes de expor à internet.
+
+> ⚠️ **Segurança:** o `.env.exemplo` continha uma senha de banco real. Se esse
+> arquivo já foi commitado/compartilhado, **troque a senha do usuário SQL**
+> por garantia. O `.env` de verdade continua no `.gitignore` (correto).
 
 ### Fase 3 — Back-end único
 Expandir a API para cobrir tudo que o desktop faz e transformar o desktop em
@@ -132,4 +145,6 @@ telas testáveis. Opcional nesta fase; recomendado antes da Fase 3.
 | jun/2026 | FormPrevisao → PrevisaoRepository | ✅ |
 | jun/2026 | FormEscalaMotoboy → EscalaMotoboyRepository | ✅ |
 | jun/2026 | **Item 1.1 concluído — SQL 100% fora das telas** | ✅ |
-| — | Próximo: 1.3 separar em projetos (Core/Data/Services/UI) | ⏳ |
+| jun/2026 | Fase 2: API deploy-ready (CORS por env, .env limpo) — testada | ✅ |
+| — | Pendente 1.3 (separar em projetos) — exige compilar junto | ⏳ |
+| — | Fase 2: banco na nuvem + hospedar API + publicar site | ⏳ |

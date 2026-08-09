@@ -21,8 +21,16 @@ const PORT = process.env.PORT || 3001;
 // ─── Middlewares ────────────────────────────────────────────────
 
 // CORS: permite que o site (rodando em outro endereço) chame a API.
-// Em produção, troque "*" pela URL real do site para mais segurança.
-app.use(cors());
+// Em produção, defina CORS_ORIGIN no .env com a URL do site (uma ou mais,
+// separadas por vírgula). Em desenvolvimento, o padrão "*" libera todos.
+const origensPermitidas = (process.env.CORS_ORIGIN || '*')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+
+app.use(cors({
+    origin: origensPermitidas.includes('*') ? '*' : origensPermitidas,
+}));
 
 // Faz o Express entender JSON no corpo das requisições
 app.use(express.json());
