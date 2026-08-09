@@ -62,7 +62,9 @@ Progresso da API (testada no sandbox — sobe e responde):
 - [x] CORS configurável por ambiente (`CORS_ORIGIN`); `*` só em dev.
 - [x] `.env.exemplo` limpo — **removida a senha real** que estava exposta ali
       (ver alerta abaixo). Agora só placeholders, com notas de nuvem vs local.
-- [ ] Provisionar banco gerenciado (Azure SQL / outro) e migrar o schema.
+- [x] Schema pronto para nuvem: `deploy_schema_nuvem.sql` (só tabelas/chaves/FKs,
+      sem CREATE DATABASE nem filegroup). Rodar no banco gerenciado após criá-lo.
+- [ ] Provisionar o banco gerenciado (Azure SQL / outro) e rodar o schema acima.
 - [ ] Hospedar a API (Render / Railway / Fly) com as variáveis de ambiente.
 - [ ] Publicar o site (Netlify / Vercel) apontando `CONFIG.api.baseUrl` para a API.
 - [ ] Autenticação simples na API (chave/token) antes de expor à internet.
