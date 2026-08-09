@@ -7,6 +7,21 @@ namespace DevBurguer.Data
 {
     public class MotoboyRepository
     {
+        /// <summary>Todos os motoboys, ordenados por nome (versão síncrona).</summary>
+        public DataTable GetAll()
+        {
+            const string sql = "SELECT * FROM Motoboys ORDER BY Nome";
+            try
+            {
+                return DbHelper.ExecuteDataTable(sql);
+            }
+            catch (System.Exception ex)
+            {
+                ExceptionLogger.Log(ex, "MotoboyRepository.GetAll");
+                throw;
+            }
+        }
+
         public async Task<DataTable> GetAllAsync()
         {
             const string sql = "SELECT * FROM Motoboys ORDER BY Nome";

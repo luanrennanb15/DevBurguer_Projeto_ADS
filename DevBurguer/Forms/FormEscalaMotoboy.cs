@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DevBurguer.Banco;
+using DevBurguer.Data;
 
 namespace DevBurguer.Forms
 {
@@ -23,6 +23,10 @@ namespace DevBurguer.Forms
         private readonly Color CDarkPnl = Color.FromArgb(28, 22, 10);
         private readonly Color CText = Color.FromArgb(250, 240, 210);
         private readonly Color CMuted = Color.FromArgb(160, 140, 90);
+
+        // acesso a dados — a tela não conhece SQL nem transação
+        private readonly EscalaMotoboyRepository _escalaRepo = new EscalaMotoboyRepository();
+        private readonly MotoboyRepository _motoboyRepo = new MotoboyRepository();
 
         private static readonly string[] DIAS = {
             "Segunda-Feira", "Terca-Feira", "Quarta-Feira",
@@ -364,26 +368,12 @@ namespace DevBurguer.Forms
 
         private DataTable BuscarMotoboys()
         {
-            using (var c = Conexao.GetConnection())
-            using (var cmd = new SqlCommand("SELECT Id, Nome FROM Motoboys ORDER BY Nome", c))
-            {
-                c.Open();
-                var dt = new DataTable();
-                using (var da = new SqlDataAdapter(cmd)) da.Fill(dt);
-                return dt;
-            }
+            return _motoboyRepo.GetAll();
         }
 
         private DataTable BuscarEscala()
         {
-            using (var c = Conexao.GetConnection())
-            using (var cmd = new SqlCommand("SELECT IdMotoboy, DiaSemana FROM EscalaMotoboy WHERE Ativo=1", c))
-            {
-                c.Open();
-                var dt = new DataTable();
-                using (var da = new SqlDataAdapter(cmd)) da.Fill(dt);
-                return dt;
-            }
+            return _escalaRepo.GetEscalaAtiva();
         }
 
         private void PreencherCombo()
@@ -462,48 +452,8 @@ namespace DevBurguer.Forms
                     return;
                 }
 
-                // 3) Aplica as mudanças em transação
-                await Task.Run(() =>
-                {
-                    using (var conn = Conexao.GetConnection())
-                    {
-                        conn.Open();
-                        using (var tr = conn.BeginTransaction())
-                        {
-                            try
-                            {
-                                // DELETE específico — só os pares que saíram
-                                foreach (var (idM, dia) in paraApagar)
-                                {
-                                    using (var cmd = new SqlCommand(
-                                        "DELETE FROM EscalaMotoboy WHERE IdMotoboy=@m AND DiaSemana=@d",
-                                        conn, tr))
-                                    {
-                                        cmd.Parameters.Add(new SqlParameter("@m", SqlDbType.Int) { Value = idM });
-                                        cmd.Parameters.Add(new SqlParameter("@d", SqlDbType.Int) { Value = dia });
-                                        cmd.ExecuteNonQuery();
-                                    }
-                                }
-
-                                // INSERT específico — só os pares novos
-                                foreach (var (idM, dia) in paraInserir)
-                                {
-                                    using (var cmd = new SqlCommand(
-                                        "INSERT INTO EscalaMotoboy(IdMotoboy,DiaSemana,Ativo) VALUES(@m,@d,1)",
-                                        conn, tr))
-                                    {
-                                        cmd.Parameters.Add(new SqlParameter("@m", SqlDbType.Int) { Value = idM });
-                                        cmd.Parameters.Add(new SqlParameter("@d", SqlDbType.Int) { Value = dia });
-                                        cmd.ExecuteNonQuery();
-                                    }
-                                }
-
-                                tr.Commit();
-                            }
-                            catch { tr.Rollback(); throw; }
-                        }
-                    }
-                });
+                // 3) Aplica as mudanças em transação (na camada de dados)
+                await Task.Run(() => _escalaRepo.SalvarAlteracoes(paraInserir, paraApagar));
 
                 // 4) Atualiza o estado de referência
                 _estadoSalvo = estadoAtual;

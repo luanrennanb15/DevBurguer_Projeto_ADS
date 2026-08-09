@@ -7,7 +7,7 @@ using System.Drawing.Drawing2D;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
-using DevBurguer.Banco;
+using DevBurguer.Data;
 using DevBurguer.Services;
 
 namespace DevBurguer.Forms
@@ -34,6 +34,9 @@ namespace DevBurguer.Forms
         private Label _lblTendencia, _lblAmanha, _lblSemana, _lblMelhorDia;
         private Label _lblStatus2;
         private Panel _pnlCards;
+
+        // acesso a dados (a query sai da tela; o cálculo da regressão fica aqui)
+        private readonly PrevisaoRepository _repo = new PrevisaoRepository();
 
         public FormPrevisao()
         {
@@ -330,31 +333,11 @@ namespace DevBurguer.Forms
         private List<(DateTime data, decimal valor)> BuscarHistorico()
         {
             var lista = new List<(DateTime, decimal)>();
-            // ✅ FIX: removido ISNULL(Data, GETDATE()) — pedidos com Data NULL
-            // viravam "hoje" e inflavam o faturamento do dia atual
-            const string sql = @"
-                SELECT
-                    CONVERT(date, Data) AS Dia,
-                    SUM(Total) AS Faturamento
-                FROM Pedidos
-                WHERE Data IS NOT NULL
-                  AND Data >= DATEADD(day, -30, GETDATE())
-                  AND ISNULL(Status,'') = 'Finalizado'
-                GROUP BY CONVERT(date, Data)
-                ORDER BY Dia ASC";
 
-            using (var conn = Conexao.GetConnection())
-            using (var cmd = new SqlCommand(sql, conn) { CommandTimeout = 60 })
-            {
-                conn.Open();
-                using (var da = new SqlDataAdapter(cmd))
-                {
-                    var dt = new DataTable();
-                    da.Fill(dt);
-                    foreach (DataRow r in dt.Rows)
-                        lista.Add((Convert.ToDateTime(r["Dia"]), Convert.ToDecimal(r["Faturamento"])));
-                }
-            }
+            var dt = _repo.ObterFaturamentoDiario(30);
+            foreach (DataRow r in dt.Rows)
+                lista.Add((Convert.ToDateTime(r["Dia"]), Convert.ToDecimal(r["Faturamento"])));
+
             return lista;
         }
 
