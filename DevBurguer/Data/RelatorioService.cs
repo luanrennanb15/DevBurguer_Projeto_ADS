@@ -71,6 +71,22 @@ namespace DevBurguer.Data
             GROUP BY m.Nome
             ORDER BY TotalRecebido DESC";
 
+        // Mesma query, mas com filtro opcional por motoboy (@idMotoboy = 0 => todos).
+        private const string SQL_FATURAMENTO_MOTOBOY_FILTRADO = @"
+            SELECT
+                m.Nome                                            AS Motoboy,
+                COUNT(DISTINCT CONVERT(date, p.DataPagamento))    AS Dias,
+                SUM(p.QuantidadeEntregas)                         AS TotalEntregas,
+                SUM(p.ValorTotalEntregas)                         AS ValorEntregas,
+                SUM(p.ValorChegada)                               AS ValorChegada,
+                SUM(p.TotalPagar)                                 AS TotalRecebido
+            FROM PagamentoMotoboy p
+            INNER JOIN Motoboys m ON m.Id = p.IdMotoboy
+            WHERE p.DataPagamento BETWEEN @DataInicio AND @DataFim
+              AND (@idMotoboy = 0 OR p.IdMotoboy = @idMotoboy)
+            GROUP BY m.Nome
+            ORDER BY TotalRecebido DESC";
+
         // ── métodos públicos ──────────────────────────────────────
 
         public DataTable ObterProdutosMaisVendidos(DateTime dataInicio, DateTime dataFim, int top = 10)
@@ -86,6 +102,22 @@ namespace DevBurguer.Data
         public DataTable ObterFaturamentoPorMotoboy(DateTime dataInicio, DateTime dataFim)
         {
             return DbHelper.ExecuteDataTable(SQL_FATURAMENTO_MOTOBOY, ParamsPeriodo(dataInicio, dataFim));
+        }
+
+        /// <summary>
+        /// Faturamento por motoboy no período. Se idMotoboy &gt; 0, filtra só
+        /// aquele motoboy; se 0, traz todos. As datas são usadas exatamente
+        /// como recebidas (a tela já ajusta o fim para o fim do dia).
+        /// </summary>
+        public DataTable ObterFaturamentoPorMotoboy(DateTime inicio, DateTime fim, int idMotoboy)
+        {
+            var p = new SqlParameter[]
+            {
+                new SqlParameter("@DataInicio", SqlDbType.DateTime) { Value = inicio },
+                new SqlParameter("@DataFim",    SqlDbType.DateTime) { Value = fim },
+                new SqlParameter("@idMotoboy",  SqlDbType.Int)      { Value = idMotoboy }
+            };
+            return DbHelper.ExecuteDataTable(SQL_FATURAMENTO_MOTOBOY_FILTRADO, p);
         }
 
         // ── versões async ─────────────────────────────────────────

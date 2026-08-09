@@ -7,12 +7,16 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
-using DevBurguer.Banco;
+using DevBurguer.Data;
 
 namespace DevBurguer
 {
     public partial class FormFaturamentoMotoboy : Form
     {
+        // Acesso a dados fica na camada de dados — sem SQL na tela.
+        private readonly RelatorioService _relatorio = new RelatorioService();
+        private readonly MotoboyRepository _motoboyRepo = new MotoboyRepository();
+
         // Alturas fixas — total = 418px, grid = 661 - 418 = 243px
         private const int AltTopo = 46;
         private const int AltCards = 90;
@@ -173,24 +177,18 @@ namespace DevBurguer
         {
             try
             {
-                using (var conn = Conexao.GetConnection())
-                {
-                    conn.Open();
-                    var da = new SqlDataAdapter("SELECT Id, Nome FROM Motoboys ORDER BY Nome", conn);
-                    var dt = new DataTable();
-                    da.Fill(dt);
+                var dt = _motoboyRepo.GetAll();
 
-                    // Adiciona opção "Todos"
-                    var rowTodos = dt.NewRow();
-                    rowTodos["Id"] = 0;
-                    rowTodos["Nome"] = "— Todos —";
-                    dt.Rows.InsertAt(rowTodos, 0);
+                // Adiciona opção "Todos"
+                var rowTodos = dt.NewRow();
+                rowTodos["Id"] = 0;
+                rowTodos["Nome"] = "— Todos —";
+                dt.Rows.InsertAt(rowTodos, 0);
 
-                    cmbMotoboy.DataSource = dt;
-                    cmbMotoboy.DisplayMember = "Nome";
-                    cmbMotoboy.ValueMember = "Id";
-                    cmbMotoboy.SelectedIndex = 0;
-                }
+                cmbMotoboy.DataSource = dt;
+                cmbMotoboy.DisplayMember = "Nome";
+                cmbMotoboy.ValueMember = "Id";
+                cmbMotoboy.SelectedIndex = 0;
             }
             catch (Exception ex) { DevBurguer.Services.ExceptionLogger.Log(ex, "CarregarMotoboys"); DialogHelper.Erro("Erro ao carregar motoboys."); }
         }
@@ -234,58 +232,27 @@ namespace DevBurguer
 
             try
             {
-                string filtroMotoboy = idMotoboy > 0 ? "AND p.IdMotoboy = @idMotoboy" : "";
+                var dt = _relatorio.ObterFaturamentoPorMotoboy(inicio, fim, idMotoboy);
 
-                // ✅ FIX: COUNT(DISTINCT CONVERT(date, p.DataPagamento)) — antes COUNT(p.Id)
-                // contava 2 vezes se houvesse 2 pagamentos no mesmo dia
-                string sql = string.Format(@"
-                    SELECT
-                        m.Nome                                            AS Motoboy,
-                        COUNT(DISTINCT CONVERT(date, p.DataPagamento))    AS Dias,
-                        SUM(p.QuantidadeEntregas)                         AS TotalEntregas,
-                        SUM(p.ValorTotalEntregas)                         AS ValorEntregas,
-                        SUM(p.ValorChegada)                               AS ValorChegada,
-                        SUM(p.TotalPagar)                                 AS TotalRecebido
-                    FROM PagamentoMotoboy p
-                    INNER JOIN Motoboys m ON m.Id = p.IdMotoboy
-                    WHERE p.DataPagamento BETWEEN @inicio AND @fim
-                    {0}
-                    GROUP BY m.Nome
-                    ORDER BY TotalRecebido DESC", filtroMotoboy);
+                // Grid
+                dgvFaturamento.DataSource = null;
+                dgvFaturamento.DataSource = dt;
+                if (dgvFaturamento.Columns["TotalRecebido"] != null) dgvFaturamento.Columns["TotalRecebido"].DefaultCellStyle.Format = "C2";
+                if (dgvFaturamento.Columns["ValorEntregas"] != null) dgvFaturamento.Columns["ValorEntregas"].DefaultCellStyle.Format = "C2";
+                if (dgvFaturamento.Columns["ValorChegada"] != null) dgvFaturamento.Columns["ValorChegada"].DefaultCellStyle.Format = "C2";
 
-                using (var conn = Conexao.GetConnection())
+                // Gráfico
+                chart.Series["Fat"].Points.Clear();
+                foreach (DataRow r in dt.Rows)
                 {
-                    conn.Open();
-                    var cmd = new SqlCommand(sql, conn);
-                    cmd.Parameters.AddWithValue("@inicio", inicio);
-                    cmd.Parameters.AddWithValue("@fim", fim);
-                    if (idMotoboy > 0)
-                        cmd.Parameters.AddWithValue("@idMotoboy", idMotoboy);
-
-                    var da = new SqlDataAdapter(cmd);
-                    var dt = new DataTable();
-                    da.Fill(dt);
-
-                    // Grid
-                    dgvFaturamento.DataSource = null;
-                    dgvFaturamento.DataSource = dt;
-                    if (dgvFaturamento.Columns["TotalRecebido"] != null) dgvFaturamento.Columns["TotalRecebido"].DefaultCellStyle.Format = "C2";
-                    if (dgvFaturamento.Columns["ValorEntregas"] != null) dgvFaturamento.Columns["ValorEntregas"].DefaultCellStyle.Format = "C2";
-                    if (dgvFaturamento.Columns["ValorChegada"] != null) dgvFaturamento.Columns["ValorChegada"].DefaultCellStyle.Format = "C2";
-
-                    // Gráfico
-                    chart.Series["Fat"].Points.Clear();
-                    foreach (DataRow r in dt.Rows)
-                    {
-                        string nome = r["Motoboy"].ToString();
-                        if (nome.Length > 12) nome = nome.Split(' ')[0]; // só o primeiro nome
-                        var pt = chart.Series["Fat"].Points.Add(Convert.ToDouble(r["TotalRecebido"]));
-                        pt.AxisLabel = nome;
-                        pt.Label = Convert.ToDecimal(r["TotalRecebido"]).ToString("C2");
-                    }
-
-                    AtualizarCards(dt);
+                    string nome = r["Motoboy"].ToString();
+                    if (nome.Length > 12) nome = nome.Split(' ')[0]; // só o primeiro nome
+                    var pt = chart.Series["Fat"].Points.Add(Convert.ToDouble(r["TotalRecebido"]));
+                    pt.AxisLabel = nome;
+                    pt.Label = Convert.ToDecimal(r["TotalRecebido"]).ToString("C2");
                 }
+
+                AtualizarCards(dt);
             }
             catch (Exception ex) { DevBurguer.Services.ExceptionLogger.Log(ex, "FormFaturamentoMotoboy.Carregar"); DialogHelper.Erro("Erro ao carregar faturamento."); }
         }

@@ -50,6 +50,7 @@
     <Compile Include="Banco\Conexao.cs" />
     <Compile Include="Data\ClienteRepository.cs" />
     <Compile Include="Data\DashboardRepository.cs" />
+    <Compile Include="Data\EscalaMotoboyRepository.cs" />
     <Compile Include="Data\Configuracoes.cs" />
     <Compile Include="Data\DbHelper.cs" />
     <Compile Include="Data\DbHelperAdapter.cs" />
@@ -58,6 +59,7 @@
     <Compile Include="Data\MotoboyRepository.cs" />
     <Compile Include="Data\PagamentoMotoboyRepository.cs" />
     <Compile Include="Data\PedidoRepository.cs" />
+    <Compile Include="Data\PrevisaoRepository.cs" />
     <Compile Include="Data\ProdutoRepository.cs" />
     <Compile Include="Data\RelatorioService.cs" />
     <Compile Include="Data\SqlLoader.cs" />

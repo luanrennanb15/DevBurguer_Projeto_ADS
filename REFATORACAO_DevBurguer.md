@@ -79,11 +79,12 @@ Cada tela com SQL inline passa a chamar um repositório. Ordem sugerida
 - [x] **FormLogin** → `UsuarioRepository` + `SecurityHelper` *(feito)*
 - [x] **FormConfiguracoes** → *sem mudança: já usa a camada de config (`Conexao`), sem SQL na tela*
 - [x] **FormMotoboy** → `MotoboyRepository` *(feito)*
-- [ ] FormEscalaMotoboy → `EscalaMotoboyRepository`
+- [x] **FormEscalaMotoboy** → `EscalaMotoboyRepository` *(feito — inclui o save em transação)*
 - [x] **FormDashboard** → `DashboardRepository` *(feito)*
-- [ ] FormFaturamentoMotoboy → `RelatorioService`
-- [ ] FormPrevisao → `PrevisaoRepository` (só a busca de dados; o cálculo da
-      regressão linear fica num serviço `PrevisaoService`)
+- [x] **FormFaturamentoMotoboy** → `RelatorioService` (+ `MotoboyRepository.GetAll`) *(feito)*
+- [x] **FormPrevisao** → `PrevisaoRepository` *(feito — cálculo da regressão segue na tela)*
+
+**✅ Item 1.1 concluído: nenhuma tela acessa o banco diretamente.**
 
 ### 1.2 Padrão de repositório (convenção)
 - Métodos `async`, retornam dados (DataTable ou Model), nunca mexem em UI.
@@ -127,4 +128,8 @@ telas testáveis. Opcional nesta fase; recomendado antes da Fase 3.
 | jun/2026 | FormMotoboy → MotoboyRepository | ✅ |
 | jun/2026 | FormConfiguracoes (revisado — já estava correto) | ✅ |
 | jun/2026 | FormDashboard → DashboardRepository | ✅ |
-| — | Faltam: FormEscalaMotoboy, FormFaturamentoMotoboy, FormPrevisao | ⏳ |
+| jun/2026 | FormFaturamentoMotoboy → RelatorioService | ✅ |
+| jun/2026 | FormPrevisao → PrevisaoRepository | ✅ |
+| jun/2026 | FormEscalaMotoboy → EscalaMotoboyRepository | ✅ |
+| jun/2026 | **Item 1.1 concluído — SQL 100% fora das telas** | ✅ |
+| — | Próximo: 1.3 separar em projetos (Core/Data/Services/UI) | ⏳ |
