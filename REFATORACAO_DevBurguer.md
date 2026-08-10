@@ -62,9 +62,15 @@ Progresso da API (testada no sandbox — sobe e responde):
 - [x] CORS configurável por ambiente (`CORS_ORIGIN`); `*` só em dev.
 - [x] `.env.exemplo` limpo — **removida a senha real** que estava exposta ali
       (ver alerta abaixo). Agora só placeholders, com notas de nuvem vs local.
-- [x] Schema pronto para nuvem: `deploy_schema_nuvem.sql` (só tabelas/chaves/FKs,
-      sem CREATE DATABASE nem filegroup). Rodar no banco gerenciado após criá-lo.
-- [ ] Provisionar o banco gerenciado (Azure SQL / outro) e rodar o schema acima.
+- [x] **Decisão: banco em PostgreSQL** (gratuito, sem cartão — Supabase/Neon).
+- [x] Schema PostgreSQL: `deploy_schema_postgres.sql` (rodar no Supabase/Neon).
+- [x] API migrada de SQL Server → PostgreSQL (driver `pg`, queries com `$1`,
+      `RETURNING`, `NOW() - INTERVAL`, `COALESCE`, transações via `client`).
+      Testada no sandbox: app carrega e valida requisições sem erro.
+- [x] `.env.exemplo` atualizado para Postgres (host/SSL) e sem senha real.
+- [ ] Criar projeto no Supabase/Neon e rodar `deploy_schema_postgres.sql`.
+- [ ] Preencher o `.env` da API com a connection string do Postgres e testar conexão.
+- (obs) `deploy_schema_nuvem.sql` (SQL Server) fica de reserva caso mude de ideia.
 - [ ] Hospedar a API (Render / Railway / Fly) com as variáveis de ambiente.
 - [ ] Publicar o site (Netlify / Vercel) apontando `CONFIG.api.baseUrl` para a API.
 - [ ] Autenticação simples na API (chave/token) antes de expor à internet.
