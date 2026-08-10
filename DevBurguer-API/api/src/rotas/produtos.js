@@ -1,39 +1,34 @@
 /**
  * ROTAS/PRODUTOS.JS
- * Endpoints de leitura do cardápio.
+ * Endpoints de leitura do cardapio (PostgreSQL).
  *
- *   GET /api/produtos    -> lista todos os produtos do banco
- *   GET /api/categorias  -> lista as categorias distintas
+ *   GET /api/produtos       -> lista os produtos ativos do banco
+ *   GET /api/categorias     -> lista as categorias distintas
+ *   GET /api/mais-vendidos  -> ranking dos produtos mais vendidos (30 dias)
  */
 
 const express = require('express');
 const router = express.Router();
-const { getPool } = require('../db/db');
+const { pool } = require('../db/db');
 const { categoriaParaSite } = require('../config/categorias');
 
-/**
- * GET /api/produtos
- * Retorna todos os produtos cadastrados no sistema desktop.
- * O site usa isso para montar o cardápio (substitui o data.js fixo).
- */
+// GET /api/produtos  -> todos os produtos ativos
 router.get('/produtos', async (req, res) => {
     try {
-        const pool = await getPool();
-        const resultado = await pool.request().query(`
-            SELECT Id, Nome, Preco, Categoria, Ingredientes
-            FROM Produtos
-            WHERE Ativo = 1
-            ORDER BY Categoria, Nome
+        const resultado = await pool.query(`
+            SELECT id, nome, preco, categoria, ingredientes
+            FROM produtos
+            WHERE ativo = TRUE
+            ORDER BY categoria, nome
         `);
 
-        // Converte cada linha para o formato que o site espera
-        const produtos = resultado.recordset.map(p => ({
-            id:           p.Id,
-            nome:         p.Nome,
-            preco:        Number(p.Preco),
-            categoria:    categoriaParaSite(p.Categoria),
-            categoriaBanco: p.Categoria,        // nome original (útil pra debug)
-            descricao:    p.Ingredientes || '',
+        const produtos = resultado.rows.map(p => ({
+            id:             p.id,
+            nome:           p.nome,
+            preco:          Number(p.preco),
+            categoria:      categoriaParaSite(p.categoria),
+            categoriaBanco: p.categoria,
+            descricao:      p.ingredientes || '',
         }));
 
         res.json(produtos);
@@ -43,22 +38,18 @@ router.get('/produtos', async (req, res) => {
     }
 });
 
-/**
- * GET /api/categorias
- * Retorna as categorias distintas (já traduzidas para o slug do site).
- */
+// GET /api/categorias -> categorias distintas (traduzidas para o slug do site)
 router.get('/categorias', async (req, res) => {
     try {
-        const pool = await getPool();
-        const resultado = await pool.request().query(`
-            SELECT DISTINCT Categoria FROM Produtos
-            WHERE Categoria IS NOT NULL AND Ativo = 1
-            ORDER BY Categoria
+        const resultado = await pool.query(`
+            SELECT DISTINCT categoria FROM produtos
+            WHERE categoria IS NOT NULL AND ativo = TRUE
+            ORDER BY categoria
         `);
 
-        const categorias = resultado.recordset.map(c => ({
-            slug:  categoriaParaSite(c.Categoria),
-            label: c.Categoria,
+        const categorias = resultado.rows.map(c => ({
+            slug:  categoriaParaSite(c.categoria),
+            label: c.categoria,
         }));
 
         res.json(categorias);
@@ -68,49 +59,35 @@ router.get('/categorias', async (req, res) => {
     }
 });
 
-/**
- * GET /api/mais-vendidos
- * Retorna os produtos mais vendidos (ranking real, do banco).
- * Considera apenas pedidos com Status = 'Finalizado' dos ULTIMOS 30 DIAS.
- * Aceita ?top=3 para limitar a quantidade (padrão 3).
- *
- * Usado pelo site para montar a seção "Top 3" com dados reais.
- */
+// GET /api/mais-vendidos?top=3 -> ranking (Finalizado, ultimos 30 dias)
 router.get('/mais-vendidos', async (req, res) => {
     try {
-        // Quantos produtos retornar (padrão 3, máximo 20)
         let top = parseInt(req.query.top, 10);
         if (isNaN(top) || top <= 0) top = 3;
         if (top > 20) top = 20;
 
-        const pool = await getPool();
-        const resultado = await pool.request()
-            .input('top', top)
-            .query(`
-                SELECT TOP (@top)
-                    p.Id,
-                    p.Nome,
-                    p.Preco,
-                    p.Categoria,
-                    p.Ingredientes,
-                    SUM(i.Quantidade) AS TotalVendido
-                FROM ItensPedido i
-                INNER JOIN Produtos p   ON p.Id   = i.IdProduto
-                INNER JOIN Pedidos  ped ON ped.Id = i.IdPedido
-                WHERE ped.Status = 'Finalizado'
-                  AND ped.Data >= DATEADD(day, -30, GETDATE())
-                  AND p.Ativo = 1
-                GROUP BY p.Id, p.Nome, p.Preco, p.Categoria, p.Ingredientes
-                ORDER BY TotalVendido DESC
-            `);
+        const resultado = await pool.query(`
+            SELECT
+                p.id, p.nome, p.preco, p.categoria, p.ingredientes,
+                SUM(i.quantidade) AS totalvendido
+            FROM itenspedido i
+            JOIN produtos p   ON p.id   = i.idproduto
+            JOIN pedidos  ped ON ped.id = i.idpedido
+            WHERE ped.status = 'Finalizado'
+              AND ped.data >= NOW() - INTERVAL '30 days'
+              AND p.ativo = TRUE
+            GROUP BY p.id, p.nome, p.preco, p.categoria, p.ingredientes
+            ORDER BY totalvendido DESC
+            LIMIT $1
+        `, [top]);
 
-        const produtos = resultado.recordset.map(p => ({
-            id:            p.Id,
-            nome:          p.Nome,
-            preco:         Number(p.Preco),
-            categoria:     categoriaParaSite(p.Categoria),
-            descricao:     p.Ingredientes || '',
-            totalVendido:  Number(p.TotalVendido),
+        const produtos = resultado.rows.map(p => ({
+            id:            p.id,
+            nome:          p.nome,
+            preco:         Number(p.preco),
+            categoria:     categoriaParaSite(p.categoria),
+            descricao:     p.ingredientes || '',
+            totalVendido:  Number(p.totalvendido),
         }));
 
         res.json(produtos);
