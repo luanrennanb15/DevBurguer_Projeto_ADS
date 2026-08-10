@@ -1,61 +1,33 @@
 /**
  * DB.JS
- * Gerencia a conexão (pool) com o SQL Server.
+ * Gerencia a conexao (pool) com o PostgreSQL.
  *
- * Usa um "connection pool": em vez de abrir/fechar conexão a cada
- * requisição, mantém um conjunto de conexões reutilizáveis. Mais rápido.
+ * Usa um "connection pool": em vez de abrir/fechar conexao a cada
+ * requisicao, mantem um conjunto de conexoes reutilizaveis. Mais rapido.
+ *
+ * As credenciais vem do arquivo .env (veja .env.exemplo).
  */
 
-const sql = require('mssql');
+const { Pool } = require('pg');
 
-// Monta a configuração de conexão a partir das variáveis do .env
-const config = {
-    server:   process.env.DB_SERVER   || 'localhost',
-    database: process.env.DB_DATABASE || 'DevBurguerDB',
-    port:     parseInt(process.env.DB_PORT || '1433', 10),
-    options: {
-        encrypt:                parseInt(process.env.DB_ENCRYPT === 'true' ? 1 : 0) === 1,
-        trustServerCertificate: process.env.DB_TRUST_CERT !== 'false',
-        enableArithAbort:       true,
-    },
-    pool: {
-        max: 10,
-        min: 0,
-        idleTimeoutMillis: 30000,
-    },
-};
+const pool = new Pool({
+    host:     process.env.DB_SERVER   || 'localhost',
+    database: process.env.DB_DATABASE || 'devburguer',
+    user:     process.env.DB_USER     || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+    port:     parseInt(process.env.DB_PORT || '5432', 10),
 
-// Se DB_USER estiver preenchido, usa login SQL.
-// Se estiver vazio, tenta Windows Authentication.
-if (process.env.DB_USER && process.env.DB_USER.trim() !== '') {
-    config.user     = process.env.DB_USER;
-    config.password = process.env.DB_PASSWORD;
-} else {
-    // Windows Authentication exige o driver msnodesqlv8 — só funciona no Windows.
-    config.options.trustedConnection = true;
-}
+    // Servicos gerenciados (Supabase, Neon...) exigem SSL. Ligue com DB_SSL=true.
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 
-// Pool único compartilhado por toda a aplicação
-let poolPromise = null;
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+});
 
-/**
- * Retorna o pool de conexão (cria na primeira chamada).
- */
-function getPool() {
-    if (!poolPromise) {
-        poolPromise = new sql.ConnectionPool(config)
-            .connect()
-            .then(pool => {
-                console.log('✓ Conectado ao SQL Server:', config.database);
-                return pool;
-            })
-            .catch(err => {
-                console.error('✗ Falha ao conectar no SQL Server:', err.message);
-                poolPromise = null; // permite tentar de novo na próxima requisição
-                throw err;
-            });
-    }
-    return poolPromise;
-}
+// Loga erros de conexoes ociosas em vez de derrubar o processo.
+pool.on('error', (err) => {
+    console.error('Erro inesperado no pool PostgreSQL:', err.message);
+});
 
-module.exports = { sql, getPool };
+module.exports = { pool };
