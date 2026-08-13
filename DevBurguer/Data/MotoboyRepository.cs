@@ -1,5 +1,6 @@
 ﻿using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 using System.Threading.Tasks;
 using DevBurguer.Services;
 
@@ -45,8 +46,8 @@ namespace DevBurguer.Data
             try
             {
                 var dt = await DbHelper.ExecuteDataTableAsync(sql,
-                    new SqlParameter("@cpf", SqlDbType.NVarChar, 20) { Value = (object)cpf ?? string.Empty },
-                    new SqlParameter("@id", SqlDbType.Int) { Value = ignorarId });
+                    new NpgsqlParameter("@cpf", NpgsqlDbType.Varchar) { Value = (object)cpf ?? string.Empty },
+                    new NpgsqlParameter("@id", NpgsqlDbType.Integer) { Value = ignorarId });
                 return dt.Rows.Count > 0 && System.Convert.ToInt32(dt.Rows[0]["Qtd"]) > 0;
             }
             catch (System.Exception ex)
@@ -63,14 +64,14 @@ namespace DevBurguer.Data
             (Nome, Endereco, Numero, Bairro, Telefone1, Telefone2, CPF) 
             VALUES (@n,@e,@num,@b,@t1,@t2,@cpf)";
 
-            var p = new SqlParameter[] {
-                new SqlParameter("@n", SqlDbType.NVarChar, 200) { Value = nome },
-                new SqlParameter("@e", SqlDbType.NVarChar, 300) { Value = (object)endereco ?? string.Empty },
-                new SqlParameter("@num", SqlDbType.NVarChar, 50) { Value = (object)numero ?? string.Empty },
-                new SqlParameter("@b", SqlDbType.NVarChar, 100) { Value = (object)bairro ?? string.Empty },
-                new SqlParameter("@t1", SqlDbType.NVarChar, 50) { Value = (object)telefone1 ?? string.Empty },
-                new SqlParameter("@t2", SqlDbType.NVarChar, 50) { Value = (object)telefone2 ?? string.Empty },
-                new SqlParameter("@cpf", SqlDbType.NVarChar, 50) { Value = (object)cpf ?? string.Empty }
+            var p = new NpgsqlParameter[] {
+                new NpgsqlParameter("@n", NpgsqlDbType.Varchar) { Value = nome },
+                new NpgsqlParameter("@e", NpgsqlDbType.Varchar) { Value = (object)endereco ?? string.Empty },
+                new NpgsqlParameter("@num", NpgsqlDbType.Varchar) { Value = (object)numero ?? string.Empty },
+                new NpgsqlParameter("@b", NpgsqlDbType.Varchar) { Value = (object)bairro ?? string.Empty },
+                new NpgsqlParameter("@t1", NpgsqlDbType.Varchar) { Value = (object)telefone1 ?? string.Empty },
+                new NpgsqlParameter("@t2", NpgsqlDbType.Varchar) { Value = (object)telefone2 ?? string.Empty },
+                new NpgsqlParameter("@cpf", NpgsqlDbType.Varchar) { Value = (object)cpf ?? string.Empty }
             };
 
             try
@@ -92,15 +93,15 @@ namespace DevBurguer.Data
                 Telefone1=@t1, Telefone2=@t2, CPF=@cpf 
             WHERE Id=@id";
 
-            var p = new SqlParameter[] {
-                new SqlParameter("@n", SqlDbType.NVarChar, 200) { Value = nome },
-                new SqlParameter("@e", SqlDbType.NVarChar, 300) { Value = (object)endereco ?? string.Empty },
-                new SqlParameter("@num", SqlDbType.NVarChar, 50) { Value = (object)numero ?? string.Empty },
-                new SqlParameter("@b", SqlDbType.NVarChar, 100) { Value = (object)bairro ?? string.Empty },
-                new SqlParameter("@t1", SqlDbType.NVarChar, 50) { Value = (object)telefone1 ?? string.Empty },
-                new SqlParameter("@t2", SqlDbType.NVarChar, 50) { Value = (object)telefone2 ?? string.Empty },
-                new SqlParameter("@cpf", SqlDbType.NVarChar, 50) { Value = (object)cpf ?? string.Empty },
-                new SqlParameter("@id", SqlDbType.Int) { Value = id }
+            var p = new NpgsqlParameter[] {
+                new NpgsqlParameter("@n", NpgsqlDbType.Varchar) { Value = nome },
+                new NpgsqlParameter("@e", NpgsqlDbType.Varchar) { Value = (object)endereco ?? string.Empty },
+                new NpgsqlParameter("@num", NpgsqlDbType.Varchar) { Value = (object)numero ?? string.Empty },
+                new NpgsqlParameter("@b", NpgsqlDbType.Varchar) { Value = (object)bairro ?? string.Empty },
+                new NpgsqlParameter("@t1", NpgsqlDbType.Varchar) { Value = (object)telefone1 ?? string.Empty },
+                new NpgsqlParameter("@t2", NpgsqlDbType.Varchar) { Value = (object)telefone2 ?? string.Empty },
+                new NpgsqlParameter("@cpf", NpgsqlDbType.Varchar) { Value = (object)cpf ?? string.Empty },
+                new NpgsqlParameter("@id", NpgsqlDbType.Integer) { Value = id }
             };
 
             try
@@ -117,8 +118,8 @@ namespace DevBurguer.Data
         public async Task DeleteAsync(int id)
         {
             const string sql = "DELETE FROM Motoboys WHERE Id=@id";
-            var p = new SqlParameter[] {
-                new SqlParameter("@id", SqlDbType.Int) { Value = id }
+            var p = new NpgsqlParameter[] {
+                new NpgsqlParameter("@id", NpgsqlDbType.Integer) { Value = id }
             };
 
             try

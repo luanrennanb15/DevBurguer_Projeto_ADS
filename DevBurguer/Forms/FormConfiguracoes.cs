@@ -92,7 +92,7 @@ namespace DevBurguer.Forms
             });
             pnlConteudo.Controls.Add(new Label
             {
-                Text = "Configure o servidor e banco de dados SQL Server. As alteracoes sao salvas em config.txt.",
+                Text = "Configure a conexao PostgreSQL (Supabase/Neon ou local). Salvo em config.txt.",
                 Font = new Font("Segoe UI", 8.5f),
                 ForeColor = CorMuted,
                 AutoSize = true,
@@ -105,7 +105,7 @@ namespace DevBurguer.Forms
             pnlConteudo.Controls.Add(txtServidor);
             pnlConteudo.Controls.Add(new Label
             {
-                Text = "Ex: DESKTOP-N98DB69  ou  localhost  ou  .\\SQLEXPRESS",
+                Text = "Ex: aws-0-xx.pooler.supabase.com  ou  localhost",
                 Font = new Font("Segoe UI", 7.5f),
                 ForeColor = CorMuted,
                 AutoSize = true,
@@ -115,13 +115,13 @@ namespace DevBurguer.Forms
             // Banco
             pnlConteudo.Controls.Add(Lbl("Nome do Banco (Database):", 420, 90));
             txtBanco = Txt(420, 110, 280);
-            txtBanco.Text = "DevBurguerDB";
+            txtBanco.Text = "postgres";
             pnlConteudo.Controls.Add(txtBanco);
 
             // Autenticação Windows
             chkWindowsAuth = new CheckBox
             {
-                Text = "Usar Autenticacao Windows (Trusted Connection)",
+                Text = "Usar SSL (nuvem: Supabase / Neon)",
                 Font = new Font("Segoe UI", 9.5f),
                 ForeColor = CorText,
                 Location = new Point(40, 165),
@@ -132,15 +132,15 @@ namespace DevBurguer.Forms
             pnlConteudo.Controls.Add(chkWindowsAuth);
 
             // Usuário / Senha (SQL Auth)
-            pnlConteudo.Controls.Add(Lbl("Usuario SQL:", 40, 200));
+            pnlConteudo.Controls.Add(Lbl("Usuario:", 40, 200));
             txtUsuario = Txt(40, 218, 200);
-            txtUsuario.Enabled = false;
+            txtUsuario.Enabled = true;
             pnlConteudo.Controls.Add(txtUsuario);
 
-            pnlConteudo.Controls.Add(Lbl("Senha SQL:", 260, 200));
+            pnlConteudo.Controls.Add(Lbl("Senha:", 260, 200));
             txtSenha = Txt(260, 218, 200);
             txtSenha.PasswordChar = '*';
-            txtSenha.Enabled = false;
+            txtSenha.Enabled = true;
             pnlConteudo.Controls.Add(txtSenha);
 
             // Separador
@@ -181,7 +181,7 @@ namespace DevBurguer.Forms
             var btnRestaurar = BtnAcao("Restaurar Padrao", 448, 365, Color.FromArgb(80, 80, 100), 180);
             btnRestaurar.Click += (s, e) =>
             {
-                txtConexaoCompleta.Text = "Server=DESKTOP-N98DB69;Database=DevBurguerDB;Trusted_Connection=True;Connection Timeout=120;";
+                txtConexaoCompleta.Text = "Host=localhost;Port=5432;Database=devburguer;Username=postgres;Password=;SSL Mode=Disable;Timeout=30;";
                 SincronizarCampos();
             };
             pnlConteudo.Controls.Add(btnRestaurar);
@@ -228,11 +228,11 @@ namespace DevBurguer.Forms
             _sincronizando = true;
             try
             {
-                var builder = new System.Data.SqlClient.SqlConnectionStringBuilder(txtConexaoCompleta.Text);
-                txtServidor.Text = builder.DataSource;
-                txtBanco.Text = builder.InitialCatalog;
-                chkWindowsAuth.Checked = builder.IntegratedSecurity;
-                txtUsuario.Text = builder.UserID;
+                var builder = new Npgsql.NpgsqlConnectionStringBuilder(txtConexaoCompleta.Text);
+                txtServidor.Text = builder.Host;
+                txtBanco.Text = builder.Database;
+                chkWindowsAuth.Checked = builder.SslMode != Npgsql.SslMode.Disable;
+                txtUsuario.Text = builder.Username;
                 txtSenha.Text = builder.Password;
                 AtualizarCamposAuth();
             }
@@ -242,27 +242,27 @@ namespace DevBurguer.Forms
 
         private void AtualizarCamposAuth()
         {
-            bool windows = chkWindowsAuth.Checked;
-            txtUsuario.Enabled = !windows;
-            txtSenha.Enabled = !windows;
+            // No PostgreSQL usuario e senha sao sempre necessarios;
+            // o checkbox agora liga/desliga o SSL (nuvem).
+            txtUsuario.Enabled = true;
+            txtSenha.Enabled = true;
             if (!_sincronizando) MontarConnectionString();
         }
 
         private void MontarConnectionString()
         {
             if (_sincronizando) return;
-            var builder = new System.Data.SqlClient.SqlConnectionStringBuilder
+            bool ssl = chkWindowsAuth.Checked;
+            var builder = new Npgsql.NpgsqlConnectionStringBuilder
             {
-                DataSource = txtServidor.Text.Trim(),
-                InitialCatalog = txtBanco.Text.Trim(),
-                IntegratedSecurity = chkWindowsAuth.Checked,
-                ConnectTimeout = 120
+                Host = txtServidor.Text.Trim(),
+                Database = txtBanco.Text.Trim(),
+                Username = txtUsuario.Text.Trim(),
+                Password = txtSenha.Text.Trim(),
+                Timeout = 30,
+                SslMode = ssl ? Npgsql.SslMode.Require : Npgsql.SslMode.Disable,
+                TrustServerCertificate = ssl
             };
-            if (!chkWindowsAuth.Checked)
-            {
-                builder.UserID = txtUsuario.Text.Trim();
-                builder.Password = txtSenha.Text.Trim();
-            }
             _sincronizando = true;
             txtConexaoCompleta.Text = builder.ConnectionString;
             _sincronizando = false;

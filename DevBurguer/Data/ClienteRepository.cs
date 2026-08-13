@@ -1,6 +1,7 @@
 using System;
 using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 using System.Threading.Tasks;
 using DevBurguer.Services;
 
@@ -52,9 +53,9 @@ namespace DevBurguer.Data
             try
             {
                 var p = MontarParametros(nome, telefone, endereco, numero, bairro, cpf);
-                var comId = new SqlParameter[p.Length + 1];
+                var comId = new NpgsqlParameter[p.Length + 1];
                 Array.Copy(p, comId, p.Length);
-                comId[p.Length] = new SqlParameter("@id", SqlDbType.Int) { Value = id };
+                comId[p.Length] = new NpgsqlParameter("@id", NpgsqlDbType.Integer) { Value = id };
                 await DbHelper.ExecuteNonQueryAsync(sql, comId);
             }
             catch (Exception ex)
@@ -70,7 +71,7 @@ namespace DevBurguer.Data
             try
             {
                 await DbHelper.ExecuteNonQueryAsync(sql,
-                    new SqlParameter("@id", SqlDbType.Int) { Value = id });
+                    new NpgsqlParameter("@id", NpgsqlDbType.Integer) { Value = id });
             }
             catch (Exception ex)
             {
@@ -89,8 +90,8 @@ namespace DevBurguer.Data
             try
             {
                 var dt = await DbHelper.ExecuteDataTableAsync(sql,
-                    new SqlParameter("@cpf", SqlDbType.NVarChar, 20) { Value = (object)cpf ?? string.Empty },
-                    new SqlParameter("@id", SqlDbType.Int) { Value = ignorarId });
+                    new NpgsqlParameter("@cpf", NpgsqlDbType.Varchar) { Value = (object)cpf ?? string.Empty },
+                    new NpgsqlParameter("@id", NpgsqlDbType.Integer) { Value = ignorarId });
                 return dt.Rows.Count > 0 && Convert.ToInt32(dt.Rows[0]["Qtd"]) > 0;
             }
             catch (Exception ex)
@@ -101,17 +102,17 @@ namespace DevBurguer.Data
         }
 
         // ── helper interno ──────────────────────────────────────────
-        private static SqlParameter[] MontarParametros(string nome, string telefone, string endereco,
+        private static NpgsqlParameter[] MontarParametros(string nome, string telefone, string endereco,
                                                         string numero, string bairro, string cpf)
         {
-            return new SqlParameter[]
+            return new NpgsqlParameter[]
             {
-                new SqlParameter("@n",   SqlDbType.VarChar,  100) { Value = (object)nome     ?? string.Empty },
-                new SqlParameter("@t",   SqlDbType.VarChar,   20) { Value = (object)telefone ?? string.Empty },
-                new SqlParameter("@e",   SqlDbType.VarChar,  200) { Value = (object)endereco ?? string.Empty },
-                new SqlParameter("@num", SqlDbType.NVarChar,  10) { Value = (object)numero   ?? string.Empty },
-                new SqlParameter("@b",   SqlDbType.NVarChar, 100) { Value = (object)bairro   ?? string.Empty },
-                new SqlParameter("@cpf", SqlDbType.NVarChar,  20) { Value = (object)cpf      ?? string.Empty }
+                new NpgsqlParameter("@n",   NpgsqlDbType.Varchar) { Value = (object)nome     ?? string.Empty },
+                new NpgsqlParameter("@t",   NpgsqlDbType.Varchar) { Value = (object)telefone ?? string.Empty },
+                new NpgsqlParameter("@e",   NpgsqlDbType.Varchar) { Value = (object)endereco ?? string.Empty },
+                new NpgsqlParameter("@num", NpgsqlDbType.Varchar) { Value = (object)numero   ?? string.Empty },
+                new NpgsqlParameter("@b",   NpgsqlDbType.Varchar) { Value = (object)bairro   ?? string.Empty },
+                new NpgsqlParameter("@cpf", NpgsqlDbType.Varchar) { Value = (object)cpf      ?? string.Empty }
             };
         }
     }

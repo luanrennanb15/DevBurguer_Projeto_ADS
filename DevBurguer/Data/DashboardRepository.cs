@@ -27,17 +27,17 @@ namespace DevBurguer.Data
             const string sql = @"
                 SELECT
                     -- faturamento hoje (só finalizados)
-                    (SELECT ISNULL(SUM(Total),0)
+                    (SELECT COALESCE(SUM(Total),0)
                      FROM Pedidos
                      WHERE Data IS NOT NULL
-                       AND CONVERT(date, Data) = CONVERT(date, GETDATE())
+                       AND Data::date = CURRENT_DATE
                        AND Status = 'Finalizado') AS FatHoje,
 
                     -- pedidos finalizados hoje
                     (SELECT COUNT(*)
                      FROM Pedidos
                      WHERE Data IS NOT NULL
-                       AND CONVERT(date, Data) = CONVERT(date, GETDATE())
+                       AND Data::date = CURRENT_DATE
                        AND Status = 'Finalizado') AS PedidosHoje,
 
                     -- em producao agora (estado atual, independe de data)
@@ -49,26 +49,26 @@ namespace DevBurguer.Data
                     (SELECT COUNT(*)
                      FROM Pedidos
                      WHERE Data IS NOT NULL
-                       AND CONVERT(date, Data) = CONVERT(date, GETDATE())
+                       AND Data::date = CURRENT_DATE
                        AND Status = 'Cancelado') AS Cancelados,
 
                     -- finalizados hoje
                     (SELECT COUNT(*)
                      FROM Pedidos
                      WHERE Data IS NOT NULL
-                       AND CONVERT(date, Data) = CONVERT(date, GETDATE())
+                       AND Data::date = CURRENT_DATE
                        AND Status = 'Finalizado') AS Finalizados,
 
                     -- produto mais vendido hoje (só de pedidos finalizados)
-                    (SELECT TOP 1 pr.Nome
+                    (SELECT pr.Nome
                      FROM ItensPedido i
                      JOIN Produtos pr ON pr.Id = i.IdProduto
                      JOIN Pedidos p   ON p.Id  = i.IdPedido
                      WHERE p.Data IS NOT NULL
-                       AND CONVERT(date, p.Data) = CONVERT(date, GETDATE())
+                       AND p.Data::date = CURRENT_DATE
                        AND p.Status = 'Finalizado'
                      GROUP BY pr.Nome
-                     ORDER BY SUM(i.Quantidade) DESC) AS MaisVendido";
+                     ORDER BY SUM(i.Quantidade) DESC LIMIT 1) AS MaisVendido";
 
             try
             {
@@ -101,7 +101,7 @@ namespace DevBurguer.Data
         {
             const string sql = @"SELECT DiaSemana, COUNT(DISTINCT IdMotoboy) AS Qtd
                                  FROM EscalaMotoboy
-                                 WHERE Ativo = 1
+                                 WHERE Ativo = TRUE
                                  GROUP BY DiaSemana";
             var contagem = new int[8];
             try

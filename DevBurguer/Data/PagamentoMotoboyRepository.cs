@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 using System.Threading.Tasks;
 using DevBurguer.Models;
 using DevBurguer.Banco;
@@ -25,7 +26,7 @@ namespace DevBurguer.Data
                     p.ValorChegada,
                     p.TotalPagar,
                     p.DataPagamento,
-                    ISNULL(p.Comentario, '')     AS Comentario
+                    COALESCE(p.Comentario, '')     AS Comentario
                 FROM PagamentoMotoboy p
                 LEFT JOIN Motoboys m ON m.Id = p.IdMotoboy
                 ORDER BY p.Id DESC";
@@ -47,22 +48,22 @@ namespace DevBurguer.Data
                     p.ValorChegada,
                     p.TotalPagar,
                     p.DataPagamento,
-                    ISNULL(p.Comentario, '')     AS Comentario
+                    COALESCE(p.Comentario, '')     AS Comentario
                 FROM PagamentoMotoboy p
                 LEFT JOIN Motoboys m ON m.Id = p.IdMotoboy
                 WHERE 1=1";
 
-            var parametros = new System.Collections.Generic.List<SqlParameter>();
+            var parametros = new System.Collections.Generic.List<NpgsqlParameter>();
 
             if (data.HasValue)
             {
-                sql += " AND CONVERT(date, p.DataPagamento) = @data";
-                parametros.Add(new SqlParameter("@data", SqlDbType.Date) { Value = data.Value.Date });
+                sql += " AND p.DataPagamento::date = @data";
+                parametros.Add(new NpgsqlParameter("@data", NpgsqlDbType.Date) { Value = data.Value.Date });
             }
             if (!string.IsNullOrWhiteSpace(nomeMotoboy))
             {
                 sql += " AND m.Nome LIKE @nome";
-                parametros.Add(new SqlParameter("@nome", SqlDbType.NVarChar, 100) { Value = "%" + nomeMotoboy.Trim() + "%" });
+                parametros.Add(new NpgsqlParameter("@nome", NpgsqlDbType.Varchar) { Value = "%" + nomeMotoboy.Trim() + "%" });
             }
 
             sql += " ORDER BY p.Id DESC";
@@ -88,13 +89,13 @@ namespace DevBurguer.Data
 
             var p = new[]
             {
-                new SqlParameter("@m",   SqlDbType.Int)           { Value = idMotoboy },
-                new SqlParameter("@q",   SqlDbType.Int)           { Value = qtd },
+                new NpgsqlParameter("@m",   NpgsqlDbType.Integer)           { Value = idMotoboy },
+                new NpgsqlParameter("@q",   NpgsqlDbType.Integer)           { Value = qtd },
                 Decimal("@v", valorTotal),
                 Decimal("@c", chegada),
                 Decimal("@t", valorTotal + chegada),
-                new SqlParameter("@d",   SqlDbType.DateTime)      { Value = data },
-                new SqlParameter("@obs", SqlDbType.NVarChar, 300) { Value = (object)comentario ?? string.Empty }
+                new NpgsqlParameter("@d",   NpgsqlDbType.Timestamp)      { Value = data },
+                new NpgsqlParameter("@obs", NpgsqlDbType.Varchar) { Value = (object)comentario ?? string.Empty }
             };
             await DbHelper.ExecuteNonQueryAsync(sql, p);
         }
@@ -113,13 +114,13 @@ namespace DevBurguer.Data
 
             var p = new[]
             {
-                new SqlParameter("@q",   SqlDbType.Int)           { Value = qtd },
+                new NpgsqlParameter("@q",   NpgsqlDbType.Integer)           { Value = qtd },
                 Decimal("@v", valorTotal),
                 Decimal("@c", chegada),
                 Decimal("@t", valorTotal + chegada),
-                new SqlParameter("@d",   SqlDbType.DateTime)      { Value = data },
-                new SqlParameter("@obs", SqlDbType.NVarChar, 300) { Value = (object)comentario ?? string.Empty },
-                new SqlParameter("@id",  SqlDbType.Int)           { Value = id }
+                new NpgsqlParameter("@d",   NpgsqlDbType.Timestamp)      { Value = data },
+                new NpgsqlParameter("@obs", NpgsqlDbType.Varchar) { Value = (object)comentario ?? string.Empty },
+                new NpgsqlParameter("@id",  NpgsqlDbType.Integer)           { Value = id }
             };
             await DbHelper.ExecuteNonQueryAsync(sql, p);
         }
@@ -127,11 +128,11 @@ namespace DevBurguer.Data
         public async Task DeleteAsync(int id)
         {
             const string sql = "DELETE FROM PagamentoMotoboy WHERE Id = @id";
-            var p = new[] { new SqlParameter("@id", SqlDbType.Int) { Value = id } };
+            var p = new[] { new NpgsqlParameter("@id", NpgsqlDbType.Integer) { Value = id } };
             await DbHelper.ExecuteNonQueryAsync(sql, p);
         }
 
-        private static SqlParameter Decimal(string name, decimal value) =>
-            new SqlParameter(name, SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = value };
+        private static NpgsqlParameter Decimal(string name, decimal value) =>
+            new NpgsqlParameter(name, NpgsqlDbType.Numeric) { Precision = 18, Scale = 2, Value = value };
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
@@ -259,7 +260,7 @@ namespace DevBurguer.Forms
                 // ✅ FIX: removido 'Combo' das categorias (TCC só lanches)
                 // ✅ FIX: removido ISNULL(Data, GETDATE()) — pedidos sem Data não devem entrar
                 string sql = string.Format(@"
-                    SELECT TOP {0}
+                    SELECT
                         p.Nome                      AS Produto,
                         p.Categoria                 AS Categoria,
                         SUM(i.Quantidade)           AS Qtd,
@@ -271,12 +272,13 @@ namespace DevBurguer.Forms
                       AND ped.Status = 'Finalizado'
                       AND p.Categoria IN ('Lanche Tradicional', 'Lanche Gourmet')
                     GROUP BY p.Nome, p.Categoria
-                    ORDER BY Qtd DESC", top);
+                    ORDER BY Qtd DESC
+                    LIMIT {0}", top);
 
                 var parametros = new[]
                 {
-                    new SqlParameter("@di", SqlDbType.DateTime) { Value = inicio },
-                    new SqlParameter("@df", SqlDbType.DateTime) { Value = fim }
+                    new NpgsqlParameter("@di", NpgsqlDbType.Timestamp) { Value = inicio },
+                    new NpgsqlParameter("@df", NpgsqlDbType.Timestamp) { Value = fim }
                 };
 
                 // ✅ query roda em background — UI continua responsiva

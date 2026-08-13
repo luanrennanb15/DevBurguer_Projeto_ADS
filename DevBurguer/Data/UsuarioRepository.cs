@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 using System.Threading.Tasks;
 using DevBurguer.Services;
 
@@ -22,8 +23,8 @@ namespace DevBurguer.Data
             try
             {
                 var dt = await DbHelper.ExecuteDataTableAsync(sql,
-                    new SqlParameter("@user",  SqlDbType.VarChar, 50) { Value = (object)usuario ?? string.Empty },
-                    new SqlParameter("@senha", SqlDbType.VarChar, 64) { Value = SecurityHelper.HashSha256(senha) });
+                    new NpgsqlParameter("@user",  NpgsqlDbType.Varchar) { Value = (object)usuario ?? string.Empty },
+                    new NpgsqlParameter("@senha", NpgsqlDbType.Varchar) { Value = SecurityHelper.HashSha256(senha) });
 
                 return dt.Rows.Count > 0 && Convert.ToInt32(dt.Rows[0]["Qtd"]) > 0;
             }

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 using DevBurguer.Services;
 
 namespace DevBurguer.Data
@@ -15,7 +16,7 @@ namespace DevBurguer.Data
         /// <summary>Pares (IdMotoboy, DiaSemana) atualmente ativos na escala.</summary>
         public DataTable GetEscalaAtiva()
         {
-            const string sql = "SELECT IdMotoboy, DiaSemana FROM EscalaMotoboy WHERE Ativo = 1";
+            const string sql = "SELECT IdMotoboy, DiaSemana FROM EscalaMotoboy WHERE Ativo = TRUE";
             try
             {
                 return DbHelper.ExecuteDataTable(sql);
@@ -44,11 +45,11 @@ namespace DevBurguer.Data
                         // DELETE específico — só os pares que saíram
                         foreach (var (idM, dia) in apagar)
                         {
-                            using (var cmd = new SqlCommand(
+                            using (var cmd = new NpgsqlCommand(
                                 "DELETE FROM EscalaMotoboy WHERE IdMotoboy=@m AND DiaSemana=@d", conn, tr))
                             {
-                                cmd.Parameters.Add(new SqlParameter("@m", SqlDbType.Int) { Value = idM });
-                                cmd.Parameters.Add(new SqlParameter("@d", SqlDbType.Int) { Value = dia });
+                                cmd.Parameters.Add(new NpgsqlParameter("@m", NpgsqlDbType.Integer) { Value = idM });
+                                cmd.Parameters.Add(new NpgsqlParameter("@d", NpgsqlDbType.Integer) { Value = dia });
                                 cmd.ExecuteNonQuery();
                             }
                         }
@@ -56,11 +57,11 @@ namespace DevBurguer.Data
                         // INSERT específico — só os pares novos
                         foreach (var (idM, dia) in inserir)
                         {
-                            using (var cmd = new SqlCommand(
-                                "INSERT INTO EscalaMotoboy(IdMotoboy,DiaSemana,Ativo) VALUES(@m,@d,1)", conn, tr))
+                            using (var cmd = new NpgsqlCommand(
+                                "INSERT INTO EscalaMotoboy(IdMotoboy,DiaSemana,Ativo) VALUES(@m,@d,TRUE)", conn, tr))
                             {
-                                cmd.Parameters.Add(new SqlParameter("@m", SqlDbType.Int) { Value = idM });
-                                cmd.Parameters.Add(new SqlParameter("@d", SqlDbType.Int) { Value = dia });
+                                cmd.Parameters.Add(new NpgsqlParameter("@m", NpgsqlDbType.Integer) { Value = idM });
+                                cmd.Parameters.Add(new NpgsqlParameter("@d", NpgsqlDbType.Integer) { Value = dia });
                                 cmd.ExecuteNonQuery();
                             }
                         }

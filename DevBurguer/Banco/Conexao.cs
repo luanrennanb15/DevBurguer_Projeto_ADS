@@ -1,22 +1,28 @@
-﻿using System;
-using System.Data.SqlClient;
+using System;
+using Npgsql;
 using System.IO;
 using System.Windows.Forms;
 
 namespace DevBurguer.Banco
 {
     /// <summary>
-    /// Gerencia a conexão com o banco de dados.
+    /// Gerencia a conexão com o banco de dados PostgreSQL.
     /// A string de conexão é salva em config.txt na pasta do executável,
     /// permitindo alteração sem necessidade de recompilar o sistema.
+    ///
+    /// Exemplo (Supabase):
+    /// Host=aws-0-xx.pooler.supabase.com;Port=5432;Database=postgres;
+    /// Username=postgres.xxxx;Password=SUA_SENHA;SSL Mode=Require;Trust Server Certificate=true;
     /// </summary>
     public static class Conexao
     {
         private static readonly string ArquivoConfig =
             Path.Combine(Application.StartupPath, "config.txt");
 
+        // Padrão só para desenvolvimento local; a conexão real (Supabase)
+        // vai no config.txt, definida pela tela de Configurações.
         private static readonly string ConnectionPadrao =
-            "Server=localhost;Database=DevBurguerDB;Trusted_Connection=True;Connection Timeout=30;";
+            "Host=localhost;Port=5432;Database=devburguer;Username=postgres;Password=;SSL Mode=Disable;Timeout=30;";
 
         private static string _connectionString;
 
@@ -27,9 +33,9 @@ namespace DevBurguer.Banco
 
         public static string ConnectionString => _connectionString;
 
-        public static SqlConnection GetConnection()
+        public static NpgsqlConnection GetConnection()
         {
-            return new SqlConnection(_connectionString);
+            return new NpgsqlConnection(_connectionString);
         }
 
         /// <summary>
@@ -39,7 +45,7 @@ namespace DevBurguer.Banco
         {
             try
             {
-                using (var conn = new SqlConnection(connStr ?? _connectionString))
+                using (var conn = new NpgsqlConnection(connStr ?? _connectionString))
                 {
                     conn.Open();
                     return true;
