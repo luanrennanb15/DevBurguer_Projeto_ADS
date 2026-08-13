@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 using DevBurguer.Services;
 
 namespace DevBurguer.Data
@@ -20,18 +21,18 @@ namespace DevBurguer.Data
         {
             const string sql = @"
                 SELECT
-                    CONVERT(date, Data) AS Dia,
+                    Data::date AS Dia,
                     SUM(Total)          AS Faturamento
                 FROM Pedidos
                 WHERE Data IS NOT NULL
-                  AND Data >= DATEADD(day, -@dias, GETDATE())
-                  AND ISNULL(Status,'') = 'Finalizado'
-                GROUP BY CONVERT(date, Data)
+                  AND Data >= NOW() - (@dias * INTERVAL '1 day')
+                  AND COALESCE(Status,'') = 'Finalizado'
+                GROUP BY Data::date
                 ORDER BY Dia ASC";
             try
             {
                 return DbHelper.ExecuteDataTable(sql,
-                    new SqlParameter("@dias", SqlDbType.Int) { Value = dias });
+                    new NpgsqlParameter("@dias", NpgsqlDbType.Integer) { Value = dias });
             }
             catch (Exception ex)
             {

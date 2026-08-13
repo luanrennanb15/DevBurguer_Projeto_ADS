@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 using System.Threading.Tasks;
 using DevBurguer.Banco;
 
@@ -21,7 +22,7 @@ namespace DevBurguer.Data
         // ✅ FIX: categorias filtradas pra comestíveis principais
         // ✅ FIX: removido ISNULL(Data, GETDATE()) — pedidos sem data não devem entrar
         private const string SQL_MAIS_VENDIDOS = @"
-            SELECT TOP (@top)
+            SELECT
                 p.Nome                      AS Produto,
                 p.Categoria                 AS Categoria,
                 SUM(i.Quantidade)           AS Quantidade,
@@ -33,11 +34,12 @@ namespace DevBurguer.Data
               AND ped.Status = 'Finalizado'
               AND p.Categoria IN ('Lanche Tradicional', 'Lanche Gourmet')
             GROUP BY p.Nome, p.Categoria
-            ORDER BY Quantidade DESC";
+            ORDER BY Quantidade DESC
+            LIMIT @top";
 
         // ✅ NOVA query: total de receita real do período (não fica limitada ao TOP N)
         private const string SQL_RECEITA_TOTAL_PERIODO = @"
-            SELECT ISNULL(SUM(Total), 0) AS ReceitaTotal
+            SELECT COALESCE(SUM(Total), 0) AS ReceitaTotal
             FROM Pedidos
             WHERE Data BETWEEN @DataInicio AND @DataFim
               AND Status = 'Finalizado'";
@@ -45,14 +47,14 @@ namespace DevBurguer.Data
         // ✅ FIX: status 'Finalizado' apenas
         private const string SQL_FATURAMENTO_PERIODO = @"
             SELECT
-                CONVERT(date, Data) AS Dia,
+                Data::date AS Dia,
                 COUNT(Id)           AS Pedidos,
                 SUM(Total)          AS Faturamento,
                 AVG(Total)          AS TicketMedio
             FROM Pedidos
             WHERE Data BETWEEN @DataInicio AND @DataFim
               AND Status = 'Finalizado'
-            GROUP BY CONVERT(date, Data)
+            GROUP BY Data::date
             ORDER BY Dia DESC";
 
         // ✅ FIX: COUNT(DISTINCT CONVERT(date, ...)) — antes COUNT(p.Id) contava
@@ -60,7 +62,7 @@ namespace DevBurguer.Data
         private const string SQL_FATURAMENTO_MOTOBOY = @"
             SELECT
                 m.Nome                                            AS Motoboy,
-                COUNT(DISTINCT CONVERT(date, p.DataPagamento))    AS Dias,
+                COUNT(DISTINCT p.DataPagamento::date)    AS Dias,
                 SUM(p.QuantidadeEntregas)                         AS TotalEntregas,
                 SUM(p.ValorTotalEntregas)                         AS ValorEntregas,
                 SUM(p.ValorChegada)                               AS ValorChegada,
@@ -75,7 +77,7 @@ namespace DevBurguer.Data
         private const string SQL_FATURAMENTO_MOTOBOY_FILTRADO = @"
             SELECT
                 m.Nome                                            AS Motoboy,
-                COUNT(DISTINCT CONVERT(date, p.DataPagamento))    AS Dias,
+                COUNT(DISTINCT p.DataPagamento::date)    AS Dias,
                 SUM(p.QuantidadeEntregas)                         AS TotalEntregas,
                 SUM(p.ValorTotalEntregas)                         AS ValorEntregas,
                 SUM(p.ValorChegada)                               AS ValorChegada,
@@ -111,11 +113,11 @@ namespace DevBurguer.Data
         /// </summary>
         public DataTable ObterFaturamentoPorMotoboy(DateTime inicio, DateTime fim, int idMotoboy)
         {
-            var p = new SqlParameter[]
+            var p = new NpgsqlParameter[]
             {
-                new SqlParameter("@DataInicio", SqlDbType.DateTime) { Value = inicio },
-                new SqlParameter("@DataFim",    SqlDbType.DateTime) { Value = fim },
-                new SqlParameter("@idMotoboy",  SqlDbType.Int)      { Value = idMotoboy }
+                new NpgsqlParameter("@DataInicio", NpgsqlDbType.Timestamp) { Value = inicio },
+                new NpgsqlParameter("@DataFim",    NpgsqlDbType.Timestamp) { Value = fim },
+                new NpgsqlParameter("@idMotoboy",  NpgsqlDbType.Integer)      { Value = idMotoboy }
             };
             return DbHelper.ExecuteDataTable(SQL_FATURAMENTO_MOTOBOY_FILTRADO, p);
         }
@@ -145,10 +147,10 @@ namespace DevBurguer.Data
         public async Task<decimal> ObterReceitaTotalPeriodoAsync(DateTime dataInicio, DateTime dataFim)
         {
             using (var conn = Conexao.GetConnection())
-            using (var cmd = new SqlCommand(SQL_RECEITA_TOTAL_PERIODO, conn))
+            using (var cmd = new NpgsqlCommand(SQL_RECEITA_TOTAL_PERIODO, conn))
             {
-                cmd.Parameters.Add(new SqlParameter("@DataInicio", SqlDbType.DateTime) { Value = dataInicio.Date });
-                cmd.Parameters.Add(new SqlParameter("@DataFim", SqlDbType.DateTime) { Value = dataFim.Date.AddDays(1).AddTicks(-1) });
+                cmd.Parameters.Add(new NpgsqlParameter("@DataInicio", NpgsqlDbType.Timestamp) { Value = dataInicio.Date });
+                cmd.Parameters.Add(new NpgsqlParameter("@DataFim", NpgsqlDbType.Timestamp) { Value = dataFim.Date.AddDays(1).AddTicks(-1) });
                 await conn.OpenAsync();
                 var r = await cmd.ExecuteScalarAsync();
                 return r == null || r == DBNull.Value ? 0m : Convert.ToDecimal(r);
@@ -157,17 +159,17 @@ namespace DevBurguer.Data
 
         // ── helpers ───────────────────────────────────────────────
 
-        private static SqlParameter[] ParamsPeriodo(DateTime ini, DateTime fim) => new[]
+        private static NpgsqlParameter[] ParamsPeriodo(DateTime ini, DateTime fim) => new[]
         {
-            new SqlParameter("@DataInicio", SqlDbType.DateTime) { Value = ini.Date },
-            new SqlParameter("@DataFim",    SqlDbType.DateTime) { Value = fim.Date.AddDays(1).AddTicks(-1) }
+            new NpgsqlParameter("@DataInicio", NpgsqlDbType.Timestamp) { Value = ini.Date },
+            new NpgsqlParameter("@DataFim",    NpgsqlDbType.Timestamp) { Value = fim.Date.AddDays(1).AddTicks(-1) }
         };
 
-        private static SqlParameter[] ParamsTopPeriodo(int top, DateTime ini, DateTime fim) => new[]
+        private static NpgsqlParameter[] ParamsTopPeriodo(int top, DateTime ini, DateTime fim) => new[]
         {
-            new SqlParameter("@top",        SqlDbType.Int)      { Value = top },
-            new SqlParameter("@DataInicio", SqlDbType.DateTime) { Value = ini.Date },
-            new SqlParameter("@DataFim",    SqlDbType.DateTime) { Value = fim.Date.AddDays(1).AddTicks(-1) }
+            new NpgsqlParameter("@top",        NpgsqlDbType.Integer)      { Value = top },
+            new NpgsqlParameter("@DataInicio", NpgsqlDbType.Timestamp) { Value = ini.Date },
+            new NpgsqlParameter("@DataFim",    NpgsqlDbType.Timestamp) { Value = fim.Date.AddDays(1).AddTicks(-1) }
         };
     }
 }

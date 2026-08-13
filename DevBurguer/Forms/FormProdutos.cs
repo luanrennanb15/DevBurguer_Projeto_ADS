@@ -298,7 +298,7 @@ namespace DevBurguer
             }
             // ✅ FK violada — produto tem pedidos. Em vez de só recusar,
             // oferece INATIVAR (solução correta: preserva o histórico)
-            catch (System.Data.SqlClient.SqlException sqlEx) when (sqlEx.Number == 547)
+            catch (Npgsql.PostgresException sqlEx) when (sqlEx.SqlState == "23503")
             {
                 DevBurguer.Services.ExceptionLogger.Log(sqlEx, "FormProdutos.btnExcluir_Click.FK");
 

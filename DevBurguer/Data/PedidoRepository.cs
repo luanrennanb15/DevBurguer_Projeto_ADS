@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 using System.Text;
 using System.Threading.Tasks;
 using DevBurguer.Models;
@@ -26,7 +27,7 @@ namespace DevBurguer.Data
 
         public async Task<DataTable> GetClientesSelectAsync()
         {
-            const string sql = "SELECT Id, Nome + ' - CPF: ' + ISNULL(CPF,'') AS Nome FROM Clientes";
+            const string sql = "SELECT Id, Nome || ' - CPF: ' || COALESCE(CPF,'') AS Nome FROM Clientes";
             try { return await DbHelper.ExecuteDataTableAsync(sql); }
             catch (Exception ex) { ExceptionLogger.Log(ex, "PedidoRepository.GetClientesSelectAsync"); throw; }
         }
@@ -34,8 +35,8 @@ namespace DevBurguer.Data
         public async Task<string> GetEnderecoClienteAsync(int idCliente)
         {
             using (var conn = DevBurguer.Banco.Conexao.GetConnection())
-            using (var cmd = new SqlCommand(
-                "SELECT Endereco + ', ' + Numero + ' - ' + Bairro FROM Clientes WHERE Id = @id", conn))
+            using (var cmd = new NpgsqlCommand(
+                "SELECT COALESCE(Endereco,'') || ', ' || COALESCE(Numero,'') || ' - ' || COALESCE(Bairro,'') FROM Clientes WHERE Id = @id", conn))
             {
                 await conn.OpenAsync();
                 cmd.Parameters.AddWithValue("@id", idCliente);
@@ -46,7 +47,7 @@ namespace DevBurguer.Data
         public async Task<DataRow> GetDadosClienteAsync(int idCliente)
         {
             using (var conn = DevBurguer.Banco.Conexao.GetConnection())
-            using (var cmd = new SqlCommand(
+            using (var cmd = new NpgsqlCommand(
                 "SELECT Endereco, Numero, Bairro, Telefone FROM Clientes WHERE Id = @Id", conn))
             {
                 await conn.OpenAsync();
@@ -71,38 +72,36 @@ namespace DevBurguer.Data
                     {
                         try
                         {
-                            // ✅ FIX: Data explícita no INSERT (antes dependia do DEFAULT do banco
-                            // que não estava configurado — pedidos entravam com Data NULL e
-                            // sumiam dos relatórios)
-                            using (var cmd = new SqlCommand(
+                            // Data explícita no INSERT; RETURNING devolve o Id gerado (Postgres).
+                            using (var cmd = new NpgsqlCommand(
                                 @"INSERT INTO Pedidos (IdCliente, Data, Total, Status, TipoEntrega, TrocoPara)
-                                  OUTPUT INSERTED.Id
-                                  VALUES (@c, @data, @t, 'Em Producao', @tipo, @troco)",
+                                  VALUES (@c, @data, @t, 'Em Producao', @tipo, @troco)
+                                  RETURNING Id",
                                 conn, tran))
                             {
                                 cmd.CommandTimeout = 60;
-                                cmd.Parameters.Add(new SqlParameter("@c", SqlDbType.Int) { Value = idCliente });
-                                cmd.Parameters.Add(new SqlParameter("@data", SqlDbType.DateTime) { Value = DateTime.Now });
-                                cmd.Parameters.Add(new SqlParameter("@t", SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = total });
-                                cmd.Parameters.Add(new SqlParameter("@tipo", SqlDbType.NVarChar, 10) { Value = tipoEntrega });
-                                cmd.Parameters.Add(new SqlParameter("@troco", SqlDbType.Decimal) { Precision = 10, Scale = 2, Value = troco });
-                                idPedido = (int)await cmd.ExecuteScalarAsync();
+                                cmd.Parameters.Add(new NpgsqlParameter("@c", NpgsqlDbType.Integer) { Value = idCliente });
+                                cmd.Parameters.Add(new NpgsqlParameter("@data", NpgsqlDbType.Timestamp) { Value = DateTime.Now });
+                                cmd.Parameters.Add(new NpgsqlParameter("@t", NpgsqlDbType.Numeric) { Precision = 18, Scale = 2, Value = total });
+                                cmd.Parameters.Add(new NpgsqlParameter("@tipo", NpgsqlDbType.Varchar) { Value = tipoEntrega });
+                                cmd.Parameters.Add(new NpgsqlParameter("@troco", NpgsqlDbType.Numeric) { Precision = 10, Scale = 2, Value = troco });
+                                idPedido = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                             }
 
                             foreach (var item in itens)
                             {
-                                using (var cmdItem = new SqlCommand(
+                                using (var cmdItem = new NpgsqlCommand(
                                     @"INSERT INTO ItensPedido (IdPedido, IdProduto, Quantidade, Observacao, Adicionais, Preco)
                                       VALUES (@p, @prod, @q, @obs, @adic, @preco)",
                                     conn, tran))
                                 {
                                     cmdItem.CommandTimeout = 60;
-                                    cmdItem.Parameters.Add(new SqlParameter("@p", SqlDbType.Int) { Value = idPedido });
-                                    cmdItem.Parameters.Add(new SqlParameter("@prod", SqlDbType.Int) { Value = item.IdProduto });
-                                    cmdItem.Parameters.Add(new SqlParameter("@q", SqlDbType.Int) { Value = item.Quantidade });
-                                    cmdItem.Parameters.Add(new SqlParameter("@obs", SqlDbType.NVarChar, 200) { Value = (object)item.Observacao ?? string.Empty });
-                                    cmdItem.Parameters.Add(new SqlParameter("@adic", SqlDbType.NVarChar, 300) { Value = (object)item.Adicionais ?? string.Empty });
-                                    cmdItem.Parameters.Add(new SqlParameter("@preco", SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = item.Preco });
+                                    cmdItem.Parameters.Add(new NpgsqlParameter("@p", NpgsqlDbType.Integer) { Value = idPedido });
+                                    cmdItem.Parameters.Add(new NpgsqlParameter("@prod", NpgsqlDbType.Integer) { Value = item.IdProduto });
+                                    cmdItem.Parameters.Add(new NpgsqlParameter("@q", NpgsqlDbType.Integer) { Value = item.Quantidade });
+                                    cmdItem.Parameters.Add(new NpgsqlParameter("@obs", NpgsqlDbType.Varchar) { Value = (object)item.Observacao ?? string.Empty });
+                                    cmdItem.Parameters.Add(new NpgsqlParameter("@adic", NpgsqlDbType.Varchar) { Value = (object)item.Adicionais ?? string.Empty });
+                                    cmdItem.Parameters.Add(new NpgsqlParameter("@preco", NpgsqlDbType.Numeric) { Precision = 18, Scale = 2, Value = item.Preco });
                                     await cmdItem.ExecuteNonQueryAsync();
                                 }
                             }
@@ -116,22 +115,14 @@ namespace DevBurguer.Data
             catch (Exception ex) { ExceptionLogger.Log(ex, "PedidoRepository.InsertPedidoAsync"); throw; }
         }
 
-        // ═══════════════════════════════════════════════════════════
-        //  ✅ OTIMIZAÇÃO Opção D — snapshot leve para detectar mudanças
-        // ═══════════════════════════════════════════════════════════
-
         /// <summary>
-        /// Snapshot ultra-leve: retorna apenas Id + Status + IdMotoboy dos pedidos ativos.
-        /// Custa ~10ms mesmo com 10k pedidos antigos (com índice em Status).
-        /// Use isso a cada 3s para detectar SE precisa recarregar a tela inteira.
-        ///
-        /// ✅ Inclui 'Aguardando' (pedidos do site) — assim o Kanban detecta
-        /// quando chega um pedido novo do site e dispara o alerta sonoro.
+        /// Snapshot ultra-leve: Id + Status + IdMotoboy dos pedidos ativos.
+        /// Inclui 'Aguardando' (pedidos do site) para o Kanban detectar novidades.
         /// </summary>
         public async Task<string> GetPedidosProducaoHashAsync()
         {
             const string sql = @"
-                SELECT Id, Status, ISNULL(IdMotoboy, 0) AS IdMotoboy
+                SELECT Id, Status, COALESCE(IdMotoboy, 0) AS IdMotoboy
                 FROM Pedidos
                 WHERE Status NOT IN ('Finalizado', 'Cancelado')
                 ORDER BY Id";
@@ -140,7 +131,7 @@ namespace DevBurguer.Data
             using (var conn = DevBurguer.Banco.Conexao.GetConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new SqlCommand(sql, conn) { CommandTimeout = 30 })
+                using (var cmd = new NpgsqlCommand(sql, conn) { CommandTimeout = 30 })
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
@@ -154,52 +145,51 @@ namespace DevBurguer.Data
             return sb.ToString();
         }
 
-        // ═══════════════════════════════════════════════════════════
-        //  ✅ OTIMIZAÇÃO — query única em vez de 2 com JOIN aninhado
-        //  Usa STRING_AGG (SQL Server 2017+) para juntar itens em 1 só consulta.
-        //  Cai de ~250ms para ~30ms em base com 50 pedidos.
-        // ═══════════════════════════════════════════════════════════
+        // Query única: junta os itens de cada pedido com STRING_AGG (Postgres).
+        // Cada produto mostra o valor; adicionais entram em linha própria abaixo.
+        private const string BlocoItensSql = @"
+            (
+                SELECT STRING_AGG(b.bloco, CHR(10) ORDER BY i.Id)
+                FROM ItensPedido i
+                JOIN Produtos pr ON pr.Id = i.IdProduto
+                CROSS JOIN LATERAL (
+                    SELECT
+                        SUM(a.Preco) AS Total,
+                        STRING_AGG(
+                            CONCAT('   + ', a.Nome, ' — R$ ',
+                                   REPLACE(TO_CHAR(a.Preco, 'FM999990.00'), '.', ',')),
+                            CHR(10) ORDER BY a.Nome
+                        ) AS Detalhe
+                    FROM unnest(string_to_array(NULLIF(i.Adicionais, ''), ',')) AS s(value)
+                    JOIN Adicionais a ON a.Nome = TRIM(s.value)
+                ) ad
+                CROSS JOIN LATERAL (
+                    SELECT CONCAT(
+                        i.Quantidade, 'x ', pr.Nome,
+                        ' — R$ ', REPLACE(TO_CHAR(i.Preco - COALESCE(ad.Total, 0), 'FM999990.00'), '.', ','),
+                        CASE WHEN COALESCE(i.Observacao,'') <> '' THEN ' [' || i.Observacao || ']' ELSE '' END,
+                        CASE WHEN ad.Detalhe IS NOT NULL THEN CHR(10) || ad.Detalhe ELSE '' END
+                    ) AS bloco
+                ) b
+                WHERE i.IdPedido = p.Id
+            ) AS Itens";
+
         public async Task<DataTable> GetPedidosProducaoAsync()
         {
-            const string sql = @"
+            string sql = @"
                 SELECT
                     p.Id,
                     c.Nome                      AS Cliente,
                     c.Telefone                  AS Telefone,
-                    ISNULL(c.Endereco, '') + ', ' + ISNULL(c.Numero, '') + ' - ' + ISNULL(c.Bairro, '') AS Endereco,
+                    COALESCE(c.Endereco, '') || ', ' || COALESCE(c.Numero, '') || ' - ' || COALESCE(c.Bairro, '') AS Endereco,
                     p.Total,
                     p.Status,
-                    ISNULL(p.TipoEntrega, '')   AS TipoEntrega,
+                    COALESCE(p.TipoEntrega, '') AS TipoEntrega,
                     p.Data,
-                    ISNULL(m.Nome, '')          AS Motoboy,
-                    ISNULL(p.IdMotoboy, 0)      AS IdMotoboy,
-                    ISNULL(p.TrocoPara, 0)      AS TrocoPara,
-                    (
-                        -- ✅ Cada produto mostra o valor na frente; adicionais entram
-                        -- em linha própria abaixo, também com o valor de cada um.
-                        SELECT STRING_AGG(b.bloco, CHAR(10)) WITHIN GROUP (ORDER BY i.Id)
-                        FROM ItensPedido i
-                        JOIN Produtos pr ON pr.Id = i.IdProduto
-                        CROSS APPLY (
-                            SELECT
-                                SUM(a.Preco) AS Total,
-                                STRING_AGG(
-                                    CONCAT(N'   + ', a.Nome, N' — R$ ', FORMAT(a.Preco, 'N2', 'pt-BR')),
-                                    CHAR(10)
-                                ) WITHIN GROUP (ORDER BY a.Nome) AS Detalhe
-                            FROM STRING_SPLIT(NULLIF(i.Adicionais, ''), ',') s
-                            JOIN Adicionais a ON a.Nome = LTRIM(RTRIM(s.value))
-                        ) ad
-                        CROSS APPLY (
-                            SELECT CONCAT(
-                                i.Quantidade, 'x ', pr.Nome,
-                                N' — R$ ', FORMAT(i.Preco - ISNULL(ad.Total, 0), 'N2', 'pt-BR'),
-                                CASE WHEN ISNULL(i.Observacao,'') <> '' THEN ' [' + i.Observacao + ']' ELSE '' END,
-                                CASE WHEN ad.Detalhe IS NOT NULL THEN CHAR(10) + ad.Detalhe ELSE '' END
-                            ) AS bloco
-                        ) b
-                        WHERE i.IdPedido = p.Id
-                    ) AS Itens
+                    COALESCE(m.Nome, '')        AS Motoboy,
+                    COALESCE(p.IdMotoboy, 0)    AS IdMotoboy,
+                    COALESCE(p.TrocoPara, 0)    AS TrocoPara,
+                    " + BlocoItensSql + @"
                 FROM Pedidos p
                 JOIN Clientes c      ON c.Id = p.IdCliente
                 LEFT JOIN Motoboys m ON m.Id = p.IdMotoboy
@@ -209,7 +199,7 @@ namespace DevBurguer.Data
             using (var conn = DevBurguer.Banco.Conexao.GetConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new SqlCommand(sql, conn) { CommandTimeout = 60 })
+                using (var cmd = new NpgsqlCommand(sql, conn) { CommandTimeout = 60 })
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var dt = new DataTable();
@@ -219,49 +209,21 @@ namespace DevBurguer.Data
             }
         }
 
-        // ═══════════════════════════════════════════════════════════
-        //  ✅ NOVO: pedidos "Aguardando" — vindos do site, pendentes de
-        //  aprovação. Aparecem no painel destacado do topo do Kanban.
-        // ═══════════════════════════════════════════════════════════
+        // Pedidos 'Aguardando' — vindos do site, pendentes de aprovação.
         public async Task<DataTable> GetPedidosAguardandoAsync()
         {
-            const string sql = @"
+            string sql = @"
                 SELECT
                     p.Id,
                     c.Nome                      AS Cliente,
                     c.Telefone                  AS Telefone,
-                    ISNULL(c.Endereco, '') + ', ' + ISNULL(c.Numero, '') + ' - ' + ISNULL(c.Bairro, '') AS Endereco,
+                    COALESCE(c.Endereco, '') || ', ' || COALESCE(c.Numero, '') || ' - ' || COALESCE(c.Bairro, '') AS Endereco,
                     p.Total,
-                    ISNULL(p.TipoEntrega, '')   AS TipoEntrega,
+                    COALESCE(p.TipoEntrega, '') AS TipoEntrega,
                     p.Data,
-                    ISNULL(p.TrocoPara, 0)      AS TrocoPara,
-                    ISNULL(p.Origem, 'Site')    AS Origem,
-                    (
-                        -- ✅ Valor na frente de cada produto; adicionais em linha
-                        -- própria abaixo, também com o valor de cada um.
-                        SELECT STRING_AGG(b.bloco, CHAR(10)) WITHIN GROUP (ORDER BY i.Id)
-                        FROM ItensPedido i
-                        JOIN Produtos pr ON pr.Id = i.IdProduto
-                        CROSS APPLY (
-                            SELECT
-                                SUM(a.Preco) AS Total,
-                                STRING_AGG(
-                                    CONCAT(N'   + ', a.Nome, N' — R$ ', FORMAT(a.Preco, 'N2', 'pt-BR')),
-                                    CHAR(10)
-                                ) WITHIN GROUP (ORDER BY a.Nome) AS Detalhe
-                            FROM STRING_SPLIT(NULLIF(i.Adicionais, ''), ',') s
-                            JOIN Adicionais a ON a.Nome = LTRIM(RTRIM(s.value))
-                        ) ad
-                        CROSS APPLY (
-                            SELECT CONCAT(
-                                i.Quantidade, 'x ', pr.Nome,
-                                N' — R$ ', FORMAT(i.Preco - ISNULL(ad.Total, 0), 'N2', 'pt-BR'),
-                                CASE WHEN ISNULL(i.Observacao,'') <> '' THEN ' [' + i.Observacao + ']' ELSE '' END,
-                                CASE WHEN ad.Detalhe IS NOT NULL THEN CHAR(10) + ad.Detalhe ELSE '' END
-                            ) AS bloco
-                        ) b
-                        WHERE i.IdPedido = p.Id
-                    ) AS Itens
+                    COALESCE(p.TrocoPara, 0)    AS TrocoPara,
+                    COALESCE(p.Origem, 'Site')  AS Origem,
+                    " + BlocoItensSql + @"
                 FROM Pedidos p
                 JOIN Clientes c ON c.Id = p.IdCliente
                 WHERE p.Status = 'Aguardando'
@@ -270,7 +232,7 @@ namespace DevBurguer.Data
             using (var conn = DevBurguer.Banco.Conexao.GetConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new SqlCommand(sql, conn) { CommandTimeout = 60 })
+                using (var cmd = new NpgsqlCommand(sql, conn) { CommandTimeout = 60 })
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var dt = new DataTable();
@@ -280,15 +242,12 @@ namespace DevBurguer.Data
             }
         }
 
-        // ═══════════════════════════════════════════════════════════
-        //  ✅ Consulta leve: quantos pedidos do site estão aguardando
-        //  aprovação. Usada pelo alerta sonoro global do menu principal.
-        // ═══════════════════════════════════════════════════════════
+        // Consulta leve: quantos pedidos do site aguardando aprovação (alerta sonoro).
         public async Task<int> GetQtdAguardandoAsync()
         {
             const string sql = "SELECT COUNT(*) FROM Pedidos WHERE Status = 'Aguardando'";
             using (var conn = DevBurguer.Banco.Conexao.GetConnection())
-            using (var cmd = new SqlCommand(sql, conn) { CommandTimeout = 15 })
+            using (var cmd = new NpgsqlCommand(sql, conn) { CommandTimeout = 15 })
             {
                 await conn.OpenAsync();
                 var r = await cmd.ExecuteScalarAsync();
@@ -296,9 +255,7 @@ namespace DevBurguer.Data
             }
         }
 
-        // ═══════════════════════════════════════════════════════════
-        //  ✅ Carrega um pedido (cabeçalho + itens) para impressão do cupom.
-        // ═══════════════════════════════════════════════════════════
+        // Carrega um pedido (cabeçalho + itens) para impressão do cupom.
         public async Task<DevBurguer.Services.CupomDados> GetPedidoParaCupomAsync(int idPedido)
         {
             var d = new DevBurguer.Services.CupomDados { NumeroPedido = idPedido };
@@ -307,15 +264,15 @@ namespace DevBurguer.Data
             {
                 await conn.OpenAsync();
 
-                using (var cmd = new SqlCommand(@"
+                using (var cmd = new NpgsqlCommand(@"
                     SELECT p.Data,
-                           ISNULL(p.TipoEntrega, '')                                          AS Tipo,
-                           ISNULL(p.Origem, 'Balcao')                                         AS Origem,
+                           COALESCE(p.TipoEntrega, '')  AS Tipo,
+                           COALESCE(p.Origem, 'Balcao') AS Origem,
                            p.Total,
-                           ISNULL(p.TrocoPara, 0)                                             AS Troco,
-                           c.Nome                                                             AS Cliente,
-                           ISNULL(c.Telefone, '')                                             AS Telefone,
-                           ISNULL(c.Endereco,'') + ', ' + ISNULL(c.Numero,'') + ' - ' + ISNULL(c.Bairro,'') AS Endereco
+                           COALESCE(p.TrocoPara, 0)     AS Troco,
+                           c.Nome                       AS Cliente,
+                           COALESCE(c.Telefone, '')     AS Telefone,
+                           COALESCE(c.Endereco,'') || ', ' || COALESCE(c.Numero,'') || ' - ' || COALESCE(c.Bairro,'') AS Endereco
                     FROM Pedidos p
                     JOIN Clientes c ON c.Id = p.IdCliente
                     WHERE p.Id = @id", conn))
@@ -337,15 +294,15 @@ namespace DevBurguer.Data
                     }
                 }
 
-                using (var cmd = new SqlCommand(@"
+                using (var cmd = new NpgsqlCommand(@"
                     SELECT i.Quantidade,
                            pr.Nome,
                            i.Preco,
-                           ISNULL(i.Adicionais, '') AS Adicionais,
-                           ISNULL(i.Observacao, '') AS Observacao,
-                           (SELECT ISNULL(SUM(a.Preco), 0)
-                            FROM STRING_SPLIT(NULLIF(i.Adicionais, ''), ',') s
-                            JOIN Adicionais a ON a.Nome = LTRIM(RTRIM(s.value))) AS AdicValor
+                           COALESCE(i.Adicionais, '') AS Adicionais,
+                           COALESCE(i.Observacao, '') AS Observacao,
+                           (SELECT COALESCE(SUM(a.Preco), 0)
+                            FROM unnest(string_to_array(NULLIF(i.Adicionais, ''), ',')) AS s(value)
+                            JOIN Adicionais a ON a.Nome = TRIM(s.value)) AS AdicValor
                     FROM ItensPedido i
                     JOIN Produtos pr ON pr.Id = i.IdProduto
                     WHERE i.IdPedido = @id
@@ -370,7 +327,6 @@ namespace DevBurguer.Data
                 }
             }
 
-            // Taxa de entrega (mesma regra do resto do sistema)
             d.Taxa = (d.Tipo ?? "").Trim().Equals("Entrega", StringComparison.OrdinalIgnoreCase)
                         ? Configuracoes.TaxaEntrega
                         : 0m;
@@ -387,7 +343,7 @@ namespace DevBurguer.Data
             using (var conn = DevBurguer.Banco.Conexao.GetConnection())
             {
                 await conn.OpenAsync();
-                var cmd = new SqlCommand(sql, conn) { CommandTimeout = 60 };
+                var cmd = new NpgsqlCommand(sql, conn) { CommandTimeout = 60 };
                 cmd.Parameters.AddWithValue("@s", novoStatus);
                 cmd.Parameters.AddWithValue("@id", idPedido);
                 if (idMotoboy.HasValue)
@@ -402,7 +358,7 @@ namespace DevBurguer.Data
                 SELECT DISTINCT m.Id, m.Nome
                 FROM EscalaMotoboy e
                 JOIN Motoboys m ON m.Id = e.IdMotoboy
-                WHERE e.Ativo = 1
+                WHERE e.Ativo = TRUE
                 ORDER BY m.Nome";
             return await DbHelper.ExecuteDataTableAsync(sql);
         }

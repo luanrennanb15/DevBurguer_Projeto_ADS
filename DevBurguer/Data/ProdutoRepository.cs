@@ -1,5 +1,6 @@
 ﻿using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 using System.Threading.Tasks;
 using DevBurguer.Services;
 
@@ -29,7 +30,7 @@ namespace DevBurguer.Data
         /// </summary>
         public async Task<DataTable> GetProdutosAtivosAsync()
         {
-            const string sql = "SELECT * FROM Produtos WHERE Ativo = 1 ORDER BY Categoria, Nome";
+            const string sql = "SELECT * FROM Produtos WHERE Ativo = TRUE ORDER BY Categoria, Nome";
             try
             {
                 return await DbHelper.ExecuteDataTableAsync(sql);
@@ -57,13 +58,13 @@ namespace DevBurguer.Data
 
         public async Task InsertAsync(string nome, decimal preco, string categoria, string ingredientes)
         {
-            const string sql = "INSERT INTO Produtos (Nome, Preco, Categoria, Ingredientes, Ativo) VALUES (@n,@p,@c,@i,1)";
-            var p = new SqlParameter[]
+            const string sql = "INSERT INTO Produtos (Nome, Preco, Categoria, Ingredientes, Ativo) VALUES (@n,@p,@c,@i,TRUE)";
+            var p = new NpgsqlParameter[]
             {
-                new SqlParameter("@n", SqlDbType.NVarChar, 200) { Value = nome },
-                new SqlParameter("@p", SqlDbType.Decimal)       { Precision = 18, Scale = 2, Value = preco },
-                new SqlParameter("@c", SqlDbType.NVarChar, 100) { Value = categoria },
-                new SqlParameter("@i", SqlDbType.NVarChar,  -1) { Value = (object)ingredientes ?? string.Empty }
+                new NpgsqlParameter("@n", NpgsqlDbType.Varchar) { Value = nome },
+                new NpgsqlParameter("@p", NpgsqlDbType.Numeric)       { Precision = 18, Scale = 2, Value = preco },
+                new NpgsqlParameter("@c", NpgsqlDbType.Varchar) { Value = categoria },
+                new NpgsqlParameter("@i", NpgsqlDbType.Varchar) { Value = (object)ingredientes ?? string.Empty }
             };
             try
             {
@@ -79,13 +80,13 @@ namespace DevBurguer.Data
         public async Task UpdateAsync(int id, string nome, decimal preco, string categoria, string ingredientes)
         {
             const string sql = "UPDATE Produtos SET Nome=@n, Preco=@p, Categoria=@c, Ingredientes=@i WHERE Id=@id";
-            var p = new SqlParameter[]
+            var p = new NpgsqlParameter[]
             {
-                new SqlParameter("@n",  SqlDbType.NVarChar, 200) { Value = nome },
-                new SqlParameter("@p",  SqlDbType.Decimal)       { Precision = 18, Scale = 2, Value = preco },
-                new SqlParameter("@c",  SqlDbType.NVarChar, 100) { Value = categoria },
-                new SqlParameter("@i",  SqlDbType.NVarChar,  -1) { Value = (object)ingredientes ?? string.Empty },
-                new SqlParameter("@id", SqlDbType.Int)           { Value = id }
+                new NpgsqlParameter("@n",  NpgsqlDbType.Varchar) { Value = nome },
+                new NpgsqlParameter("@p",  NpgsqlDbType.Numeric)       { Precision = 18, Scale = 2, Value = preco },
+                new NpgsqlParameter("@c",  NpgsqlDbType.Varchar) { Value = categoria },
+                new NpgsqlParameter("@i",  NpgsqlDbType.Varchar) { Value = (object)ingredientes ?? string.Empty },
+                new NpgsqlParameter("@id", NpgsqlDbType.Integer)           { Value = id }
             };
             try
             {
@@ -101,9 +102,9 @@ namespace DevBurguer.Data
         public async Task DeleteAsync(int id)
         {
             const string sql = "DELETE FROM Produtos WHERE Id=@id";
-            var p = new SqlParameter[]
+            var p = new NpgsqlParameter[]
             {
-                new SqlParameter("@id", SqlDbType.Int) { Value = id }
+                new NpgsqlParameter("@id", NpgsqlDbType.Integer) { Value = id }
             };
             try
             {
@@ -124,10 +125,10 @@ namespace DevBurguer.Data
         public async Task SetAtivoAsync(int id, bool ativo)
         {
             const string sql = "UPDATE Produtos SET Ativo=@a WHERE Id=@id";
-            var p = new SqlParameter[]
+            var p = new NpgsqlParameter[]
             {
-                new SqlParameter("@a",  SqlDbType.Bit) { Value = ativo },
-                new SqlParameter("@id", SqlDbType.Int) { Value = id }
+                new NpgsqlParameter("@a",  NpgsqlDbType.Boolean) { Value = ativo },
+                new NpgsqlParameter("@id", NpgsqlDbType.Integer) { Value = id }
             };
             try
             {

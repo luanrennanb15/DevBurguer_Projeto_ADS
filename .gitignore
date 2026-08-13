@@ -1,0 +1,24 @@
+# ===== Visual Studio / .NET =====
+.vs/
+*.user
+*.suo
+[Bb]in/
+[Oo]bj/
+packages/
+*.nupkg
+
+# ===== Config local com CREDENCIAIS (NUNCA versionar) =====
+config.txt
+**/config.txt
+
+# ===== API Node =====
+node_modules/
+.env
+*.log
+logs/
+
+# ===== Backup da migração SQL Server -> Postgres =====
+_backup_desktop_sqlserver_Data/
+
+# backups locais
+*.bak

@@ -12,6 +12,7 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -45,6 +46,10 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+  </ItemGroup>
+  <!-- Driver PostgreSQL (Npgsql). 6.0.x = ultima serie compativel com .NET Framework 4.8. -->
+  <ItemGroup>
+    <PackageReference Include="Npgsql" Version="6.0.11" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Banco\Conexao.cs" />

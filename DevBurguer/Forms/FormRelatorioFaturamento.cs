@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Reflection;
@@ -217,19 +218,19 @@ namespace DevBurguer.Forms
                 // ✅ FIX: removido ISNULL(Data, GETDATE()) — pedidos sem Data não devem entrar
                 string sql = @"
                     SELECT
-                        CONVERT(date, Data) AS Dia,
+                        Data::date AS Dia,
                         COUNT(Id)           AS Pedidos,
                         SUM(Total)          AS Faturamento,
                         AVG(Total)          AS TicketMedio
                     FROM Pedidos
                     WHERE Data BETWEEN @di AND @df
                       AND Status = 'Finalizado'
-                    GROUP BY CONVERT(date, Data)
+                    GROUP BY Data::date
                     ORDER BY Dia DESC";
 
                 var p = new[] {
-                    new SqlParameter("@di", SqlDbType.DateTime) { Value = inicio },
-                    new SqlParameter("@df", SqlDbType.DateTime) { Value = fim }
+                    new NpgsqlParameter("@di", NpgsqlDbType.Timestamp) { Value = inicio },
+                    new NpgsqlParameter("@df", NpgsqlDbType.Timestamp) { Value = fim }
                 };
 
                 DataTable dt = DevBurguer.Data.DbHelper.ExecuteDataTable(sql, p);

@@ -1,6 +1,7 @@
 using System;
 using System.Data;
-using System.Data.SqlClient; // só para tratar o erro de FK (547) na exclusão
+using Npgsql;
+using NpgsqlTypes;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DevBurguer.Data;
@@ -152,7 +153,7 @@ namespace DevBurguer
                 await CarregarAsync();
             }
             // ✅ trata FK violada pelo número (547) — funciona em qualquer idioma do servidor
-            catch (SqlException sqlEx) when (sqlEx.Number == 547)
+            catch (PostgresException sqlEx) when (sqlEx.SqlState == "23503")
             {
                 DevBurguer.Services.ExceptionLogger.Log(sqlEx, "FormMotoboy.btnExcluir_Click.FK");
                 DialogHelper.Aviso("Nao e possivel excluir pois ha pagamentos ou pedidos vinculados.",

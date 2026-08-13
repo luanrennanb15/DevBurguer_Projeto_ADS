@@ -1,1 +1,0 @@
-Server=localhost;Database=DevBurguerDB;Trusted_Connection=True;Connection Timeout=30;

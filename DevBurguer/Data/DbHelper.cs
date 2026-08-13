@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
+using NpgsqlTypes;
 using System.Threading.Tasks;
 using DevBurguer.Banco;
 using DevBurguer.Services;
@@ -9,14 +10,14 @@ namespace DevBurguer.Data
 {
     public static class DbHelper
     {
-        public static DataTable ExecuteDataTable(string sql, params SqlParameter[] parameters)
+        public static DataTable ExecuteDataTable(string sql, params NpgsqlParameter[] parameters)
         {
             try
             {
-                using (SqlConnection conn = Conexao.GetConnection())
+                using (NpgsqlConnection conn = Conexao.GetConnection())
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                     {
                         cmd.CommandTimeout = 60;
                         if (parameters != null && parameters.Length > 0)
@@ -38,14 +39,14 @@ namespace DevBurguer.Data
             }
         }
 
-        public static int ExecuteNonQuery(string sql, params SqlParameter[] parameters)
+        public static int ExecuteNonQuery(string sql, params NpgsqlParameter[] parameters)
         {
             try
             {
-                using (SqlConnection conn = Conexao.GetConnection())
+                using (NpgsqlConnection conn = Conexao.GetConnection())
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                     {
                         cmd.CommandTimeout = 60;
                         if (parameters != null && parameters.Length > 0)
@@ -63,15 +64,15 @@ namespace DevBurguer.Data
         }
 
         // ✅ ASYNC SEM ConfigureAwait(false)
-        public static async Task<DataTable> ExecuteDataTableAsync(string sql, params SqlParameter[] parameters)
+        public static async Task<DataTable> ExecuteDataTableAsync(string sql, params NpgsqlParameter[] parameters)
         {
             try
             {
-                using (SqlConnection conn = Conexao.GetConnection())
+                using (NpgsqlConnection conn = Conexao.GetConnection())
                 {
                     await conn.OpenAsync(); // 🔥 corrigido
 
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                     {
                         cmd.CommandTimeout = 60;
                         if (parameters != null && parameters.Length > 0)
@@ -93,15 +94,15 @@ namespace DevBurguer.Data
             }
         }
 
-        public static async Task<int> ExecuteNonQueryAsync(string sql, params SqlParameter[] parameters)
+        public static async Task<int> ExecuteNonQueryAsync(string sql, params NpgsqlParameter[] parameters)
         {
             try
             {
-                using (SqlConnection conn = Conexao.GetConnection())
+                using (NpgsqlConnection conn = Conexao.GetConnection())
                 {
                     await conn.OpenAsync(); // 🔥 corrigido
 
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                     {
                         cmd.CommandTimeout = 60;
                         if (parameters != null && parameters.Length > 0)
