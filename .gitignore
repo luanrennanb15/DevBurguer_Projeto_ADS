@@ -22,3 +22,8 @@ _backup_desktop_sqlserver_Data/
 
 # backups locais
 *.bak
+
+# pasta de limpeza (apagar manualmente)
+_LIXO_pode_apagar/
+
+_DESCARTE/
