@@ -76,6 +76,7 @@ router.get('/mais-vendidos', async (req, res) => {
             WHERE ped.status = 'Finalizado'
               AND ped.data >= NOW() - INTERVAL '30 days'
               AND p.ativo = TRUE
+              AND p.categoria IN ('Lanche Tradicional', 'Lanche Gourmet', 'Combo')
             GROUP BY p.id, p.nome, p.preco, p.categoria, p.ingredientes
             ORDER BY totalvendido DESC
             LIMIT $1
