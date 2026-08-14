@@ -64,7 +64,7 @@ class Carrinho {
 
         this.salvarNoLocal();
         this.atualizar();
-        mostrarToast(`${produto.emoji} ${produto.nome} adicionado!`);
+        // (removido o toast "adicionado" a pedido — atrapalhava o cliente)
         abrirCarrinho();
     }
 
