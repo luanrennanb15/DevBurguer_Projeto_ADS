@@ -94,5 +94,21 @@ pacote **Npgsql** e compile (Ctrl+Shift+B). A string de conexão fica em `config
 ### 4. Site
 Abra `docs/index.html` no navegador — em produção é servido pelo GitHub Pages.
 
+## 🗺️ Próximos passos (roadmap)
+
+Evoluções planejadas para tornar o sistema mais **automatizado** e completo:
+
+- **📱 App mobile de autoatendimento nas mesas** — *em desenvolvimento*
+  Um aplicativo para **tablets, um em cada mesa**, integrado à mesma **API REST** do
+  sistema. O próprio cliente monta e envia o pedido **direto da mesa**, sem precisar
+  chamar um atendente nem se levantar. O pedido cai **em tempo real** no painel de
+  produção da cozinha — exatamente como já acontece com o site. Isso reduz a
+  necessidade de garçom, agiliza o atendimento e diminui filas.
+
+- **💳 Pagamento online** (Pix / cartão) integrado a um gateway, para o cliente pagar direto pelo site/app.
+- **🔔 Acompanhamento do pedido em tempo real** pelo cliente (recebido → em produção → pronto).
+- **🏢 Suporte a múltiplas lojas** (multi-tenant), para usar o sistema em vários estabelecimentos.
+- **🔄 Deploy automatizado (CI/CD)** e testes a cada mudança, para publicar sem risco.
+
 ## 👤 Autor
 **Luan Rennan** — Análise e Desenvolvimento de Sistemas / UNIP
