@@ -23,6 +23,7 @@ namespace DevBurguer.Services
         public DateTime DataHora;
         public string Tipo;     // Entrega / Retirada
         public string Origem;   // Site / Balcao
+        public string FormaPagamento; // PIX / Dinheiro / Cartao ...
         public string Cliente;
         public string Telefone;
         public string Endereco;
@@ -154,6 +155,8 @@ namespace DevBurguer.Services
                 Linha(g, fBig, "TOTAL", Moeda(d.Total), X, W, ref y);
                 if (d.Troco > 0)
                     Linha(g, f, "Troco para " + Moeda(d.Troco), "", X, W, ref y);
+                if (!string.IsNullOrWhiteSpace(d.FormaPagamento))
+                    Linha(g, f, "Pagamento: " + d.FormaPagamento.Trim(), "", X, W, ref y);
 
                 Separador(g, X, W, ref y);
                 y += 1f;
