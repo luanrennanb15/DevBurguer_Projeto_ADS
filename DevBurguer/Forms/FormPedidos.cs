@@ -267,7 +267,7 @@ namespace DevBurguer
                 }
 
                 var repo = new DevBurguer.Data.PedidoRepository();
-                int idPedido = await repo.InsertPedidoAsync(idCliente, total, itens, tipoEntrega, troco);
+                int idPedido = await repo.InsertPedidoAsync(idCliente, total, itens, tipoEntrega, troco, formaPagamento);
 
                 // ✅ Imprime o cupom da cozinha (não derruba o fluxo se falhar)
                 try

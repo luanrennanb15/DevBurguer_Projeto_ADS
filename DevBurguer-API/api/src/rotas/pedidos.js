@@ -37,10 +37,10 @@ router.post('/pedidos', async (req, res) => {
         const { total, itensValidados } = await calcularTotal(client, dados);
 
         const resultadoPedido = await client.query(`
-            INSERT INTO pedidos (idcliente, data, total, status, tipoentrega, trocopara, origem)
-            VALUES ($1, NOW(), $2, $3, $4, $5, 'Site')
+            INSERT INTO pedidos (idcliente, data, total, status, tipoentrega, trocopara, formapagamento, origem)
+            VALUES ($1, NOW(), $2, $3, $4, $5, $6, 'Site')
             RETURNING id
-        `, [idCliente, total, STATUS_INICIAL, dados.tipoEntrega, Number(dados.troco) || 0]);
+        `, [idCliente, total, STATUS_INICIAL, dados.tipoEntrega, Number(dados.troco) || 0, (dados.formaPagamento || '').trim()]);
 
         const idPedido = resultadoPedido.rows[0].id;
 
@@ -48,7 +48,7 @@ router.post('/pedidos', async (req, res) => {
             await client.query(`
                 INSERT INTO itenspedido (idpedido, idproduto, quantidade, observacao, adicionais, preco)
                 VALUES ($1, $2, $3, $4, $5, $6)
-            `, [idPedido, item.idProduto, item.quantidade, item.observacao || '', '', item.preco]);
+            `, [idPedido, item.idProduto, item.quantidade, item.observacao || '', item.adicionais || '', item.preco]);
         }
 
         await client.query('COMMIT');
@@ -168,14 +168,32 @@ async function calcularTotal(client, dados) {
             throw new Error('Produto ' + item.idProduto + ' nao existe.');
         }
 
-        const preco = Number(r.rows[0].preco);
-        total += preco * item.quantidade;
+        const precoBase = Number(r.rows[0].preco);
+
+        // Adicionais chegam como nomes separados por virgula. O valor e sempre
+        // recalculado pelos precos do BANCO (nunca confia no cliente).
+        const adicStr = (item.adicionais || '').trim();
+        let adicValor = 0;
+        if (adicStr) {
+            const nomes = adicStr.split(',').map(n => n.trim()).filter(Boolean);
+            if (nomes.length > 0) {
+                const ra = await client.query(
+                    'SELECT COALESCE(SUM(preco), 0) AS soma FROM adicionais WHERE nome = ANY($1::text[])',
+                    [nomes]);
+                adicValor = Number(ra.rows[0].soma);
+            }
+        }
+
+        // Convencao do desktop: preco do item ja inclui os adicionais.
+        const precoUnit = precoBase + adicValor;
+        total += precoUnit * item.quantidade;
 
         itensValidados.push({
             idProduto:  item.idProduto,
             quantidade: item.quantidade,
             observacao: item.observacao || '',
-            preco:      preco,
+            adicionais: adicStr,
+            preco:      precoUnit,
         });
     }
 
