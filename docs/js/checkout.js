@@ -34,6 +34,17 @@ async function finalizarPedido(event) {
         endereco:    ELEMENTS.address.value.trim(),
         numero:      ELEMENTS.numero.value.trim(),   // ✅ agora é campo separado
         bairro:      ELEMENTS.neighborhood.value.trim(),
+        // ✅ forma de pagamento (texto legível p/ a cozinha)
+        formaPagamento: (() => {
+            const pg = document.getElementById('paymentMethod') ? document.getElementById('paymentMethod').value : '';
+            if (pg === 'cartao') {
+                const t = document.getElementById('cardType') ? document.getElementById('cardType').value : '';
+                return t === 'credito' ? 'Cartão (Crédito)' : 'Cartão (Débito)';
+            }
+            if (pg === 'pix')      return 'PIX';
+            if (pg === 'dinheiro') return 'Dinheiro';
+            return '';
+        })(),
         troco:       ELEMENTS.changeAmount.value
                         ? parseFloat(ELEMENTS.changeAmount.value)
                         : 0,
@@ -41,6 +52,12 @@ async function finalizarPedido(event) {
             idProduto:  item.id,
             quantidade: item.quantidade,
             observacao: item.observacao || '',
+            // ✅ envia os adicionais como nomes separados por vírgula
+            // (a API cobra pelos preços do banco e grava a string p/ a cozinha)
+            adicionais: (item.adicionais || [])
+                .map(id => (ADICIONAIS_DISPONIVEIS.find(a => a.id === id) || {}).nome)
+                .filter(Boolean)
+                .join(', '),
         })),
     };
 

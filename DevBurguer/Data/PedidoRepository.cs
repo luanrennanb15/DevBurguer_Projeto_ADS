@@ -60,7 +60,7 @@ namespace DevBurguer.Data
 
         public async Task<int> InsertPedidoAsync(
             int idCliente, decimal total, List<OrderItem> itens,
-            string tipoEntrega, decimal troco = 0)
+            string tipoEntrega, decimal troco = 0, string formaPagamento = "")
         {
             try
             {
@@ -74,8 +74,8 @@ namespace DevBurguer.Data
                         {
                             // Data explícita no INSERT; RETURNING devolve o Id gerado (Postgres).
                             using (var cmd = new NpgsqlCommand(
-                                @"INSERT INTO Pedidos (IdCliente, Data, Total, Status, TipoEntrega, TrocoPara)
-                                  VALUES (@c, @data, @t, 'Em Producao', @tipo, @troco)
+                                @"INSERT INTO Pedidos (IdCliente, Data, Total, Status, TipoEntrega, TrocoPara, FormaPagamento)
+                                  VALUES (@c, @data, @t, 'Em Producao', @tipo, @troco, @fpag)
                                   RETURNING Id",
                                 conn, tran))
                             {
@@ -85,6 +85,7 @@ namespace DevBurguer.Data
                                 cmd.Parameters.Add(new NpgsqlParameter("@t", NpgsqlDbType.Numeric) { Precision = 18, Scale = 2, Value = total });
                                 cmd.Parameters.Add(new NpgsqlParameter("@tipo", NpgsqlDbType.Varchar) { Value = tipoEntrega });
                                 cmd.Parameters.Add(new NpgsqlParameter("@troco", NpgsqlDbType.Numeric) { Precision = 10, Scale = 2, Value = troco });
+                                cmd.Parameters.Add(new NpgsqlParameter("@fpag", NpgsqlDbType.Varchar) { Value = (object)formaPagamento ?? string.Empty });
                                 idPedido = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                             }
 
@@ -270,6 +271,7 @@ namespace DevBurguer.Data
                            COALESCE(p.Origem, 'Balcao') AS Origem,
                            p.Total,
                            COALESCE(p.TrocoPara, 0)     AS Troco,
+                           COALESCE(p.FormaPagamento, '') AS FormaPagamento,
                            c.Nome                       AS Cliente,
                            COALESCE(c.Telefone, '')     AS Telefone,
                            COALESCE(c.Endereco,'') || ', ' || COALESCE(c.Numero,'') || ' - ' || COALESCE(c.Bairro,'') AS Endereco
@@ -287,6 +289,7 @@ namespace DevBurguer.Data
                             d.Origem = r["Origem"].ToString();
                             d.Total = Convert.ToDecimal(r["Total"]);
                             d.Troco = Convert.ToDecimal(r["Troco"]);
+                            d.FormaPagamento = r["FormaPagamento"].ToString();
                             d.Cliente = r["Cliente"].ToString();
                             d.Telefone = r["Telefone"].ToString();
                             d.Endereco = r["Endereco"].ToString();
