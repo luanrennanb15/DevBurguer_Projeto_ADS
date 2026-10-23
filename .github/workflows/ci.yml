@@ -1,0 +1,42 @@
+# ============================================================================
+# DEVBURGUER — Integração Contínua (CI)
+# ----------------------------------------------------------------------------
+# Executado automaticamente a cada push ou pull request no GitHub.
+# Garante que a API instala as dependências e que o código não tem erro de
+# sintaxe antes de seguir para o deploy automático no Render (CD).
+# ============================================================================
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  api:
+    name: Valida a API
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: DevBurguer-API/api
+    steps:
+      - name: Baixa o código
+        uses: actions/checkout@v4
+
+      - name: Configura o Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: DevBurguer-API/api/package-lock.json
+
+      - name: Instala as dependências
+        run: npm ci
+
+      - name: Verifica a sintaxe do código
+        run: |
+          for arquivo in $(find src -name "*.js"); do
+            node --check "$arquivo"
+          done
+          echo "Sintaxe OK em todos os arquivos."

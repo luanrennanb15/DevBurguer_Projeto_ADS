@@ -1,0 +1,34 @@
+# ============================================================================
+# DEVBURGUER — Infraestrutura como Código (Render Blueprint)
+# ----------------------------------------------------------------------------
+# Descreve o serviço da API em nuvem de forma versionada. Com este arquivo, a
+# infraestrutura pode ser recriada a partir do repositório, sem configuração
+# manual pelo painel. As variáveis marcadas com "sync: false" são segredos e
+# devem ser preenchidas no painel do Render (não ficam no Git).
+# ============================================================================
+services:
+  - type: web
+    name: devburguer-api
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: DevBurguer-API/api
+    buildCommand: npm ci
+    startCommand: node src/server.js
+    autoDeploy: true          # CD: faz deploy automático a cada push no main
+    healthCheckPath: /
+    envVars:
+      - key: DB_SSL
+        value: "true"
+      - key: CORS_ORIGIN
+        value: "https://luanrennanb15.github.io"
+      - key: DB_SERVER
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_PORT
+        sync: false
