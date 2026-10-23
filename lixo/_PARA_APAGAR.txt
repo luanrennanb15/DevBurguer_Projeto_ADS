@@ -1,0 +1,30 @@
+PASTA LIXO - DevBurguer
+=======================
+Arquivos identificados como descartaveis (sucata) no projeto.
+Arraste-os para esta pasta e depois apague a pasta inteira,
+ou apague-os direto no local original.
+
+Lembre-se: o projeto e um repositorio Git. Depois de apagar, rode:
+    git add -A
+    git commit -m "Remove arquivos desnecessarios"
+    git push
+
+------------------------------------------------------------
+SUCATA CONFIRMADA (pode apagar sem medo):
+------------------------------------------------------------
+
+[ ] DevBurguer-Desktop\DevBurguer.zip
+    (16,7 MB - zip do proprio projeto dentro do projeto)
+
+[ ] DevBurguer-API\api\selftest.js
+    (arquivo vazio, 0 bytes)
+
+------------------------------------------------------------
+A VERIFICAR (so apague depois de confirmar que nao sao usados):
+------------------------------------------------------------
+
+[ ] assets\Sem titulo.png
+[ ] assets\generated-image-1776206674266.PNG
+[ ] assets\Captura de tela 2026-04-14 204214.png
+[ ] documentacao\fotos\366bdb21-76c9-4698-b74f-edd2792bf7b7.png
+
