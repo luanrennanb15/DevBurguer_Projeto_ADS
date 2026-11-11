@@ -1,0 +1,60 @@
+<resources>
+    <string name="nome_app">DevBurguer Garçom</string>
+
+    <string name="tituloTelaLogin">Login do Garçom</string>
+    <string name="tituloApp">DevBurguer</string>
+    <string name="subtituloApp">App do garçom</string>
+    <string name="dicaUsuario">Usuário</string>
+    <string name="dicaSenha">Senha</string>
+    <string name="botaoEntrar">Entrar</string>
+    <string name="erroCamposVazios">Preencha usuário e senha</string>
+    <string name="mensagemLoginMock">Login (mock): bem-vindo, %1$s</string>
+    <string name="avisoCadastroGarcom">O cadastro do garçom é feito pela administração.</string>
+
+    <string name="tituloTelaMesas">Mesas</string>
+    <string name="saudacaoGarcom">Olá, %1$s</string>
+    <string name="botaoSair">Sair</string>
+    <string name="legendaStatusLivre">Livre</string>
+    <string name="legendaStatusOcupada">Ocupada</string>
+    <string name="legendaStatusPronto">Pedido pronto</string>
+    <string name="avisoToqueMesa">Mesa livre abre um pedido novo. Mesa ocupada abre a comanda.</string>
+    <string name="rotuloMesaNumero">%02d</string>
+    <string name="statusMesaLivre">Livre</string>
+    <string name="statusMesaOcupada">Ocupada</string>
+    <string name="statusMesaPronto">Pronto</string>
+    <string name="tituloTelaCardapio">Mesa %1$02d</string>
+    <string name="botaoVoltarMesas">Mesas</string>
+    <string name="botaoAdicionar">Adicionar</string>
+    <string name="simboloMenos">−</string>
+    <string name="simboloMais">+</string>
+    <string name="rotuloPreco">R$ %1$s</string>
+    <string name="rotuloVerPedido">Ver pedido · %1$d itens</string>
+    <string name="botaoTentarNovamente">Tentar novamente</string>
+    <string name="carregandoCardapio">Carregando cardápio…</string>
+
+    <string name="erroCardapioTimeout">O servidor demorou demais pra responder. Tente novamente.</string>
+    <string name="erroCardapioServidor">Não foi possível carregar o cardápio agora (erro no servidor).</string>
+    <string name="erroCardapioConexao">Sem conexão com a internet. Verifique e tente novamente.</string>
+    <string name="erroCardapioInesperado">Algo deu errado ao carregar o cardápio.</string>
+    <string name="mensagemPedidoVazio">Adicione pelo menos um item antes de ver o pedido.</string>
+
+    <string name="botaoVoltarCardapio">Cardápio</string>
+    <string name="tituloTelaCarrinho">Pedido · Mesa %1$02d</string>
+    <string name="dicaObservacaoItem">Observação do item</string>
+    <string name="rotuloObservacaoPedido">Observação do pedido</string>
+    <string name="dicaObservacaoPedido">Ex.: servir juntos</string>
+    <string name="rotuloTotalItens">Total · %1$d itens</string>
+    <string name="botaoEnviarRodada">Enviar como rodada %1$d</string>
+    <string name="botaoVoltarMesasComanda">Mesas</string>
+    <string name="tituloTelaComanda">Comanda · Mesa %1$02d</string>
+    <string name="subtituloComanda">%1$d rodadas · %2$d itens</string>
+    <string name="rotuloRodada">Rodada %1$d</string>
+    <string name="statusRodadaEntregue">✓ Entregue</string>
+    <string name="statusRodadaEmPreparo">● Em preparo</string>
+    <string name="rotuloItemRodada">%1$d× %2$s</string>
+    <string name="rotuloSubtotal">Subtotal</string>
+    <string name="rotuloTotalComanda">Total da comanda</string>
+    <string name="botaoAdicionarItens">Adicionar itens</string>
+    <string name="avisoPagamentoCaixa">O pagamento e o fechamento da mesa são feitos no caixa.</string>
+    <string name="avisoAlteracaoDesktop">Depois de enviada, a rodada só pode ser alterada no desktop.</string>
+</resources>
