@@ -1,5 +1,6 @@
 package com.example.devburguergarcom;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -50,6 +51,11 @@ public class LoginActivity extends AppCompatActivity
                 // MOCK: login real do garçom ainda não existe na API (Luan está desenvolvendo).
                 // Por enquanto só confirma que "entrou", sem validar usuário/senha de verdade.
                 Toast.makeText(LoginActivity.this, getString(R.string.mensagemLoginMock, usuario), Toast.LENGTH_SHORT).show();
+
+                Intent intent = new Intent(LoginActivity.this, MesasActivity.class);
+                intent.putExtra(MesasActivity.EXTRA_NOME_GARCOM, usuario);
+                startActivity(intent);
+                finish();
             }
         });
     }

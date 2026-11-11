@@ -2,9 +2,26 @@
     <string name="nome_app">DevBurguer Garçom</string>
 
     <string name="tituloTelaLogin">Login do Garçom</string>
+    <string name="tituloApp">DevBurguer</string>
+    <string name="subtituloApp">App do garçom</string>
     <string name="dicaUsuario">Usuário</string>
     <string name="dicaSenha">Senha</string>
     <string name="botaoEntrar">Entrar</string>
     <string name="erroCamposVazios">Preencha usuário e senha</string>
     <string name="mensagemLoginMock">Login (mock): bem-vindo, %1$s</string>
+    <string name="avisoCadastroGarcom">O cadastro do garçom é feito pela administração.</string>
+
+    <string name="tituloTelaMesas">Mesas</string>
+    <string name="saudacaoGarcom">Olá, %1$s</string>
+    <string name="botaoSair">Sair</string>
+    <string name="legendaStatusLivre">Livre</string>
+    <string name="legendaStatusOcupada">Ocupada</string>
+    <string name="legendaStatusPronto">Pedido pronto</string>
+    <string name="avisoToqueMesa">Mesa livre abre um pedido novo. Mesa ocupada abre a comanda.</string>
+    <string name="rotuloMesaNumero">%02d</string>
+    <string name="statusMesaLivre">Livre</string>
+    <string name="statusMesaOcupada">Ocupada</string>
+    <string name="statusMesaPronto">Pronto</string>
+    <string name="mensagemMesaLivreSelecionada">Mesa %1$d livre: abriria o Cardápio (ainda não existe)</string>
+    <string name="mensagemMesaOcupadaSelecionada">Mesa %1$d ocupada: abriria a Comanda (ainda não existe)</string>
 </resources>
