@@ -2,11 +2,17 @@
  * ROTAS/PEDIDOS.JS
  * Endpoints de criacao e consulta de pedidos (PostgreSQL).
  *
- *   POST /api/pedidos            -> cria um pedido vindo do site
- *   GET  /api/pedidos/:id/status -> consulta o status de um pedido
+ *   POST /api/pedidos             -> cria um pedido vindo do site
+ *   GET  /api/pedidos/:id/status  -> consulta o status de um pedido
+ *   POST /api/pedidos/garcom      -> registra uma rodada do App do Garcom (salao)
+ *   GET  /api/mesas/:mesa/comanda -> itens em aberto de uma mesa (comanda)
  *
  * Pedido do site entra com status = 'Aguardando' e origem = 'Site'.
  * O dono aprova/recusa no desktop (Kanban). Tudo grava em transacao.
+ *
+ * Pedido do garcom entra com status = 'Em Producao' e origem = 'Garcom'
+ * (vai direto pra producao, sem aprovacao), tipoentrega = 'Salao' e a mesa.
+ * O pagamento e sempre no caixa, entao nao grava forma de pagamento aqui.
  */
 
 const express = require('express');
@@ -14,6 +20,9 @@ const router = express.Router();
 const { pool } = require('../db/db');
 
 const STATUS_INICIAL = 'Aguardando';
+const STATUS_GARCOM  = 'Em Producao';
+// Status considerados "em aberto" na comanda da mesa.
+const STATUS_FECHADOS = ['Finalizado', 'Cancelado'];
 
 router.post('/pedidos', async (req, res) => {
     const dados = req.body || {};
@@ -95,7 +104,148 @@ router.get('/pedidos/:id/status', async (req, res) => {
     }
 });
 
+// ── App do Garcom (salao) ──────────────────────────────────────
+
+/**
+ * POST /api/pedidos/garcom
+ * Registra uma rodada enviada pelo garcom para uma mesa.
+ * Corpo esperado:
+ *   { "mesa": 7, "itens": [ { "idProduto": 1, "quantidade": 2,
+ *                             "observacao": "sem cebola", "adicionais": "Bacon" } ] }
+ * Nao exige cliente nem endereco: e consumo no salao.
+ */
+router.post('/pedidos/garcom', async (req, res) => {
+    const dados = req.body || {};
+
+    const erros = validarPedidoGarcom(dados);
+    if (erros.length > 0) {
+        return res.status(400).json({ erro: 'Dados invalidos', detalhes: erros });
+    }
+
+    let client;
+    try {
+        client = await pool.connect();
+    } catch {
+        return res.status(503).json({ erro: 'Banco de dados indisponivel.' });
+    }
+
+    try {
+        await client.query('BEGIN');
+
+        // Reaproveita o calculo do site; tipoEntrega 'Salao' nao cobra taxa.
+        const { total, itensValidados } =
+            await calcularTotal(client, { itens: dados.itens, tipoEntrega: 'Salao' });
+
+        const resultadoPedido = await client.query(`
+            INSERT INTO pedidos (idcliente, data, total, status, tipoentrega, trocopara, formapagamento, origem, mesa)
+            VALUES (NULL, NOW(), $1, $2, 'Salao', 0, '', 'Garcom', $3)
+            RETURNING id
+        `, [total, STATUS_GARCOM, dados.mesa]);
+
+        const idPedido = resultadoPedido.rows[0].id;
+
+        for (const item of itensValidados) {
+            await client.query(`
+                INSERT INTO itenspedido (idpedido, idproduto, quantidade, observacao, adicionais, preco)
+                VALUES ($1, $2, $3, $4, $5, $6)
+            `, [idPedido, item.idProduto, item.quantidade, item.observacao || '', item.adicionais || '', item.preco]);
+        }
+
+        await client.query('COMMIT');
+
+        res.status(201).json({
+            idPedido,
+            mesa:   dados.mesa,
+            status: STATUS_GARCOM,
+            total,
+            mensagem: 'Rodada registrada para a mesa ' + dados.mesa + '.',
+        });
+    } catch (err) {
+        try { await client.query('ROLLBACK'); } catch { /* ignore */ }
+        console.error('Erro em POST /pedidos/garcom:', err.message);
+        res.status(500).json({ erro: 'Falha ao registrar a rodada.' });
+    } finally {
+        client.release();
+    }
+});
+
+/**
+ * GET /api/mesas/:mesa/comanda
+ * Lista os itens em aberto de uma mesa (todas as rodadas ainda nao
+ * finalizadas/canceladas) e o total acumulado, para conferir no caixa.
+ */
+router.get('/mesas/:mesa/comanda', async (req, res) => {
+    const mesa = parseInt(req.params.mesa, 10);
+    if (isNaN(mesa) || mesa <= 0) {
+        return res.status(400).json({ erro: 'Mesa invalida.' });
+    }
+
+    try {
+        const r = await pool.query(`
+            SELECT p.id   AS idpedido,
+                   p.data,
+                   p.status,
+                   i.idproduto,
+                   pr.nome AS produto,
+                   i.quantidade,
+                   i.observacao,
+                   i.adicionais,
+                   i.preco
+              FROM pedidos p
+              JOIN itenspedido i ON i.idpedido = p.id
+              JOIN produtos    pr ON pr.id = i.idproduto
+             WHERE p.mesa = $1
+               AND p.origem = 'Garcom'
+               AND p.status <> ALL($2::text[])
+             ORDER BY p.id
+        `, [mesa, STATUS_FECHADOS]);
+
+        const total = r.rows.reduce(
+            (s, it) => s + Number(it.preco) * it.quantidade, 0);
+        const rodadas = new Set(r.rows.map(it => it.idpedido)).size;
+
+        res.json({
+            mesa,
+            aberta: r.rows.length > 0,
+            rodadas,
+            total,
+            itens: r.rows.map(it => ({
+                idPedido:   it.idpedido,
+                produto:    it.produto,
+                quantidade: it.quantidade,
+                observacao: it.observacao,
+                adicionais: it.adicionais,
+                preco:      Number(it.preco),
+                status:     it.status,
+            })),
+        });
+    } catch (err) {
+        console.error('Erro em GET /mesas/:mesa/comanda:', err.message);
+        res.status(500).json({ erro: 'Falha ao consultar a comanda.' });
+    }
+});
+
 // ── Funcoes auxiliares ─────────────────────────────────────────
+
+function validarPedidoGarcom(dados) {
+    const erros = [];
+
+    if (!Number.isInteger(dados.mesa) || dados.mesa <= 0)
+        erros.push('mesa deve ser um numero inteiro positivo.');
+
+    if (!Array.isArray(dados.itens) || dados.itens.length === 0)
+        erros.push('A rodada precisa ter ao menos um item.');
+    else {
+        dados.itens.forEach((item, i) => {
+            if (!Number.isInteger(item.idProduto) || item.idProduto <= 0)
+                erros.push('Item ' + (i + 1) + ': idProduto invalido.');
+            if (!Number.isInteger(item.quantidade) || item.quantidade <= 0)
+                erros.push('Item ' + (i + 1) + ': quantidade invalida.');
+        });
+    }
+
+    return erros;
+}
 
 function validarPedido(dados) {
     const erros = [];

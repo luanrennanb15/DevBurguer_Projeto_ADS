@@ -9,7 +9,7 @@
 -- ============================================================================
 
 DROP TABLE IF EXISTS pagamentomotoboy, escalamotoboy, itenspedido, pedidos,
-                     usuarios, produtos, motoboys, clientes, adicionais CASCADE;
+                     usuarios, garcons, produtos, motoboys, clientes, adicionais CASCADE;
 
 CREATE TABLE adicionais (
     id     SERIAL PRIMARY KEY,
@@ -51,6 +51,16 @@ CREATE TABLE usuarios (
     id       SERIAL PRIMARY KEY,
     usuario  VARCHAR(50),
     senha    VARCHAR(64) NOT NULL
+);
+
+-- Garçons do salão (login do App do Garçom). Senha em SHA-256 (hex, 64 chars).
+CREATE TABLE garcons (
+    id         SERIAL PRIMARY KEY,
+    nome       VARCHAR(100) NOT NULL,
+    usuario    VARCHAR(50) NOT NULL UNIQUE,
+    senha      VARCHAR(64) NOT NULL,
+    ativo      BOOLEAN NOT NULL DEFAULT TRUE,
+    criado_em  TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE pedidos (

@@ -15,6 +15,9 @@
 ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS criado_em     TIMESTAMP DEFAULT NOW();
 ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS atualizado_em TIMESTAMP DEFAULT NOW();
 
+-- Mesa do salão (App do Garçom): nula para pedidos de site/desktop/entrega.
+ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS mesa INT;
+
 -- ─── 2) Domínios de valores (CHECK) ────────────────────────────────────────
 -- Garantem que colunas de "tipo texto" só aceitem valores válidos do negócio.
 DO $$
@@ -27,12 +30,12 @@ BEGIN
 
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_pedidos_tipoentrega') THEN
         ALTER TABLE pedidos ADD CONSTRAINT chk_pedidos_tipoentrega
-            CHECK (tipoentrega IN ('Entrega','Retirada') OR tipoentrega IS NULL);
+            CHECK (tipoentrega IN ('Entrega','Retirada','Salao') OR tipoentrega IS NULL);
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_pedidos_origem') THEN
         ALTER TABLE pedidos ADD CONSTRAINT chk_pedidos_origem
-            CHECK (origem IN ('Desktop','Site'));
+            CHECK (origem IN ('Desktop','Site','Garcom'));
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_produtos_preco') THEN
@@ -61,6 +64,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_clientes_cpf
 -- ─── 4) Índices de apoio às consultas mais usadas ──────────────────────────
 CREATE INDEX IF NOT EXISTS ix_pedidos_data        ON pedidos (data);
 CREATE INDEX IF NOT EXISTS ix_pedidos_origem      ON pedidos (origem);
+CREATE INDEX IF NOT EXISTS ix_pedidos_mesa         ON pedidos (mesa) WHERE mesa IS NOT NULL;
 CREATE INDEX IF NOT EXISTS ix_itens_idproduto     ON itenspedido (idproduto);
 CREATE INDEX IF NOT EXISTS ix_produtos_categoria  ON produtos (categoria);
 CREATE INDEX IF NOT EXISTS ix_produtos_ativo      ON produtos (ativo);
