@@ -11,7 +11,7 @@
  * remontarem a cada toque — assim a rolagem do cardápio não "pula" pro topo.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView, View, Text, TextInput, TouchableOpacity, ScrollView,
   ActivityIndicator, Alert, StatusBar, StyleSheet, KeyboardAvoidingView, Platform,
@@ -115,31 +115,83 @@ function TelaLogin({ carregando, onEntrar }) {
   );
 }
 
-// ─── Tela: Escolher mesa ────────────────────────────────────────────────────
-function TelaMesa({ garcom, carregando, onAbrir, onSair }) {
-  const [numero, setNumero] = useState('');
-  return (
-    <View style={styles.centro}>
-      <Text style={styles.ola}>Olá, {garcom?.nome} 👋</Text>
-      <Text style={styles.sub}>Qual mesa você vai atender?</Text>
+// ─── Tela: Escolher mesa (grid de mesas, clicar em vez de digitar) ──────────
+const MESAS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Número da mesa</Text>
-        <TextInput
-          style={[styles.input, styles.inputMesa]}
-          keyboardType="number-pad"
-          placeholder="Ex: 7"
-          value={numero}
-          onChangeText={setNumero}
-        />
-        <TouchableOpacity style={styles.botao} onPress={() => onAbrir(numero)} disabled={carregando}>
-          <Text style={styles.botaoTexto}>{carregando ? 'Abrindo...' : 'Abrir mesa'}</Text>
+function TelaMesa({ garcom, carregando, onAbrir, onSair }) {
+  const [ocupadas, setOcupadas] = useState([]);
+  const [carregandoMesas, setCarregandoMesas] = useState(true);
+
+  async function carregarMesas() {
+    setCarregandoMesas(true);
+    try {
+      const r = await chamarApi('/mesas/ocupadas');
+      setOcupadas(Array.isArray(r?.ocupadas) ? r.ocupadas : []);
+    } catch {
+      // Tolerante: se a API não tiver esse endpoint ainda, mostra todas livres.
+      setOcupadas([]);
+    } finally {
+      setCarregandoMesas(false);
+    }
+  }
+  useEffect(() => { carregarMesas(); }, []);
+
+  return (
+    <View style={styles.flex}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.headerTitulo}>Mesas</Text>
+          <Text style={styles.headerSub}>Olá, {garcom?.nome}</Text>
+        </View>
+        <TouchableOpacity onPress={carregarMesas}>
+          <Text style={styles.headerLink}>Atualizar</Text>
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity onPress={onSair}>
-        <Text style={styles.linkSair}>Sair</Text>
-      </TouchableOpacity>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 30 }}>
+        <View style={styles.legenda}>
+          <View style={styles.legItem}>
+            <View style={[styles.legDot, { backgroundColor: '#2B9E54' }]} />
+            <Text style={styles.legTxt}>Disponível</Text>
+          </View>
+          <View style={styles.legItem}>
+            <View style={[styles.legDot, { backgroundColor: '#E63946' }]} />
+            <Text style={styles.legTxt}>Ocupada</Text>
+          </View>
+          {carregandoMesas && <ActivityIndicator size="small" color="#999" />}
+        </View>
+
+        <View style={styles.grid}>
+          {MESAS.map((n) => {
+            const ocupada = ocupadas.includes(n);
+            return (
+              <TouchableOpacity
+                key={n}
+                style={[styles.mesaTile, ocupada ? styles.mesaOcupada : styles.mesaLivre]}
+                onPress={() => onAbrir(String(n))}
+                disabled={carregando}
+                activeOpacity={0.7}>
+                {/* desenho simples de mesa */}
+                <View style={styles.tableDraw}>
+                  <View style={[styles.tableTop, { backgroundColor: ocupada ? '#E63946' : '#2B9E54' }]} />
+                  <View style={styles.tableLegs}>
+                    <View style={[styles.leg, { backgroundColor: ocupada ? '#E63946' : '#2B9E54' }]} />
+                    <View style={[styles.leg, { backgroundColor: ocupada ? '#E63946' : '#2B9E54' }]} />
+                  </View>
+                </View>
+                <Text style={[styles.mesaNum, { color: ocupada ? '#E63946' : '#2B9E54' }]}>Mesa {n}</Text>
+                <Text style={[styles.mesaStatus, { color: ocupada ? '#E63946' : '#2B9E54' }]}>
+                  {ocupada ? 'Ocupada' : 'Disponível'}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        <TouchableOpacity onPress={onSair} style={{ alignItems: 'center' }}>
+          <Text style={styles.linkSair}>Sair</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 }
@@ -433,6 +485,23 @@ const styles = StyleSheet.create({
   botaoSec: { borderWidth: 1.5, borderColor: '#E63946', borderRadius: 10, paddingVertical: 13, paddingHorizontal: 16, alignItems: 'center' },
   botaoSecTexto: { color: '#E63946', fontSize: 15, fontWeight: '700' },
   linkSair: { color: '#999', marginTop: 24, fontSize: 15, textDecorationLine: 'underline' },
+
+  // Grid de mesas
+  legenda: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 16 },
+  legItem: { flexDirection: 'row', alignItems: 'center' },
+  legDot: { width: 12, height: 12, borderRadius: 6, marginRight: 6 },
+  legTxt: { color: '#555', fontSize: 13, fontWeight: '600' },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  mesaTile: { width: '48%', borderRadius: 14, borderWidth: 2, paddingVertical: 16, alignItems: 'center', marginBottom: 12 },
+  mesaLivre: { backgroundColor: '#E9F8EF', borderColor: '#2B9E54' },
+  mesaOcupada: { backgroundColor: '#FDECEC', borderColor: '#E63946' },
+  mesaNum: { fontSize: 18, fontWeight: '800', marginTop: 8 },
+  mesaStatus: { fontSize: 12, fontWeight: '700', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
+  // Desenho da mesa (tampo + pernas)
+  tableDraw: { alignItems: 'center' },
+  tableTop: { width: 54, height: 12, borderRadius: 4 },
+  tableLegs: { flexDirection: 'row', justifyContent: 'space-between', width: 44, marginTop: 1 },
+  leg: { width: 5, height: 14, borderBottomLeftRadius: 2, borderBottomRightRadius: 2 },
 
   header: { backgroundColor: '#1D1D1D', paddingHorizontal: 18, paddingVertical: 16, paddingTop: 20,
             flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
