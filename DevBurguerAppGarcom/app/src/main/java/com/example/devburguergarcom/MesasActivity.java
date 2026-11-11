@@ -71,14 +71,15 @@ public class MesasActivity extends AppCompatActivity
             {
                 Mesa mesa = (Mesa) grdMesas.getItemAtPosition(posicao);
 
-                // As telas de Cardápio e Comanda ainda não existem (próximos passos),
-                // então por enquanto só avisamos o que aconteceria.
                 if (mesa.getStatus().equals(getString(R.string.statusMesaLivre)))
                 {
-                    Toast.makeText(MesasActivity.this, getString(R.string.mensagemMesaLivreSelecionada, mesa.getNumero()), Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(MesasActivity.this, CardapioActivity.class);
+                    intent.putExtra(CardapioActivity.EXTRA_NUMERO_MESA, mesa.getNumero());
+                    startActivity(intent);
                 }
                 else
                 {
+                    // A tela de Comanda ainda não existe (próximo passo).
                     Toast.makeText(MesasActivity.this, getString(R.string.mensagemMesaOcupadaSelecionada, mesa.getNumero()), Toast.LENGTH_SHORT).show();
                 }
             }

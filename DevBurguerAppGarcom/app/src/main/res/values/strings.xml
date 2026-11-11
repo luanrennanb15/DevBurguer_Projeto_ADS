@@ -22,6 +22,21 @@
     <string name="statusMesaLivre">Livre</string>
     <string name="statusMesaOcupada">Ocupada</string>
     <string name="statusMesaPronto">Pronto</string>
-    <string name="mensagemMesaLivreSelecionada">Mesa %1$d livre: abriria o Cardápio (ainda não existe)</string>
     <string name="mensagemMesaOcupadaSelecionada">Mesa %1$d ocupada: abriria a Comanda (ainda não existe)</string>
+
+    <string name="tituloTelaCardapio">Mesa %1$02d</string>
+    <string name="botaoVoltarMesas">Mesas</string>
+    <string name="botaoAdicionar">Adicionar</string>
+    <string name="simboloMenos">−</string>
+    <string name="simboloMais">+</string>
+    <string name="rotuloPreco">R$ %1$s</string>
+    <string name="rotuloVerPedido">Ver pedido · %1$d itens</string>
+    <string name="mensagemCarrinhoIndisponivel">O carrinho ainda não existe (próximo passo)</string>
+    <string name="botaoTentarNovamente">Tentar novamente</string>
+    <string name="carregandoCardapio">Carregando cardápio…</string>
+
+    <string name="erroCardapioTimeout">O servidor demorou demais pra responder. Tente novamente.</string>
+    <string name="erroCardapioServidor">Não foi possível carregar o cardápio agora (erro no servidor).</string>
+    <string name="erroCardapioConexao">Sem conexão com a internet. Verifique e tente novamente.</string>
+    <string name="erroCardapioInesperado">Algo deu errado ao carregar o cardápio.</string>
 </resources>
