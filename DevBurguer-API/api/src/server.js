@@ -14,6 +14,7 @@ const cors = require('cors');
 
 const rotasProdutos = require('./rotas/produtos');
 const rotasPedidos  = require('./rotas/pedidos');
+const rotasGarcom   = require('./rotas/garcom');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -55,6 +56,7 @@ app.get('/', (req, res) => {
             'GET  /api/pedidos/:id/status',
             'POST /api/pedidos/garcom',
             'GET  /api/mesas/:mesa/comanda',
+            'POST /api/garcom/login',
         ],
     });
 });
@@ -62,6 +64,7 @@ app.get('/', (req, res) => {
 // Registra as rotas com prefixo /api
 app.use('/api', rotasProdutos);
 app.use('/api', rotasPedidos);
+app.use('/api', rotasGarcom);
 
 // ─── Tratamento de rota não encontrada ─────────────────────────
 app.use((req, res) => {
