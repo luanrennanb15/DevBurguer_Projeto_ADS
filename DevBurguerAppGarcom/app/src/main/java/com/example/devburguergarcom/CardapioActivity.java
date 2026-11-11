@@ -1,5 +1,6 @@
 package com.example.devburguergarcom;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.View;
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.devburguergarcom.modelo.Categoria;
+import com.example.devburguergarcom.modelo.ItemPedido;
 import com.example.devburguergarcom.modelo.Produto;
 import com.example.devburguergarcom.rede.ApiDevBurguer;
 import com.example.devburguergarcom.rede.OuvinteApi;
@@ -104,8 +106,7 @@ public class CardapioActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                // A tela de Carrinho ainda não existe (próximo passo).
-                Toast.makeText(CardapioActivity.this, getString(R.string.mensagemCarrinhoIndisponivel), Toast.LENGTH_SHORT).show();
+                abrirCarrinho();
             }
         });
     }
@@ -225,6 +226,31 @@ public class CardapioActivity extends AppCompatActivity
                 atualizarRodape();
             }
         }));
+    }
+
+    private void abrirCarrinho()
+    {
+        ArrayList<ItemPedido> itensPedido = new ArrayList<>();
+
+        for (Produto produto : todosProdutos)
+        {
+            Integer quantidade = quantidades.get(produto.getId());
+            if (quantidade != null && quantidade > 0)
+            {
+                itensPedido.add(new ItemPedido(produto, quantidade));
+            }
+        }
+
+        if (itensPedido.isEmpty())
+        {
+            Toast.makeText(this, getString(R.string.mensagemPedidoVazio), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(this, CarrinhoActivity.class);
+        intent.putExtra(CarrinhoActivity.EXTRA_NUMERO_MESA, numeroMesa);
+        intent.putExtra(CarrinhoActivity.EXTRA_ITENS_PEDIDO, itensPedido);
+        startActivity(intent);
     }
 
     private void atualizarRodape()

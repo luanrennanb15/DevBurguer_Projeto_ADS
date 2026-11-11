@@ -11,13 +11,16 @@ app/src/main/
 │   ├── LoginActivity.java       Tela de login do garçom (primeira tela do app)
 │   ├── MesasActivity.java       Tela com a grade de mesas (mock)
 │   ├── CardapioActivity.java    Tela do cardápio da mesa (API real)
+│   ├── CarrinhoActivity.java    Tela do pedido (carrinho) montado na mesa
 │   ├── AdaptadorMesa.java       Liga a lista de Mesa ao GridView da tela de mesas
 │   ├── AdaptadorProduto.java    Liga a lista de Produto ao ListView do cardápio
+│   ├── AdaptadorCarrinho.java   Liga a lista de ItemPedido ao ListView do carrinho
 │   ├── Dinheiro.java            Formata valores em reais (vírgula decimal)
 │   ├── modelo/
 │   │   ├── Mesa.java            Classe de modelo: número e status da mesa
 │   │   ├── Produto.java         Classe de modelo: item do cardápio (GET /api/produtos)
-│   │   └── Categoria.java       Classe de modelo: categoria do cardápio (GET /api/categorias)
+│   │   ├── Categoria.java       Classe de modelo: categoria do cardápio (GET /api/categorias)
+│   │   └── ItemPedido.java      Classe de modelo: um produto + quantidade + observação no pedido
 │   └── rede/
 │       ├── ApiDevBurguer.java   Única classe que fala com a API (HTTP + timeout + JSON)
 │       └── OuvinteApi.java      Callback de sucesso/erro de uma chamada à API
@@ -27,7 +30,9 @@ app/src/main/
     │   ├── activity_mesas.xml    Layout da tela de mesas
     │   ├── item_mesa.xml         Layout de um card da grade de mesas
     │   ├── activity_cardapio.xml Layout da tela de cardápio (carregando/erro/conteúdo)
-    │   └── item_produto.xml      Layout de uma linha de produto do cardápio
+    │   ├── item_produto.xml      Layout de uma linha de produto do cardápio
+    │   ├── activity_carrinho.xml Layout da tela de carrinho (pedido)
+    │   └── item_carrinho.xml     Layout de um card de item do carrinho
     ├── values/
     │   ├── strings.xml          Todos os textos da interface
     │   ├── colors.xml           Cores da identidade visual do DevBurguer
@@ -48,7 +53,7 @@ app/src/main/
 | Login do garçom | `LoginActivity` | Criada (mock — não valida senha real ainda) |
 | Mesas | `MesasActivity` | Criada (mock — lista fixa de mesas) |
 | Cardápio | `CardapioActivity` | Criada (API real: `GET /api/produtos` e `/api/categorias`) |
-| Pedido (carrinho) | — | Não criada |
+| Pedido (carrinho) | `CarrinhoActivity` | Criada (mock no envio — API de rodadas/comanda ainda não existe) |
 | Comanda da mesa | — | Não criada |
 
 ### Login do garçom (`LoginActivity`)
@@ -76,8 +81,18 @@ Primeira tela do app que fala com a **API real** (`GET /api/produtos` e `GET /ap
 - `configuracao()`: liga as views e lê o número da mesa recebido por `Intent`.
 - `carregarCardapio()`: busca categorias e depois produtos na API, em outra thread (`ApiDevBurguer`). A tela tem 3 estados: **carregando** (enquanto espera a resposta), **erro** (sem internet, servidor fora, ou timeout — com botão "Tentar novamente") e **conteúdo** (lista carregada).
 - Timeout de 60s, porque o plano gratuito do Render pode demorar até ~50s pra "acordar".
+- ⚠️ **`MODO_TESTE_OFFLINE`** em `ApiDevBurguer.java`: como a API real está com erro 500, esse interruptor está em `true` e faz a classe devolver dados fictícios (mock) em vez de chamar a internet, só pra dar pra testar as telas. **Quando a API do Luan voltar a funcionar, trocar para `false`** (ou apagar o bloco) pra voltar a usar a API de verdade.
 - `ApiDevBurguer` (pacote `rede`) é a única classe que conversa com a API: monta a `URL`, usa `HttpURLConnection` (nativo do Android, sem biblioteca nova), lê a resposta e transforma o JSON em `List<Produto>`/`List<Categoria>` usando `org.json` (também nativo).
 - Tocar no rodapé "Ver pedido" ainda não faz nada de verdade — a tela de Carrinho é o próximo passo.
+
+### Carrinho / pedido (`CarrinhoActivity`)
+
+Mostra os itens escolhidos no Cardápio (recebidos por `Intent` como `ArrayList<ItemPedido>`), cada um com campo de observação e contador -/+. Tem também um campo de observação geral do pedido e um rodapé com total e botão "Enviar como rodada".
+
+- `configuracao()`: lê a mesa e a lista de itens recebida por `Intent`, monta o adaptador e o rodapé.
+- `eventos()`: registra o clique de "voltar" e do botão de enviar.
+- Diminuir a quantidade de um item até zero **remove** ele do carrinho (`AdaptadorCarrinho.remove`).
+- **Mock**: o botão "Enviar como rodada 1" não chama nenhuma API — a API de comandas/rodadas ainda está em desenvolvimento pelo Luan, e a tela de Comanda (próximo passo) ainda não existe. Por enquanto só mostra um aviso.
 
 ### Fonte
 

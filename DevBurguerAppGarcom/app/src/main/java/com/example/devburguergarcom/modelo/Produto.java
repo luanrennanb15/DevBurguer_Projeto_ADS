@@ -1,7 +1,10 @@
 package com.example.devburguergarcom.modelo;
 
+import java.io.Serializable;
+
 // Um item do cardápio, como vem de GET /api/produtos.
-public class Produto
+// Implementa Serializable para poder viajar de uma Activity para outra por Intent.
+public class Produto implements Serializable
 {
     private int id;
     private String nome;

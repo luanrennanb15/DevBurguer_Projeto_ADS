@@ -31,7 +31,6 @@
     <string name="simboloMais">+</string>
     <string name="rotuloPreco">R$ %1$s</string>
     <string name="rotuloVerPedido">Ver pedido · %1$d itens</string>
-    <string name="mensagemCarrinhoIndisponivel">O carrinho ainda não existe (próximo passo)</string>
     <string name="botaoTentarNovamente">Tentar novamente</string>
     <string name="carregandoCardapio">Carregando cardápio…</string>
 
@@ -39,4 +38,14 @@
     <string name="erroCardapioServidor">Não foi possível carregar o cardápio agora (erro no servidor).</string>
     <string name="erroCardapioConexao">Sem conexão com a internet. Verifique e tente novamente.</string>
     <string name="erroCardapioInesperado">Algo deu errado ao carregar o cardápio.</string>
+    <string name="mensagemPedidoVazio">Adicione pelo menos um item antes de ver o pedido.</string>
+
+    <string name="botaoVoltarCardapio">Cardápio</string>
+    <string name="tituloTelaCarrinho">Pedido · Mesa %1$02d</string>
+    <string name="dicaObservacaoItem">Observação do item</string>
+    <string name="rotuloObservacaoPedido">Observação do pedido</string>
+    <string name="dicaObservacaoPedido">Ex.: servir juntos</string>
+    <string name="rotuloTotalItens">Total · %1$d itens</string>
+    <string name="botaoEnviarRodada">Enviar como rodada %1$d</string>
+    <string name="mensagemRodadaEnviada">Rodada enviada (mock) — a Comanda ainda não existe</string>
 </resources>

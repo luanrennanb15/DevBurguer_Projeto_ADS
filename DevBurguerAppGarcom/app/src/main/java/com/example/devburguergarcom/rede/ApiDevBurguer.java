@@ -30,6 +30,12 @@ import java.util.concurrent.Executors;
 // volta pra thread principal, porque a tela não pode travar esperando a rede.
 public class ApiDevBurguer
 {
+    // MODO DE TESTE: a API real está fora do ar (erro 500). Com isso em "true",
+    // as buscas abaixo devolvem dados fictícios (mock) em vez de chamar a internet,
+    // só pra testar as telas. Quando a API do Luan voltar a funcionar, troque para
+    // "false" (ou apague este bloco) pra voltar a usar a API de verdade.
+    private static final boolean MODO_TESTE_OFFLINE = true;
+
     private static final String URL_BASE = "https://devburguer-api-9gds.onrender.com/api";
     private static final int TEMPO_LIMITE_MS = 60000;
 
@@ -44,6 +50,12 @@ public class ApiDevBurguer
 
     public void buscarProdutos(OuvinteApi<List<Produto>> ouvinte)
     {
+        if (MODO_TESTE_OFFLINE)
+        {
+            avisarSucesso(ouvinte, criarProdutosMock());
+            return;
+        }
+
         executor.execute(new Runnable()
         {
             @Override
@@ -65,6 +77,12 @@ public class ApiDevBurguer
 
     public void buscarCategorias(OuvinteApi<List<Categoria>> ouvinte)
     {
+        if (MODO_TESTE_OFFLINE)
+        {
+            avisarSucesso(ouvinte, criarCategoriasMock());
+            return;
+        }
+
         executor.execute(new Runnable()
         {
             @Override
@@ -82,6 +100,29 @@ public class ApiDevBurguer
                 }
             }
         });
+    }
+
+    // Dados fictícios só pro MODO_TESTE_OFFLINE, com os mesmos campos da API real.
+    private List<Categoria> criarCategoriasMock()
+    {
+        List<Categoria> categorias = new ArrayList<>();
+        categorias.add(new Categoria("tradicionais", "Lanche Tradicional"));
+        categorias.add(new Categoria("combos", "Combo"));
+        categorias.add(new Categoria("bebidas", "Bebidas"));
+        return categorias;
+    }
+
+    private List<Produto> criarProdutosMock()
+    {
+        List<Produto> produtos = new ArrayList<>();
+        produtos.add(new Produto(1, "X-Burguer", 22.00, "tradicionais", "Pão, hambúrguer, queijo e salada"));
+        produtos.add(new Produto(2, "X-Bacon", 26.00, "tradicionais", "Hambúrguer, queijo e bacon crocante"));
+        produtos.add(new Produto(3, "Frango Crispy", 28.00, "tradicionais", "Frango empanado, alface e maionese"));
+        produtos.add(new Produto(4, "Burguer Duplo", 32.00, "combos", "Dois hambúrgueres, queijo e molho da casa"));
+        produtos.add(new Produto(5, "Combo X-Bacon + Fritas", 36.00, "combos", "X-Bacon, porção de batata e refrigerante"));
+        produtos.add(new Produto(6, "Refrigerante Lata", 7.00, "bebidas", "350ml"));
+        produtos.add(new Produto(7, "Suco Natural", 9.00, "bebidas", "500ml, sabor da casa"));
+        return produtos;
     }
 
     private String fazerRequisicao(String caminho) throws ErroApi

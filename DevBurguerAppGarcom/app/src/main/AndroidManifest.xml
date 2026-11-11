@@ -26,6 +26,10 @@
             android:name=".CardapioActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".CarrinhoActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
