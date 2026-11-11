@@ -7,7 +7,6 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -79,8 +78,9 @@ public class MesasActivity extends AppCompatActivity
                 }
                 else
                 {
-                    // A tela de Comanda ainda não existe (próximo passo).
-                    Toast.makeText(MesasActivity.this, getString(R.string.mensagemMesaOcupadaSelecionada, mesa.getNumero()), Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(MesasActivity.this, ComandaActivity.class);
+                    intent.putExtra(ComandaActivity.EXTRA_NUMERO_MESA, mesa.getNumero());
+                    startActivity(intent);
                 }
             }
         });

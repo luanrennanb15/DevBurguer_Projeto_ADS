@@ -12,15 +12,18 @@ app/src/main/
 │   ├── MesasActivity.java       Tela com a grade de mesas (mock)
 │   ├── CardapioActivity.java    Tela do cardápio da mesa (API real)
 │   ├── CarrinhoActivity.java    Tela do pedido (carrinho) montado na mesa
+│   ├── ComandaActivity.java     Tela da comanda da mesa (rodadas enviadas)
 │   ├── AdaptadorMesa.java       Liga a lista de Mesa ao GridView da tela de mesas
 │   ├── AdaptadorProduto.java    Liga a lista de Produto ao ListView do cardápio
 │   ├── AdaptadorCarrinho.java   Liga a lista de ItemPedido ao ListView do carrinho
+│   ├── AdaptadorRodada.java     Liga a lista de Rodada ao ListView da comanda
 │   ├── Dinheiro.java            Formata valores em reais (vírgula decimal)
 │   ├── modelo/
 │   │   ├── Mesa.java            Classe de modelo: número e status da mesa
 │   │   ├── Produto.java         Classe de modelo: item do cardápio (GET /api/produtos)
 │   │   ├── Categoria.java       Classe de modelo: categoria do cardápio (GET /api/categorias)
-│   │   └── ItemPedido.java      Classe de modelo: um produto + quantidade + observação no pedido
+│   │   ├── ItemPedido.java      Classe de modelo: um produto + quantidade + observação no pedido
+│   │   └── Rodada.java          Classe de modelo: uma rodada de itens já enviada (número + status + itens)
 │   └── rede/
 │       ├── ApiDevBurguer.java   Única classe que fala com a API (HTTP + timeout + JSON)
 │       └── OuvinteApi.java      Callback de sucesso/erro de uma chamada à API
@@ -32,7 +35,9 @@ app/src/main/
     │   ├── activity_cardapio.xml Layout da tela de cardápio (carregando/erro/conteúdo)
     │   ├── item_produto.xml      Layout de uma linha de produto do cardápio
     │   ├── activity_carrinho.xml Layout da tela de carrinho (pedido)
-    │   └── item_carrinho.xml     Layout de um card de item do carrinho
+    │   ├── item_carrinho.xml     Layout de um card de item do carrinho
+    │   ├── activity_comanda.xml  Layout da tela de comanda (lista de rodadas)
+    │   └── item_rodada.xml       Layout de um card de rodada da comanda
     ├── values/
     │   ├── strings.xml          Todos os textos da interface
     │   ├── colors.xml           Cores da identidade visual do DevBurguer
@@ -54,7 +59,7 @@ app/src/main/
 | Mesas | `MesasActivity` | Criada (mock — lista fixa de mesas) |
 | Cardápio | `CardapioActivity` | Criada (API real: `GET /api/produtos` e `/api/categorias`) |
 | Pedido (carrinho) | `CarrinhoActivity` | Criada (mock no envio — API de rodadas/comanda ainda não existe) |
-| Comanda da mesa | — | Não criada |
+| Comanda da mesa | `ComandaActivity` | Criada (histórico de rodadas em mock — API ainda não existe) |
 
 ### Login do garçom (`LoginActivity`)
 
@@ -93,6 +98,14 @@ Mostra os itens escolhidos no Cardápio (recebidos por `Intent` como `ArrayList<
 - `eventos()`: registra o clique de "voltar" e do botão de enviar.
 - Diminuir a quantidade de um item até zero **remove** ele do carrinho (`AdaptadorCarrinho.remove`).
 - **Mock**: o botão "Enviar como rodada 1" não chama nenhuma API — a API de comandas/rodadas ainda está em desenvolvimento pelo Luan, e a tela de Comanda (próximo passo) ainda não existe. Por enquanto só mostra um aviso.
+
+### Comanda da mesa (`ComandaActivity`)
+
+Mostra as rodadas já enviadas daquela mesa: cada card tem o número da rodada, um selo de status (verde "Entregue" / dourado "Em preparo", com borda vermelha destacando a rodada em preparo) e a lista de itens com subtotal. No rodapé, o total da comanda, o botão "Adicionar itens" (volta pro Cardápio pra montar uma nova rodada) e o aviso de que pagamento é só no caixa.
+
+- Chega a essa tela de dois jeitos: tocando numa mesa ocupada/pronta na tela de Mesas, ou clicando "Enviar" no Carrinho.
+- **Mock**: como a API de comandas/rodadas ainda não existe (Luan), a "Rodada 1" é sempre um histórico fictício (fixo no código, `ComandaActivity.criarRodadaHistoricoMock()`). Se a tela foi aberta a partir do Carrinho, a "Rodada 2" é o pedido de verdade que acabou de ser montado; se foi aberta direto da tela de Mesas, a "Rodada 2" também é mock (`criarRodadaEmPreparoMock()`), só pra mostrar a tela completa.
+- `AdaptadorRodada` desenha cada card e, dentro dele, monta as linhas de item dinamicamente (porque a quantidade de itens varia por rodada).
 
 ### Fonte
 

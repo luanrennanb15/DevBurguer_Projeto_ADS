@@ -22,8 +22,6 @@
     <string name="statusMesaLivre">Livre</string>
     <string name="statusMesaOcupada">Ocupada</string>
     <string name="statusMesaPronto">Pronto</string>
-    <string name="mensagemMesaOcupadaSelecionada">Mesa %1$d ocupada: abriria a Comanda (ainda não existe)</string>
-
     <string name="tituloTelaCardapio">Mesa %1$02d</string>
     <string name="botaoVoltarMesas">Mesas</string>
     <string name="botaoAdicionar">Adicionar</string>
@@ -47,5 +45,16 @@
     <string name="dicaObservacaoPedido">Ex.: servir juntos</string>
     <string name="rotuloTotalItens">Total · %1$d itens</string>
     <string name="botaoEnviarRodada">Enviar como rodada %1$d</string>
-    <string name="mensagemRodadaEnviada">Rodada enviada (mock) — a Comanda ainda não existe</string>
+    <string name="botaoVoltarMesasComanda">Mesas</string>
+    <string name="tituloTelaComanda">Comanda · Mesa %1$02d</string>
+    <string name="subtituloComanda">%1$d rodadas · %2$d itens</string>
+    <string name="rotuloRodada">Rodada %1$d</string>
+    <string name="statusRodadaEntregue">✓ Entregue</string>
+    <string name="statusRodadaEmPreparo">● Em preparo</string>
+    <string name="rotuloItemRodada">%1$d× %2$s</string>
+    <string name="rotuloSubtotal">Subtotal</string>
+    <string name="rotuloTotalComanda">Total da comanda</string>
+    <string name="botaoAdicionarItens">Adicionar itens</string>
+    <string name="avisoPagamentoCaixa">O pagamento e o fechamento da mesa são feitos no caixa.</string>
+    <string name="avisoAlteracaoDesktop">Depois de enviada, a rodada só pode ser alterada no desktop.</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.example.devburguergarcom;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -29,6 +30,7 @@ public class CarrinhoActivity extends AppCompatActivity
 
     private ArrayList<ItemPedido> itens;
     private AdaptadorCarrinho adaptador;
+    private int numeroMesa;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -49,7 +51,7 @@ public class CarrinhoActivity extends AppCompatActivity
         txvCarrinhoTotalValor = findViewById(R.id.txvCarrinhoTotalValor);
         btnEnviarRodada = findViewById(R.id.btnEnviarRodada);
 
-        int numeroMesa = getIntent().getIntExtra(EXTRA_NUMERO_MESA, 0);
+        numeroMesa = getIntent().getIntExtra(EXTRA_NUMERO_MESA, 0);
         txvTituloCarrinho.setText(getString(R.string.tituloTelaCarrinho, numeroMesa));
 
         itens = (ArrayList<ItemPedido>) getIntent().getSerializableExtra(EXTRA_ITENS_PEDIDO);
@@ -95,9 +97,13 @@ public class CarrinhoActivity extends AppCompatActivity
                     return;
                 }
 
-                // A tela de Comanda ainda não existe (próximo passo) e a API de
-                // rodadas também não — por enquanto é só um aviso mock.
-                Toast.makeText(CarrinhoActivity.this, getString(R.string.mensagemRodadaEnviada), Toast.LENGTH_SHORT).show();
+                // A API de comandas/rodadas ainda não existe (Luan está desenvolvendo),
+                // então o "envio" aqui só leva pra tela de Comanda com os dados em mock.
+                Intent intent = new Intent(CarrinhoActivity.this, ComandaActivity.class);
+                intent.putExtra(ComandaActivity.EXTRA_NUMERO_MESA, numeroMesa);
+                intent.putExtra(ComandaActivity.EXTRA_NOVA_RODADA, itens);
+                startActivity(intent);
+                finish();
             }
         });
     }

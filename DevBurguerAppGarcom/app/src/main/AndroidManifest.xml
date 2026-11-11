@@ -30,6 +30,10 @@
             android:name=".CarrinhoActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ComandaActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
