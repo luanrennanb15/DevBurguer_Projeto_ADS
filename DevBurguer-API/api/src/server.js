@@ -53,6 +53,8 @@ app.get('/', (req, res) => {
             'GET  /api/categorias',
             'POST /api/pedidos',
             'GET  /api/pedidos/:id/status',
+            'POST /api/pedidos/garcom',
+            'GET  /api/mesas/:mesa/comanda',
         ],
     });
 });
