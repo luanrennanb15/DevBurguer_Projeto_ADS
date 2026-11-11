@@ -11,6 +11,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.devburguergarcom.modelo.ItemPedido;
+import com.example.devburguergarcom.rede.ApiDevBurguer;
+import com.example.devburguergarcom.rede.OuvinteApi;
 
 import java.util.ArrayList;
 
@@ -18,9 +20,6 @@ public class CarrinhoActivity extends AppCompatActivity
 {
     public static final String EXTRA_NUMERO_MESA = "numeroMesa";
     public static final String EXTRA_ITENS_PEDIDO = "itensPedido";
-
-    // Mock: ainda não existe uma Comanda real pra saber qual é o número da rodada.
-    private static final int NUMERO_RODADA_MOCK = 1;
 
     private TextView txvTituloCarrinho;
     private ListView lstItensCarrinho;
@@ -30,6 +29,7 @@ public class CarrinhoActivity extends AppCompatActivity
 
     private ArrayList<ItemPedido> itens;
     private AdaptadorCarrinho adaptador;
+    private ApiDevBurguer api;
     private int numeroMesa;
 
     @Override
@@ -51,6 +51,7 @@ public class CarrinhoActivity extends AppCompatActivity
         txvCarrinhoTotalValor = findViewById(R.id.txvCarrinhoTotalValor);
         btnEnviarRodada = findViewById(R.id.btnEnviarRodada);
 
+        api = new ApiDevBurguer(this);
         numeroMesa = getIntent().getIntExtra(EXTRA_NUMERO_MESA, 0);
         txvTituloCarrinho.setText(getString(R.string.tituloTelaCarrinho, numeroMesa));
 
@@ -70,7 +71,7 @@ public class CarrinhoActivity extends AppCompatActivity
         });
         lstItensCarrinho.setAdapter(adaptador);
 
-        btnEnviarRodada.setText(getString(R.string.botaoEnviarRodada, NUMERO_RODADA_MOCK));
+        btnEnviarRodada.setText(getString(R.string.botaoEnviarRodada));
 
         atualizarRodape();
     }
@@ -97,13 +98,28 @@ public class CarrinhoActivity extends AppCompatActivity
                     return;
                 }
 
-                // A API de comandas/rodadas ainda não existe (Luan está desenvolvendo),
-                // então o "envio" aqui só leva pra tela de Comanda com os dados em mock.
-                Intent intent = new Intent(CarrinhoActivity.this, ComandaActivity.class);
-                intent.putExtra(ComandaActivity.EXTRA_NUMERO_MESA, numeroMesa);
-                intent.putExtra(ComandaActivity.EXTRA_NOVA_RODADA, itens);
-                startActivity(intent);
-                finish();
+                btnEnviarRodada.setEnabled(false);
+                btnEnviarRodada.setText(getString(R.string.botaoEnviando));
+
+                api.enviarRodadaGarcom(numeroMesa, itens, new OuvinteApi<Void>()
+                {
+                    @Override
+                    public void aoSucesso(Void resultado)
+                    {
+                        Intent intent = new Intent(CarrinhoActivity.this, ComandaActivity.class);
+                        intent.putExtra(ComandaActivity.EXTRA_NUMERO_MESA, numeroMesa);
+                        startActivity(intent);
+                        finish();
+                    }
+
+                    @Override
+                    public void aoFalhar(String mensagemErro)
+                    {
+                        btnEnviarRodada.setEnabled(true);
+                        btnEnviarRodada.setText(getString(R.string.botaoEnviarRodada));
+                        Toast.makeText(CarrinhoActivity.this, mensagemErro, Toast.LENGTH_LONG).show();
+                    }
+                });
             }
         });
     }

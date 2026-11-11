@@ -6,7 +6,10 @@ import android.os.Looper;
 
 import com.example.devburguergarcom.R;
 import com.example.devburguergarcom.modelo.Categoria;
+import com.example.devburguergarcom.modelo.Garcom;
+import com.example.devburguergarcom.modelo.ItemPedido;
 import com.example.devburguergarcom.modelo.Produto;
+import com.example.devburguergarcom.modelo.Rodada;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,12 +18,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -30,11 +36,11 @@ import java.util.concurrent.Executors;
 // volta pra thread principal, porque a tela não pode travar esperando a rede.
 public class ApiDevBurguer
 {
-    // MODO DE TESTE: a API real está fora do ar (erro 500). Com isso em "true",
-    // as buscas abaixo devolvem dados fictícios (mock) em vez de chamar a internet,
-    // só pra testar as telas. Quando a API do Luan voltar a funcionar, troque para
-    // "false" (ou apague este bloco) pra voltar a usar a API de verdade.
-    private static final boolean MODO_TESTE_OFFLINE = true;
+    // MODO DE TESTE: deixe "true" só se quiser testar as telas sem depender da
+    // internet. Com "false", chama a API de verdade (GET /produtos e /categorias).
+    // Aviso: em 11/11 o /api/produtos ainda estava devolvendo erro 500 no Render;
+    // se isso ainda não foi corrigido, o Cardápio vai mostrar a tela de erro.
+    private static final boolean MODO_TESTE_OFFLINE = false;
 
     private static final String URL_BASE = "https://devburguer-api-9gds.onrender.com/api";
     private static final int TEMPO_LIMITE_MS = 60000;
@@ -102,6 +108,188 @@ public class ApiDevBurguer
         });
     }
 
+    // POST /api/garcom/login -> autentica o garçom (usuario/senha em texto puro;
+    // o hash SHA-256 é feito pelo servidor, do nosso lado não precisa).
+    public void loginGarcom(String usuario, String senha, OuvinteApi<Garcom> ouvinte)
+    {
+        executor.execute(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    JSONObject corpoEnvio = new JSONObject();
+                    corpoEnvio.put("usuario", usuario);
+                    corpoEnvio.put("senha", senha);
+
+                    RespostaHttp resposta = chamar("POST", "/garcom/login", corpoEnvio.toString());
+                    JSONObject corpoResposta = new JSONObject(resposta.corpo.isEmpty() ? "{}" : resposta.corpo);
+
+                    if (resposta.codigo == 200)
+                    {
+                        Garcom garcom = new Garcom(
+                                corpoResposta.getInt("id"),
+                                corpoResposta.getString("nome"),
+                                corpoResposta.getString("usuario"));
+                        avisarSucesso(ouvinte, garcom);
+                    }
+                    else
+                    {
+                        avisarFalha(ouvinte, extrairMensagemErro(corpoResposta));
+                    }
+                }
+                catch (ErroApi erro)
+                {
+                    avisarFalha(ouvinte, erro.mensagem);
+                }
+                catch (Exception e)
+                {
+                    avisarFalha(ouvinte, contexto.getString(R.string.erroInesperado));
+                }
+            }
+        });
+    }
+
+    // POST /api/pedidos/garcom -> registra a rodada da mesa (sem cliente nem
+    // pagamento: isso é sempre no caixa). Adicionais ainda não têm tela própria,
+    // então vai sempre vazio por enquanto.
+    public void enviarRodadaGarcom(int mesa, List<ItemPedido> itens, OuvinteApi<Void> ouvinte)
+    {
+        executor.execute(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    JSONArray itensJson = new JSONArray();
+                    for (ItemPedido item : itens)
+                    {
+                        JSONObject itemJson = new JSONObject();
+                        itemJson.put("idProduto", item.getProduto().getId());
+                        itemJson.put("quantidade", item.getQuantidade());
+                        itemJson.put("observacao", item.getObservacao());
+                        itemJson.put("adicionais", "");
+                        itensJson.put(itemJson);
+                    }
+
+                    JSONObject corpoEnvio = new JSONObject();
+                    corpoEnvio.put("mesa", mesa);
+                    corpoEnvio.put("itens", itensJson);
+
+                    RespostaHttp resposta = chamar("POST", "/pedidos/garcom", corpoEnvio.toString());
+
+                    if (resposta.codigo == 201)
+                    {
+                        avisarSucesso(ouvinte, null);
+                    }
+                    else
+                    {
+                        JSONObject corpoResposta = new JSONObject(resposta.corpo.isEmpty() ? "{}" : resposta.corpo);
+                        avisarFalha(ouvinte, extrairMensagemErro(corpoResposta));
+                    }
+                }
+                catch (ErroApi erro)
+                {
+                    avisarFalha(ouvinte, erro.mensagem);
+                }
+                catch (Exception e)
+                {
+                    avisarFalha(ouvinte, contexto.getString(R.string.erroInesperado));
+                }
+            }
+        });
+    }
+
+    // GET /api/mesas/:mesa/comanda -> itens em aberto da mesa, agrupados por
+    // rodada (cada rodada é um idPedido). O status mostrado é o texto exato do
+    // banco (ex.: "Em Producao"), sem tradução.
+    public void buscarComanda(int mesa, OuvinteApi<List<Rodada>> ouvinte)
+    {
+        executor.execute(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    RespostaHttp resposta = chamar("GET", "/mesas/" + mesa + "/comanda", null);
+                    JSONObject corpoResposta = new JSONObject(resposta.corpo.isEmpty() ? "{}" : resposta.corpo);
+
+                    if (resposta.codigo == 200)
+                    {
+                        avisarSucesso(ouvinte, lerComanda(corpoResposta));
+                    }
+                    else
+                    {
+                        avisarFalha(ouvinte, extrairMensagemErro(corpoResposta));
+                    }
+                }
+                catch (ErroApi erro)
+                {
+                    avisarFalha(ouvinte, erro.mensagem);
+                }
+                catch (Exception e)
+                {
+                    avisarFalha(ouvinte, contexto.getString(R.string.erroInesperado));
+                }
+            }
+        });
+    }
+
+    // Agrupa a lista plana de itens da comanda pelo idPedido: cada idPedido
+    // virou uma rodada quando o garçom apertou "Enviar rodada".
+    private List<Rodada> lerComanda(JSONObject corpoResposta) throws Exception
+    {
+        List<Rodada> rodadas = new ArrayList<>();
+        JSONArray itensJson = corpoResposta.optJSONArray("itens");
+        if (itensJson == null)
+        {
+            return rodadas;
+        }
+
+        Map<Integer, List<ItemPedido>> itensPorPedido = new LinkedHashMap<>();
+        Map<Integer, String> statusPorPedido = new LinkedHashMap<>();
+
+        for (int i = 0; i < itensJson.length(); i++)
+        {
+            JSONObject item = itensJson.getJSONObject(i);
+            int idPedido = item.getInt("idPedido");
+
+            // A comanda não devolve o id do produto, só o nome: não precisamos
+            // dele aqui, é só pra exibir a linha da rodada.
+            Produto produto = new Produto(0, item.getString("produto"), item.getDouble("preco"), "", "");
+
+            ItemPedido itemPedido = new ItemPedido(produto, item.getInt("quantidade"));
+            itemPedido.setObservacao(item.optString("observacao", ""));
+
+            List<ItemPedido> itensDaRodada = itensPorPedido.get(idPedido);
+            if (itensDaRodada == null)
+            {
+                itensDaRodada = new ArrayList<>();
+                itensPorPedido.put(idPedido, itensDaRodada);
+            }
+            itensDaRodada.add(itemPedido);
+
+            statusPorPedido.put(idPedido, item.getString("status"));
+        }
+
+        for (Integer idPedido : itensPorPedido.keySet())
+        {
+            rodadas.add(new Rodada(idPedido, statusPorPedido.get(idPedido), itensPorPedido.get(idPedido)));
+        }
+
+        return rodadas;
+    }
+
+    // Lê o campo "erro" que a API sempre devolve quando dá 400/401/403/500.
+    private String extrairMensagemErro(JSONObject corpoResposta)
+    {
+        String erro = corpoResposta.optString("erro", "");
+        return erro.isEmpty() ? contexto.getString(R.string.erroInesperado) : erro;
+    }
+
     // Dados fictícios só pro MODO_TESTE_OFFLINE, com os mesmos campos da API real.
     private List<Categoria> criarCategoriasMock()
     {
@@ -127,25 +315,46 @@ public class ApiDevBurguer
 
     private String fazerRequisicao(String caminho) throws ErroApi
     {
+        RespostaHttp resposta = chamar("GET", caminho, null);
+
+        if (resposta.codigo != 200)
+        {
+            throw new ErroApi(contexto.getString(R.string.erroCardapioServidor));
+        }
+
+        return resposta.corpo;
+    }
+
+    // Chamada HTTP genérica (GET ou POST). Devolve o código e o corpo mesmo
+    // quando a API responde erro (400/401/403/500) — quem chamou decide o que
+    // fazer com isso. Só lança ErroApi pra falha de rede/timeout de verdade.
+    private RespostaHttp chamar(String metodo, String caminho, String corpoJson) throws ErroApi
+    {
         HttpURLConnection conexao = null;
 
         try
         {
             URL url = new URL(URL_BASE + caminho);
             conexao = (HttpURLConnection) url.openConnection();
-            conexao.setRequestMethod("GET");
+            conexao.setRequestMethod(metodo);
             conexao.setConnectTimeout(TEMPO_LIMITE_MS);
             conexao.setReadTimeout(TEMPO_LIMITE_MS);
 
-            int codigo = conexao.getResponseCode();
-
-            if (codigo != 200)
+            if (corpoJson != null)
             {
-                throw new ErroApi(contexto.getString(R.string.erroCardapioServidor));
+                conexao.setDoOutput(true);
+                conexao.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+                byte[] bytes = corpoJson.getBytes(StandardCharsets.UTF_8);
+                OutputStream saida = conexao.getOutputStream();
+                saida.write(bytes);
+                saida.close();
             }
 
-            InputStream entrada = conexao.getInputStream();
-            return lerConteudo(entrada);
+            int codigo = conexao.getResponseCode();
+            InputStream entrada = (codigo >= 200 && codigo < 300) ? conexao.getInputStream() : conexao.getErrorStream();
+            String corpo = entrada != null ? lerConteudo(entrada) : "";
+
+            return new RespostaHttp(codigo, corpo);
         }
         catch (SocketTimeoutException e)
         {
@@ -155,20 +364,25 @@ public class ApiDevBurguer
         {
             throw new ErroApi(contexto.getString(R.string.erroCardapioConexao));
         }
-        catch (ErroApi e)
-        {
-            throw e;
-        }
-        catch (Exception e)
-        {
-            throw new ErroApi(contexto.getString(R.string.erroCardapioInesperado));
-        }
         finally
         {
             if (conexao != null)
             {
                 conexao.disconnect();
             }
+        }
+    }
+
+    // Par simples (código HTTP + corpo da resposta) devolvido por chamar().
+    private static class RespostaHttp
+    {
+        final int codigo;
+        final String corpo;
+
+        RespostaHttp(int codigo, String corpo)
+        {
+            this.codigo = codigo;
+            this.corpo = corpo;
         }
     }
 

@@ -6,20 +6,19 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.devburguergarcom.modelo.ItemPedido;
-import com.example.devburguergarcom.modelo.Produto;
 import com.example.devburguergarcom.modelo.Rodada;
+import com.example.devburguergarcom.rede.ApiDevBurguer;
+import com.example.devburguergarcom.rede.OuvinteApi;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ComandaActivity extends AppCompatActivity
 {
     public static final String EXTRA_NUMERO_MESA = "numeroMesa";
-    public static final String EXTRA_NOVA_RODADA = "novaRodada";
 
     private TextView txvTituloComanda;
     private TextView txvSubtituloComanda;
@@ -27,6 +26,7 @@ public class ComandaActivity extends AppCompatActivity
     private TextView txvTotalComanda;
     private Button btnAdicionarItens;
 
+    private ApiDevBurguer api;
     private int numeroMesa;
 
     @Override
@@ -37,9 +37,9 @@ public class ComandaActivity extends AppCompatActivity
 
         configuracao();
         eventos();
+        carregarComanda();
     }
 
-    @SuppressWarnings("unchecked")
     private void configuracao()
     {
         txvTituloComanda = findViewById(R.id.txvTituloComanda);
@@ -48,26 +48,35 @@ public class ComandaActivity extends AppCompatActivity
         txvTotalComanda = findViewById(R.id.txvTotalComanda);
         btnAdicionarItens = findViewById(R.id.btnAdicionarItens);
 
+        api = new ApiDevBurguer(this);
         numeroMesa = getIntent().getIntExtra(EXTRA_NUMERO_MESA, 0);
         txvTituloComanda.setText(getString(R.string.tituloTelaComanda, numeroMesa));
+    }
 
-        ArrayList<ItemPedido> novaRodada = (ArrayList<ItemPedido>) getIntent().getSerializableExtra(EXTRA_NOVA_RODADA);
+    // Busca a comanda de verdade em GET /api/mesas/:mesa/comanda.
+    private void carregarComanda()
+    {
+        txvSubtituloComanda.setText(getString(R.string.carregandoComanda));
 
-        // MOCK: a API de comandas/rodadas ainda está em desenvolvimento pelo Luan.
-        // A "Rodada 1" aqui é só um histórico fictício pra mostrar como a tela fica
-        // com mais de uma rodada; quando a API existir, isso vem do backend de verdade.
-        List<Rodada> rodadas = new ArrayList<>();
-        rodadas.add(criarRodadaHistoricoMock());
-
-        if (novaRodada != null && !novaRodada.isEmpty())
+        api.buscarComanda(numeroMesa, new OuvinteApi<List<Rodada>>()
         {
-            rodadas.add(new Rodada(2, Rodada.STATUS_EM_PREPARO, novaRodada));
-        }
-        else
-        {
-            rodadas.add(criarRodadaEmPreparoMock());
-        }
+            @Override
+            public void aoSucesso(List<Rodada> rodadas)
+            {
+                mostrarRodadas(rodadas);
+            }
 
+            @Override
+            public void aoFalhar(String mensagemErro)
+            {
+                txvSubtituloComanda.setText(mensagemErro);
+                Toast.makeText(ComandaActivity.this, mensagemErro, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void mostrarRodadas(List<Rodada> rodadas)
+    {
         int totalItens = 0;
         double totalValor = 0;
         for (Rodada rodada : rodadas)
@@ -103,21 +112,5 @@ public class ComandaActivity extends AppCompatActivity
                 startActivity(intent);
             }
         });
-    }
-
-    private Rodada criarRodadaHistoricoMock()
-    {
-        List<ItemPedido> itens = new ArrayList<>();
-        itens.add(new ItemPedido(new Produto(101, "Refrigerante Lata", 7.00, "bebidas", ""), 2));
-        itens.add(new ItemPedido(new Produto(102, "Porção de Batata", 18.00, "tradicionais", ""), 1));
-        return new Rodada(1, Rodada.STATUS_ENTREGUE, itens);
-    }
-
-    private Rodada criarRodadaEmPreparoMock()
-    {
-        List<ItemPedido> itens = new ArrayList<>();
-        itens.add(new ItemPedido(new Produto(103, "X-Burguer", 22.00, "tradicionais", ""), 2));
-        itens.add(new ItemPedido(new Produto(104, "X-Bacon", 26.00, "tradicionais", ""), 1));
-        return new Rodada(2, Rodada.STATUS_EM_PREPARO, itens);
     }
 }

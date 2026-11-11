@@ -41,17 +41,17 @@ public class AdaptadorRodada extends ArrayAdapter<Rodada>
 
         txvNumero.setText(getContext().getString(R.string.rotuloRodada, rodada.getNumero()));
 
-        boolean entregue = rodada.getStatus().equals(Rodada.STATUS_ENTREGUE);
+        // Mostra o status exato do banco (ex.: "Em Producao"), só a cor do
+        // selo é decidida aqui (verde quando já foi entregue/finalizada).
+        txvStatus.setText(rodada.getStatus());
 
-        if (entregue)
+        if (rodada.isEntregue())
         {
-            txvStatus.setText(R.string.statusRodadaEntregue);
             txvStatus.setBackgroundResource(R.drawable.fundo_selo_verde);
             painel.setBackgroundResource(R.drawable.fundo_cartao);
         }
         else
         {
-            txvStatus.setText(R.string.statusRodadaEmPreparo);
             txvStatus.setBackgroundResource(R.drawable.fundo_selo_dourado);
             painel.setBackgroundResource(R.drawable.fundo_cartao_destaque);
         }

@@ -3,14 +3,11 @@ package com.example.devburguergarcom.modelo;
 import java.io.Serializable;
 import java.util.List;
 
-// Uma rodada de itens enviada pro mesmo pedido da mesa. A API de comandas/rodadas
-// ainda não existe (Luan está desenvolvendo), então por enquanto o status aqui é mock.
+// Uma rodada de itens de uma mesa: cada rodada é um idPedido que o GET
+// /api/mesas/:mesa/comanda devolve. O status é o texto exato do banco
+// (ex.: "Em Producao"), sem tradução — só decide a cor do selo na tela.
 public class Rodada implements Serializable
 {
-    // Códigos internos de status (não são texto de tela — isso fica em strings.xml).
-    public static final String STATUS_ENTREGUE = "ENTREGUE";
-    public static final String STATUS_EM_PREPARO = "EM_PREPARO";
-
     private int numero;
     private String status;
     private List<ItemPedido> itens;
@@ -35,6 +32,11 @@ public class Rodada implements Serializable
     public List<ItemPedido> getItens()
     {
         return itens;
+    }
+
+    public boolean isEntregue()
+    {
+        return "Entregue".equalsIgnoreCase(status) || "Finalizado".equalsIgnoreCase(status);
     }
 
     public double getSubtotal()

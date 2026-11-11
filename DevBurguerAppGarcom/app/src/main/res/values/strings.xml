@@ -7,8 +7,8 @@
     <string name="dicaUsuario">Usuário</string>
     <string name="dicaSenha">Senha</string>
     <string name="botaoEntrar">Entrar</string>
+    <string name="botaoEntrando">Entrando…</string>
     <string name="erroCamposVazios">Preencha usuário e senha</string>
-    <string name="mensagemLoginMock">Login (mock): bem-vindo, %1$s</string>
     <string name="avisoCadastroGarcom">O cadastro do garçom é feito pela administração.</string>
 
     <string name="tituloTelaMesas">Mesas</string>
@@ -36,6 +36,7 @@
     <string name="erroCardapioServidor">Não foi possível carregar o cardápio agora (erro no servidor).</string>
     <string name="erroCardapioConexao">Sem conexão com a internet. Verifique e tente novamente.</string>
     <string name="erroCardapioInesperado">Algo deu errado ao carregar o cardápio.</string>
+    <string name="erroInesperado">Algo deu errado. Tente novamente.</string>
     <string name="mensagemPedidoVazio">Adicione pelo menos um item antes de ver o pedido.</string>
 
     <string name="botaoVoltarCardapio">Cardápio</string>
@@ -44,13 +45,13 @@
     <string name="rotuloObservacaoPedido">Observação do pedido</string>
     <string name="dicaObservacaoPedido">Ex.: servir juntos</string>
     <string name="rotuloTotalItens">Total · %1$d itens</string>
-    <string name="botaoEnviarRodada">Enviar como rodada %1$d</string>
+    <string name="botaoEnviarRodada">Enviar rodada</string>
+    <string name="botaoEnviando">Enviando…</string>
     <string name="botaoVoltarMesasComanda">Mesas</string>
     <string name="tituloTelaComanda">Comanda · Mesa %1$02d</string>
+    <string name="carregandoComanda">Carregando comanda…</string>
     <string name="subtituloComanda">%1$d rodadas · %2$d itens</string>
     <string name="rotuloRodada">Rodada %1$d</string>
-    <string name="statusRodadaEntregue">✓ Entregue</string>
-    <string name="statusRodadaEmPreparo">● Em preparo</string>
     <string name="rotuloItemRodada">%1$d× %2$s</string>
     <string name="rotuloSubtotal">Subtotal</string>
     <string name="rotuloTotalComanda">Total da comanda</string>

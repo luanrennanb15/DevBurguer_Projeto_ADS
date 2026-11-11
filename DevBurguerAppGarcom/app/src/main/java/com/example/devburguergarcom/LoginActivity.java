@@ -9,11 +9,17 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.devburguergarcom.modelo.Garcom;
+import com.example.devburguergarcom.rede.ApiDevBurguer;
+import com.example.devburguergarcom.rede.OuvinteApi;
+
 public class LoginActivity extends AppCompatActivity
 {
     private EditText edtUsuario;
     private EditText edtSenha;
     private Button btnEntrar;
+
+    private ApiDevBurguer api;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -30,6 +36,8 @@ public class LoginActivity extends AppCompatActivity
         edtUsuario = findViewById(R.id.edtUsuario);
         edtSenha = findViewById(R.id.edtSenha);
         btnEntrar = findViewById(R.id.btnEntrar);
+
+        api = new ApiDevBurguer(this);
     }
 
     private void eventos()
@@ -48,14 +56,28 @@ public class LoginActivity extends AppCompatActivity
                     return;
                 }
 
-                // MOCK: login real do garçom ainda não existe na API (Luan está desenvolvendo).
-                // Por enquanto só confirma que "entrou", sem validar usuário/senha de verdade.
-                Toast.makeText(LoginActivity.this, getString(R.string.mensagemLoginMock, usuario), Toast.LENGTH_SHORT).show();
+                btnEntrar.setEnabled(false);
+                btnEntrar.setText(getString(R.string.botaoEntrando));
 
-                Intent intent = new Intent(LoginActivity.this, MesasActivity.class);
-                intent.putExtra(MesasActivity.EXTRA_NOME_GARCOM, usuario);
-                startActivity(intent);
-                finish();
+                api.loginGarcom(usuario, senha, new OuvinteApi<Garcom>()
+                {
+                    @Override
+                    public void aoSucesso(Garcom garcom)
+                    {
+                        Intent intent = new Intent(LoginActivity.this, MesasActivity.class);
+                        intent.putExtra(MesasActivity.EXTRA_NOME_GARCOM, garcom.getNome());
+                        startActivity(intent);
+                        finish();
+                    }
+
+                    @Override
+                    public void aoFalhar(String mensagemErro)
+                    {
+                        btnEntrar.setEnabled(true);
+                        btnEntrar.setText(getString(R.string.botaoEntrar));
+                        Toast.makeText(LoginActivity.this, mensagemErro, Toast.LENGTH_LONG).show();
+                    }
+                });
             }
         });
     }
