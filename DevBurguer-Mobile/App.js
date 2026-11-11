@@ -1,398 +1,408 @@
-// ============================================================================
-// DEVBURGUER MOBILE — App principal (React Native + Expo)
-// ----------------------------------------------------------------------------
-// Aplicativo do cliente: consulta o cardapio, monta o carrinho e envia o
-// pedido, consumindo a MESMA API REST do site (hospedada no Render).
-// Feito em um unico arquivo, usando apenas componentes do React Native,
-// para ser simples de rodar (nao precisa de bibliotecas extras).
-// ============================================================================
+/**
+ * DEVBURGUER — APP DO GARÇOM (Expo / React Native)
+ * -----------------------------------------------------------------------------
+ * App de salão para o garçom lançar os pedidos mesa a mesa.
+ *
+ * Fluxo: Login  ->  Escolher mesa  ->  Cardápio (montar a rodada)
+ *        ->  Enviar rodada  ->  Comanda da mesa (total p/ pagar no caixa)
+ *
+ * Conversa com a mesma API REST do site (Render). A navegação entre telas é
+ * feita com um estado simples (sem bibliotecas extras), pra ficar leve e fácil
+ * de rodar no Expo Go.
+ */
 
-import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  ActivityIndicator, Alert, FlatList, SafeAreaView, ScrollView,
-  StyleSheet, Text, TextInput, TouchableOpacity, View,
+  SafeAreaView, View, Text, TextInput, TouchableOpacity, ScrollView,
+  ActivityIndicator, Alert, StatusBar, StyleSheet, KeyboardAvoidingView, Platform,
 } from 'react-native';
 
-// ─── Configuracao ───────────────────────────────────────────────────────────
-const API_BASE = 'https://devburguer-api-9gds.onrender.com/api';
-const TAXA_ENTREGA = 6.0;
+// Endereço da API no Render (mesma do site).
+const API = 'https://devburguer-api-9gds.onrender.com/api';
 
-// Cores do app (identidade DevBurguer)
-const C = {
-  fundo: '#14141c', cartao: '#1e1e2a', texto: '#ececf5', suave: '#9a9ab5',
-  roxo: '#823cdc', roxoClaro: '#b478ff', laranja: '#e08a1e', verde: '#2fae5a',
-  borda: '#2b2b3c', erro: '#e05a5a',
-};
+// Chamada HTTP com tratamento de erro amigável.
+async function chamarApi(caminho, opcoes = {}) {
+  const resp = await fetch(API + caminho, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opcoes,
+  });
+  let corpo = null;
+  try { corpo = await resp.json(); } catch { /* sem corpo */ }
+  if (!resp.ok) {
+    const msg = (corpo && corpo.erro) ? corpo.erro : 'Erro ' + resp.status;
+    throw new Error(msg);
+  }
+  return corpo;
+}
 
-// Rotulos e ordem das categorias (os mesmos slugs que a API devolve)
-const CATEGORIAS = [
-  { slug: 'tradicionais', label: 'Tradicionais' },
-  { slug: 'gourmet', label: 'Gourmet' },
-  { slug: 'combos', label: 'Combos' },
-  { slug: 'bebidas', label: 'Bebidas' },
-  { slug: 'sucos', label: 'Sucos' },
-  { slug: 'alcoolicas', label: 'Cervejas' },
-  { slug: 'milkshakes', label: 'Milkshakes' },
-];
-
-const money = (v) => 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+const brl = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
 
 export default function App() {
-  const [tela, setTela] = useState('cardapio');      // cardapio | carrinho | checkout | sucesso
+  const [tela, setTela]       = useState('login');   // login | mesa | cardapio | comanda
+  const [garcom, setGarcom]   = useState(null);
+  const [mesa, setMesa]       = useState(null);
   const [produtos, setProdutos] = useState([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState(null);
-  const [carrinho, setCarrinho] = useState([]);        // [{ produto, qtd }]
-  const [pedido, setPedido] = useState(null);          // resposta da API ao finalizar
+  const [carrinho, setCarrinho] = useState({});       // idProduto -> { ...produto, quantidade }
+  const [comanda, setComanda] = useState(null);
+  const [carregando, setCarregando] = useState(false);
 
-  // ── Carrega o cardapio da API ──────────────────────────────────────────
-  async function carregarCardapio() {
+  // ─── Ações ────────────────────────────────────────────────────────────────
+
+  function sair() {
+    setGarcom(null); setMesa(null); setProdutos([]);
+    setCarrinho({}); setComanda(null); setTela('login');
+  }
+
+  async function carregarProdutos() {
     setCarregando(true);
-    setErro(null);
     try {
-      const r = await fetch(`${API_BASE}/produtos`);
-      if (!r.ok) throw new Error('status ' + r.status);
-      const dados = await r.json();
-      setProdutos(dados);
+      const lista = await chamarApi('/produtos');
+      setProdutos(Array.isArray(lista) ? lista : []);
     } catch (e) {
-      setErro('Nao foi possivel carregar o cardapio. Verifique sua internet e tente de novo. (A API gratuita pode levar ate 1 minuto para "acordar" no primeiro acesso.)');
+      Alert.alert('Ops', 'Não consegui carregar o cardápio.\n' + e.message);
     } finally {
       setCarregando(false);
     }
   }
-  useEffect(() => { carregarCardapio(); }, []);
 
-  // ── Carrinho ───────────────────────────────────────────────────────────
-  const qtdNoCarrinho = carrinho.reduce((s, i) => s + i.qtd, 0);
-  const subtotal = carrinho.reduce((s, i) => s + i.produto.preco * i.qtd, 0);
+  async function abrirMesa(numero) {
+    const n = parseInt(numero, 10);
+    if (isNaN(n) || n <= 0) {
+      Alert.alert('Mesa inválida', 'Digite o número da mesa.');
+      return;
+    }
+    setMesa(n);
+    setCarrinho({});
+    await carregarProdutos();
+    setTela('cardapio');
+  }
 
-  function adicionar(produto) {
-    setCarrinho((prev) => {
-      const ex = prev.find((i) => i.produto.id === produto.id);
-      if (ex) return prev.map((i) => i.produto.id === produto.id ? { ...i, qtd: i.qtd + 1 } : i);
-      return [...prev, { produto, qtd: 1 }];
+  function alterarQtd(produto, delta) {
+    setCarrinho((atual) => {
+      const item = atual[produto.id] || { ...produto, quantidade: 0 };
+      const qtd = Math.max(0, item.quantidade + delta);
+      const novo = { ...atual };
+      if (qtd === 0) delete novo[produto.id];
+      else novo[produto.id] = { ...item, quantidade: qtd };
+      return novo;
     });
   }
-  function mudarQtd(id, delta) {
-    setCarrinho((prev) => prev
-      .map((i) => i.produto.id === id ? { ...i, qtd: i.qtd + delta } : i)
-      .filter((i) => i.qtd > 0));
+
+  const itensCarrinho = Object.values(carrinho);
+  const totalCarrinho = itensCarrinho.reduce((s, i) => s + i.preco * i.quantidade, 0);
+
+  async function enviarRodada() {
+    if (itensCarrinho.length === 0) return;
+    setCarregando(true);
+    try {
+      const itens = itensCarrinho.map((i) => ({
+        idProduto: i.id,
+        quantidade: i.quantidade,
+      }));
+      const r = await chamarApi('/pedidos/garcom', {
+        method: 'POST',
+        body: JSON.stringify({ mesa, itens }),
+      });
+      setCarrinho({});
+      Alert.alert('Rodada enviada!', 'Mesa ' + mesa + ' • ' + brl(r.total) + ' enviados para a cozinha.');
+      await verComanda();
+    } catch (e) {
+      Alert.alert('Ops', 'Não consegui enviar a rodada.\n' + e.message);
+    } finally {
+      setCarregando(false);
+    }
   }
 
-  // ── Telas ────────────────────────────────────────────────────────────────
-  return (
-    <SafeAreaView style={s.safe}>
-      <StatusBar style="light" />
-      <Cabecalho />
+  async function verComanda() {
+    setCarregando(true);
+    try {
+      const c = await chamarApi('/mesas/' + mesa + '/comanda');
+      setComanda(c);
+      setTela('comanda');
+    } catch (e) {
+      Alert.alert('Ops', 'Não consegui carregar a comanda.\n' + e.message);
+    } finally {
+      setCarregando(false);
+    }
+  }
 
-      {tela === 'cardapio' && (
-        <Cardapio
-          produtos={produtos} carregando={carregando} erro={erro}
-          onRecarregar={carregarCardapio} onAdicionar={adicionar}
-        />
-      )}
-      {tela === 'carrinho' && (
-        <Carrinho
-          carrinho={carrinho} subtotal={subtotal} onMudarQtd={mudarQtd}
-          irCardapio={() => setTela('cardapio')}
-          irCheckout={() => setTela('checkout')}
-        />
-      )}
-      {tela === 'checkout' && (
-        <Checkout
-          carrinho={carrinho} subtotal={subtotal}
-          onVoltar={() => setTela('carrinho')}
-          onSucesso={(resp) => { setPedido(resp); setCarrinho([]); setTela('sucesso'); }}
-        />
-      )}
-      {tela === 'sucesso' && (
-        <Sucesso pedido={pedido} onVoltar={() => setTela('cardapio')} />
-      )}
+  // ─── Telas ──────────────────────────────────────────────────────────────
 
-      {/* Barra inferior */}
-      {tela !== 'sucesso' && (
-        <View style={s.tabbar}>
-          <TabBtn ativo={tela === 'cardapio'} label="Cardapio" onPress={() => setTela('cardapio')} />
-          <TabBtn ativo={tela === 'carrinho' || tela === 'checkout'}
-            label={`Carrinho${qtdNoCarrinho ? ' (' + qtdNoCarrinho + ')' : ''}`}
-            onPress={() => setTela('carrinho')} />
+  function TelaLogin() {
+    const [usuario, setUsuario] = useState('');
+    const [senha, setSenha]     = useState('');
+
+    async function entrar() {
+      if (!usuario.trim() || !senha) {
+        Alert.alert('Atenção', 'Preencha usuário e senha.');
+        return;
+      }
+      setCarregando(true);
+      try {
+        const g = await chamarApi('/garcom/login', {
+          method: 'POST',
+          body: JSON.stringify({ usuario: usuario.trim(), senha }),
+        });
+        setGarcom(g);
+        setTela('mesa');
+      } catch (e) {
+        Alert.alert('Não foi possível entrar', e.message);
+      } finally {
+        setCarregando(false);
+      }
+    }
+
+    return (
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.flex}>
+        <View style={styles.centro}>
+          <Text style={styles.logo}>DevBurguer</Text>
+          <Text style={styles.sub}>App do Garçom</Text>
+
+          <View style={styles.card}>
+            <Text style={styles.label}>Usuário</Text>
+            <TextInput
+              style={styles.input}
+              autoCapitalize="none"
+              placeholder="garcom"
+              value={usuario}
+              onChangeText={setUsuario}
+            />
+            <Text style={styles.label}>Senha</Text>
+            <TextInput
+              style={styles.input}
+              secureTextEntry
+              placeholder="••••••••"
+              value={senha}
+              onChangeText={setSenha}
+            />
+            <TouchableOpacity style={styles.botao} onPress={entrar} disabled={carregando}>
+              <Text style={styles.botaoTexto}>{carregando ? 'Entrando...' : 'Entrar'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      )}
+      </KeyboardAvoidingView>
+    );
+  }
+
+  function TelaMesa() {
+    const [numero, setNumero] = useState('');
+    return (
+      <View style={styles.centro}>
+        <Text style={styles.ola}>Olá, {garcom?.nome} 👋</Text>
+        <Text style={styles.sub}>Qual mesa você vai atender?</Text>
+
+        <View style={styles.card}>
+          <Text style={styles.label}>Número da mesa</Text>
+          <TextInput
+            style={[styles.input, styles.inputMesa]}
+            keyboardType="number-pad"
+            placeholder="Ex: 7"
+            value={numero}
+            onChangeText={setNumero}
+          />
+          <TouchableOpacity style={styles.botao} onPress={() => abrirMesa(numero)} disabled={carregando}>
+            <Text style={styles.botaoTexto}>{carregando ? 'Abrindo...' : 'Abrir mesa'}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity onPress={sair}>
+          <Text style={styles.linkSair}>Sair</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  function TelaCardapio() {
+    // Agrupa os produtos por categoria para exibir em seções.
+    const porCategoria = {};
+    for (const p of produtos) {
+      const cat = p.categoria || 'Outros';
+      (porCategoria[cat] = porCategoria[cat] || []).push(p);
+    }
+
+    return (
+      <View style={styles.flex}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerTitulo}>Mesa {mesa}</Text>
+            <Text style={styles.headerSub}>{garcom?.nome}</Text>
+          </View>
+          <TouchableOpacity onPress={() => setTela('mesa')}>
+            <Text style={styles.headerLink}>Trocar mesa</Text>
+          </TouchableOpacity>
+        </View>
+
+        {carregando && produtos.length === 0 ? (
+          <View style={styles.centro}>
+            <ActivityIndicator size="large" color="#E63946" />
+            <Text style={styles.aviso}>Carregando cardápio...{'\n'}(a API pode levar até 1 min no 1º acesso)</Text>
+          </View>
+        ) : (
+          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 140 }}>
+            {Object.keys(porCategoria).map((cat) => (
+              <View key={cat} style={{ marginBottom: 18 }}>
+                <Text style={styles.categoria}>{cat}</Text>
+                {porCategoria[cat].map((p) => {
+                  const qtd = carrinho[p.id]?.quantidade || 0;
+                  return (
+                    <View key={p.id} style={styles.produto}>
+                      <View style={styles.flex}>
+                        <Text style={styles.produtoNome}>{p.nome}</Text>
+                        <Text style={styles.produtoPreco}>{brl(p.preco)}</Text>
+                      </View>
+                      <View style={styles.stepper}>
+                        <TouchableOpacity style={styles.stepBtn} onPress={() => alterarQtd(p, -1)}>
+                          <Text style={styles.stepBtnTexto}>−</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.stepQtd}>{qtd}</Text>
+                        <TouchableOpacity style={styles.stepBtn} onPress={() => alterarQtd(p, +1)}>
+                          <Text style={styles.stepBtnTexto}>+</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
+          </ScrollView>
+        )}
+
+        {/* Barra inferior: resumo da rodada */}
+        <View style={styles.barra}>
+          <TouchableOpacity style={styles.botaoSec} onPress={verComanda} disabled={carregando}>
+            <Text style={styles.botaoSecTexto}>Ver comanda</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.botao, styles.botaoBarra, itensCarrinho.length === 0 && styles.botaoOff]}
+            onPress={enviarRodada}
+            disabled={carregando || itensCarrinho.length === 0}>
+            <Text style={styles.botaoTexto}>
+              {carregando ? 'Enviando...' : 'Enviar rodada • ' + brl(totalCarrinho)}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  function TelaComanda() {
+    const c = comanda || { itens: [], total: 0, rodadas: 0, aberta: false };
+    return (
+      <View style={styles.flex}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerTitulo}>Comanda — Mesa {mesa}</Text>
+            <Text style={styles.headerSub}>{c.rodadas} rodada(s) • {garcom?.nome}</Text>
+          </View>
+          <TouchableOpacity onPress={verComanda}>
+            <Text style={styles.headerLink}>Atualizar</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 150 }}>
+          {c.itens.length === 0 ? (
+            <Text style={styles.aviso}>Nenhum item em aberto nesta mesa.</Text>
+          ) : (
+            c.itens.map((it, idx) => (
+              <View key={idx} style={styles.linhaComanda}>
+                <Text style={styles.comandaQtd}>{it.quantidade}x</Text>
+                <Text style={[styles.flex, styles.comandaNome]}>{it.produto}</Text>
+                <Text style={styles.comandaPreco}>{brl(it.preco * it.quantidade)}</Text>
+              </View>
+            ))
+          )}
+        </ScrollView>
+
+        <View style={styles.barraTotal}>
+          <View style={styles.totalLinha}>
+            <Text style={styles.totalLabel}>Total da mesa</Text>
+            <Text style={styles.totalValor}>{brl(c.total)}</Text>
+          </View>
+          <Text style={styles.obsCaixa}>O pagamento é feito no caixa.</Text>
+          <View style={styles.barra}>
+            <TouchableOpacity style={styles.botaoSec} onPress={() => setTela('cardapio')}>
+              <Text style={styles.botaoSecTexto}>Nova rodada</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.botao, styles.botaoBarra]} onPress={() => setTela('mesa')}>
+              <Text style={styles.botaoTexto}>Outra mesa</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  // ─── Render ───────────────────────────────────────────────────────────────
+
+  let conteudo;
+  if (tela === 'login') conteudo = <TelaLogin />;
+  else if (tela === 'mesa') conteudo = <TelaMesa />;
+  else if (tela === 'cardapio') conteudo = <TelaCardapio />;
+  else conteudo = <TelaComanda />;
+
+  return (
+    <SafeAreaView style={styles.tela}>
+      <StatusBar barStyle="light-content" backgroundColor="#1D1D1D" />
+      {conteudo}
     </SafeAreaView>
   );
 }
 
-// ─── Componentes ─────────────────────────────────────────────────────────────
-function Cabecalho() {
-  return (
-    <View style={s.header}>
-      <Text style={s.logo}>Dev<Text style={{ color: C.laranja }}>Burguer</Text></Text>
-      <Text style={s.sub}>Peca pelo app</Text>
-    </View>
-  );
-}
+const styles = StyleSheet.create({
+  tela:  { flex: 1, backgroundColor: '#FAFAFA' },
+  flex:  { flex: 1 },
+  centro:{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
 
-function TabBtn({ ativo, label, onPress }) {
-  return (
-    <TouchableOpacity style={[s.tabBtn, ativo && s.tabBtnAtivo]} onPress={onPress}>
-      <Text style={[s.tabTxt, ativo && s.tabTxtAtivo]}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
+  logo:  { fontSize: 38, fontWeight: '800', color: '#E63946' },
+  sub:   { fontSize: 16, color: '#666', marginBottom: 24, marginTop: 2 },
+  ola:   { fontSize: 24, fontWeight: '700', color: '#1D1D1D' },
 
-function Cardapio({ produtos, carregando, erro, onRecarregar, onAdicionar }) {
-  const porCategoria = useMemo(() => {
-    const mapa = {};
-    for (const p of produtos) (mapa[p.categoria] = mapa[p.categoria] || []).push(p);
-    return mapa;
-  }, [produtos]);
+  card:  { width: '100%', maxWidth: 420, backgroundColor: '#FFF', borderRadius: 16, padding: 20,
+           shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
+  label: { fontSize: 13, color: '#555', marginBottom: 6, marginTop: 10, fontWeight: '600' },
+  input: { borderWidth: 1, borderColor: '#DDD', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, backgroundColor: '#FFF' },
+  inputMesa: { fontSize: 22, textAlign: 'center', fontWeight: '700' },
 
-  if (carregando) {
-    return (
-      <View style={s.centro}>
-        <ActivityIndicator size="large" color={C.roxoClaro} />
-        <Text style={s.carregandoTxt}>Carregando o cardapio...</Text>
-      </View>
-    );
-  }
-  if (erro) {
-    return (
-      <View style={s.centro}>
-        <Text style={s.erroTxt}>{erro}</Text>
-        <TouchableOpacity style={s.btnPrimario} onPress={onRecarregar}>
-          <Text style={s.btnPrimarioTxt}>Tentar de novo</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  botao: { backgroundColor: '#E63946', borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 18 },
+  botaoTexto: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  botaoOff: { backgroundColor: '#C9ADB0' },
+  botaoBarra: { flex: 1, marginTop: 0, marginLeft: 10 },
+  botaoSec: { borderWidth: 1.5, borderColor: '#E63946', borderRadius: 10, paddingVertical: 13, paddingHorizontal: 16, alignItems: 'center' },
+  botaoSecTexto: { color: '#E63946', fontSize: 15, fontWeight: '700' },
+  linkSair: { color: '#999', marginTop: 24, fontSize: 15, textDecorationLine: 'underline' },
 
-  return (
-    <ScrollView contentContainerStyle={{ padding: 14, paddingBottom: 90 }}>
-      {CATEGORIAS.filter((c) => porCategoria[c.slug]?.length).map((cat) => (
-        <View key={cat.slug} style={{ marginBottom: 18 }}>
-          <Text style={s.catTitulo}>{cat.label}</Text>
-          {porCategoria[cat.slug].map((p) => (
-            <View key={p.id} style={s.card}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
-                <Text style={s.nome}>{p.nome}</Text>
-                {!!p.descricao && <Text style={s.desc} numberOfLines={2}>{p.descricao}</Text>}
-                <Text style={s.preco}>{money(p.preco)}</Text>
-              </View>
-              <TouchableOpacity style={s.btnAdd} onPress={() => onAdicionar(p)}>
-                <Text style={s.btnAddTxt}>+</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
-      ))}
-    </ScrollView>
-  );
-}
+  header: { backgroundColor: '#1D1D1D', paddingHorizontal: 18, paddingVertical: 16, paddingTop: 20,
+            flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerTitulo: { color: '#FFF', fontSize: 20, fontWeight: '800' },
+  headerSub: { color: '#BBB', fontSize: 13, marginTop: 2 },
+  headerLink: { color: '#FF8A94', fontSize: 14, fontWeight: '600' },
 
-function Carrinho({ carrinho, subtotal, onMudarQtd, irCardapio, irCheckout }) {
-  if (!carrinho.length) {
-    return (
-      <View style={s.centro}>
-        <Text style={s.vazioTxt}>Seu carrinho esta vazio.</Text>
-        <TouchableOpacity style={s.btnPrimario} onPress={irCardapio}>
-          <Text style={s.btnPrimarioTxt}>Ver o cardapio</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-  return (
-    <View style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ padding: 14, paddingBottom: 90 }}>
-        {carrinho.map((i) => (
-          <View key={i.produto.id} style={s.card}>
-            <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={s.nome}>{i.produto.nome}</Text>
-              <Text style={s.preco}>{money(i.produto.preco * i.qtd)}</Text>
-            </View>
-            <View style={s.qtdBox}>
-              <TouchableOpacity style={s.qtdBtn} onPress={() => onMudarQtd(i.produto.id, -1)}>
-                <Text style={s.qtdBtnTxt}>-</Text>
-              </TouchableOpacity>
-              <Text style={s.qtdNum}>{i.qtd}</Text>
-              <TouchableOpacity style={s.qtdBtn} onPress={() => onMudarQtd(i.produto.id, +1)}>
-                <Text style={s.qtdBtnTxt}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))}
-        <Text style={s.obsTaxa}>* A taxa de entrega de {money(TAXA_ENTREGA)} e somada quando o pedido for para entrega.</Text>
-      </ScrollView>
-      <View style={s.rodape}>
-        <Text style={s.totalTxt}>Subtotal: <Text style={{ color: C.texto, fontWeight: 'bold' }}>{money(subtotal)}</Text></Text>
-        <TouchableOpacity style={s.btnPrimario} onPress={irCheckout}>
-          <Text style={s.btnPrimarioTxt}>Finalizar pedido</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
+  categoria: { fontSize: 14, fontWeight: '800', color: '#E63946', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 },
+  produto: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 12, padding: 14, marginBottom: 8,
+             borderWidth: 1, borderColor: '#EEE' },
+  produtoNome: { fontSize: 15, fontWeight: '600', color: '#222' },
+  produtoPreco: { fontSize: 13, color: '#777', marginTop: 2 },
 
-function Checkout({ carrinho, subtotal, onVoltar, onSucesso }) {
-  const [nome, setNome] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [tipoEntrega, setTipoEntrega] = useState('Entrega');
-  const [endereco, setEndereco] = useState('');
-  const [numero, setNumero] = useState('');
-  const [bairro, setBairro] = useState('');
-  const [pagamento, setPagamento] = useState('Pix');
-  const [enviando, setEnviando] = useState(false);
+  stepper: { flexDirection: 'row', alignItems: 'center' },
+  stepBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#F0E0E1', justifyContent: 'center', alignItems: 'center' },
+  stepBtnTexto: { fontSize: 20, fontWeight: '800', color: '#E63946' },
+  stepQtd: { width: 34, textAlign: 'center', fontSize: 16, fontWeight: '700', color: '#222' },
 
-  const total = subtotal + (tipoEntrega === 'Entrega' ? TAXA_ENTREGA : 0);
+  barra: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center',
+           padding: 14, backgroundColor: '#FFF', borderTopWidth: 1, borderTopColor: '#EEE' },
 
-  async function enviar() {
-    if (!nome.trim() || !telefone.trim())
-      return Alert.alert('Atencao', 'Preencha nome e telefone.');
-    if (tipoEntrega === 'Entrega' && (!endereco.trim() || !bairro.trim()))
-      return Alert.alert('Atencao', 'Para entrega, preencha endereco e bairro.');
+  linhaComanda: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#EEE' },
+  comandaQtd: { width: 38, fontSize: 15, fontWeight: '800', color: '#E63946' },
+  comandaNome: { fontSize: 15, color: '#222' },
+  comandaPreco: { fontSize: 15, fontWeight: '600', color: '#222' },
 
-    const corpo = {
-      cliente: { nome: nome.trim(), telefone: telefone.trim() },
-      tipoEntrega,
-      endereco, numero, bairro,
-      formaPagamento: pagamento,
-      itens: carrinho.map((i) => ({ idProduto: i.produto.id, quantidade: i.qtd, observacao: '' })),
-    };
-    setEnviando(true);
-    try {
-      const r = await fetch(`${API_BASE}/pedidos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(corpo),
-      });
-      const resp = await r.json();
-      if (!r.ok) throw new Error(resp.erro || 'erro');
-      onSucesso(resp);
-    } catch (e) {
-      Alert.alert('Erro', 'Nao foi possivel enviar o pedido. Tente novamente.');
-    } finally {
-      setEnviando(false);
-    }
-  }
+  barraTotal: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#FFF', borderTopWidth: 1, borderTopColor: '#EEE', paddingTop: 12 },
+  totalLinha: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 18 },
+  totalLabel: { fontSize: 16, color: '#555', fontWeight: '600' },
+  totalValor: { fontSize: 24, fontWeight: '800', color: '#E63946' },
+  obsCaixa: { textAlign: 'center', color: '#999', fontSize: 12, marginTop: 4, marginBottom: 8 },
 
-  return (
-    <ScrollView contentContainerStyle={{ padding: 14, paddingBottom: 40 }}>
-      <Text style={s.catTitulo}>Seus dados</Text>
-      <Campo label="Nome" valor={nome} onChange={setNome} placeholder="Seu nome" />
-      <Campo label="Telefone" valor={telefone} onChange={setTelefone} placeholder="(15) 90000-0000" teclado="phone-pad" />
-
-      <Text style={[s.catTitulo, { marginTop: 14 }]}>Tipo</Text>
-      <View style={{ flexDirection: 'row', gap: 10 }}>
-        {['Entrega', 'Retirada'].map((t) => (
-          <TouchableOpacity key={t} onPress={() => setTipoEntrega(t)}
-            style={[s.opc, tipoEntrega === t && s.opcAtiva]}>
-            <Text style={[s.opcTxt, tipoEntrega === t && s.opcTxtAtiva]}>{t}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {tipoEntrega === 'Entrega' && (
-        <>
-          <Campo label="Endereco" valor={endereco} onChange={setEndereco} placeholder="Rua..." />
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ flex: 1 }}><Campo label="Numero" valor={numero} onChange={setNumero} placeholder="123" teclado="numeric" /></View>
-            <View style={{ flex: 2 }}><Campo label="Bairro" valor={bairro} onChange={setBairro} placeholder="Centro" /></View>
-          </View>
-        </>
-      )}
-
-      <Text style={[s.catTitulo, { marginTop: 14 }]}>Pagamento</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-        {['Pix', 'Dinheiro', 'Cartao'].map((p) => (
-          <TouchableOpacity key={p} onPress={() => setPagamento(p)}
-            style={[s.opc, pagamento === p && s.opcAtiva]}>
-            <Text style={[s.opcTxt, pagamento === p && s.opcTxtAtiva]}>{p}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <View style={[s.card, { marginTop: 18 }]}>
-        <Text style={{ color: C.suave }}>Total {tipoEntrega === 'Entrega' ? '(com entrega)' : ''}</Text>
-        <Text style={{ color: C.roxoClaro, fontSize: 20, fontWeight: 'bold', marginLeft: 'auto' }}>{money(total)}</Text>
-      </View>
-
-      <TouchableOpacity style={[s.btnPrimario, { marginTop: 16 }]} onPress={enviar} disabled={enviando}>
-        <Text style={s.btnPrimarioTxt}>{enviando ? 'Enviando...' : 'Enviar pedido'}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={s.btnSecundario} onPress={onVoltar}>
-        <Text style={s.btnSecundarioTxt}>Voltar ao carrinho</Text>
-      </TouchableOpacity>
-    </ScrollView>
-  );
-}
-
-function Campo({ label, valor, onChange, placeholder, teclado }) {
-  return (
-    <View style={{ marginTop: 10 }}>
-      <Text style={s.campoLabel}>{label}</Text>
-      <TextInput
-        style={s.input} value={valor} onChangeText={onChange}
-        placeholder={placeholder} placeholderTextColor={C.suave}
-        keyboardType={teclado || 'default'}
-      />
-    </View>
-  );
-}
-
-function Sucesso({ pedido, onVoltar }) {
-  return (
-    <View style={s.centro}>
-      <Text style={{ fontSize: 54 }}>✅</Text>
-      <Text style={s.sucessoTitulo}>Pedido enviado!</Text>
-      <Text style={s.sucessoTxt}>Numero do pedido: <Text style={{ color: C.roxoClaro, fontWeight: 'bold' }}>#{pedido?.idPedido}</Text></Text>
-      <Text style={s.sucessoTxt}>Total: {money(pedido?.total || 0)}</Text>
-      <Text style={[s.sucessoTxt, { marginTop: 8 }]}>{pedido?.mensagem || 'Aguardando confirmacao da lanchonete.'}</Text>
-      <TouchableOpacity style={[s.btnPrimario, { marginTop: 20 }]} onPress={onVoltar}>
-        <Text style={s.btnPrimarioTxt}>Fazer outro pedido</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
-// ─── Estilos ─────────────────────────────────────────────────────────────────
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.fundo },
-  header: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.borda },
-  logo: { color: C.texto, fontSize: 24, fontWeight: 'bold' },
-  sub: { color: C.suave, fontSize: 13 },
-  centro: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  carregandoTxt: { color: C.suave, marginTop: 12 },
-  erroTxt: { color: C.erro, textAlign: 'center', marginBottom: 16, lineHeight: 20 },
-  vazioTxt: { color: C.suave, fontSize: 16, marginBottom: 16 },
-  catTitulo: { color: C.laranja, fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.cartao, borderRadius: 12, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: C.borda },
-  nome: { color: C.texto, fontSize: 15, fontWeight: '600' },
-  desc: { color: C.suave, fontSize: 12, marginTop: 2 },
-  preco: { color: C.roxoClaro, fontSize: 15, fontWeight: 'bold', marginTop: 4 },
-  btnAdd: { backgroundColor: C.roxo, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  btnAddTxt: { color: '#fff', fontSize: 24, lineHeight: 26, fontWeight: 'bold' },
-  qtdBox: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  qtdBtn: { backgroundColor: C.borda, width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  qtdBtnTxt: { color: C.texto, fontSize: 20, fontWeight: 'bold' },
-  qtdNum: { color: C.texto, fontSize: 16, minWidth: 20, textAlign: 'center' },
-  obsTaxa: { color: C.suave, fontSize: 12, marginTop: 6, lineHeight: 18 },
-  rodape: { position: 'absolute', bottom: 60, left: 0, right: 0, padding: 14, backgroundColor: C.fundo, borderTopWidth: 1, borderTopColor: C.borda },
-  totalTxt: { color: C.suave, fontSize: 15, marginBottom: 8 },
-  tabbar: { flexDirection: 'row', height: 60, borderTopWidth: 1, borderTopColor: C.borda, backgroundColor: C.cartao },
-  tabBtn: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  tabBtnAtivo: { borderTopWidth: 2, borderTopColor: C.roxoClaro },
-  tabTxt: { color: C.suave, fontSize: 14 },
-  tabTxtAtivo: { color: C.roxoClaro, fontWeight: 'bold' },
-  btnPrimario: { backgroundColor: C.roxo, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  btnPrimarioTxt: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  btnSecundario: { paddingVertical: 12, alignItems: 'center', marginTop: 4 },
-  btnSecundarioTxt: { color: C.suave, fontSize: 14 },
-  campoLabel: { color: C.suave, fontSize: 13, marginBottom: 4 },
-  input: { backgroundColor: C.cartao, borderWidth: 1, borderColor: C.borda, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, color: C.texto, fontSize: 15 },
-  opc: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: 10, borderWidth: 1, borderColor: C.borda, backgroundColor: C.cartao },
-  opcAtiva: { borderColor: C.roxoClaro, backgroundColor: C.roxo },
-  opcTxt: { color: C.suave, fontWeight: '600' },
-  opcTxtAtiva: { color: '#fff' },
-  sucessoTitulo: { color: C.texto, fontSize: 22, fontWeight: 'bold', marginTop: 10 },
-  sucessoTxt: { color: C.suave, fontSize: 15, marginTop: 4, textAlign: 'center' },
+  aviso: { textAlign: 'center', color: '#888', marginTop: 12, lineHeight: 20 },
 });
