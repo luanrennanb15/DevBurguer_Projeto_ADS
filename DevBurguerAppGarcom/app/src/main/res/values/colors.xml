@@ -1,0 +1,8 @@
+<resources>
+    <color name="corFundoPrincipal">#0F0F11</color>
+    <color name="corFundoSecundaria">#1C1C21</color>
+    <color name="corVermelhoPrincipal">#FF3A44</color>
+    <color name="corDourada">#FFD700</color>
+    <color name="corVerde">#27AE60</color>
+    <color name="corBranca">#FFFFFF</color>
+</resources>

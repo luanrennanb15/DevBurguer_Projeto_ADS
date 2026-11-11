@@ -1,0 +1,10 @@
+<resources>
+    <string name="nome_app">DevBurguer Garçom</string>
+
+    <string name="tituloTelaLogin">Login do Garçom</string>
+    <string name="dicaUsuario">Usuário</string>
+    <string name="dicaSenha">Senha</string>
+    <string name="botaoEntrar">Entrar</string>
+    <string name="erroCamposVazios">Preencha usuário e senha</string>
+    <string name="mensagemLoginMock">Login (mock): bem-vindo, %1$s</string>
+</resources>
