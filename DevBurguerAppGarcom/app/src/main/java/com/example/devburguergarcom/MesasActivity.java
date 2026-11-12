@@ -1,5 +1,6 @@
 package com.example.devburguergarcom;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.devburguergarcom.modelo.Mesa;
@@ -163,8 +165,20 @@ public class MesasActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                startActivity(new Intent(MesasActivity.this, LoginActivity.class));
-                finish();
+                new AlertDialog.Builder(MesasActivity.this)
+                        .setTitle(R.string.tituloConfirmarSaida)
+                        .setMessage(R.string.mensagemConfirmarSaida)
+                        .setNegativeButton(R.string.botaoCancelar, null)
+                        .setPositiveButton(R.string.botaoSair, new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                startActivity(new Intent(MesasActivity.this, LoginActivity.class));
+                                finish();
+                            }
+                        })
+                        .show();
             }
         });
     }

@@ -19,6 +19,9 @@
     <string name="legendaStatusPronto">Pedido pronto</string>
     <string name="avisoToqueMesa">Mesa livre abre um pedido novo. Mesa ocupada abre a comanda.</string>
     <string name="carregandoMesas">Carregando mesas…</string>
+    <string name="tituloConfirmarSaida">Sair do app?</string>
+    <string name="mensagemConfirmarSaida">Você vai precisar fazer login de novo para continuar atendendo.</string>
+    <string name="botaoCancelar">Cancelar</string>
     <string name="rotuloMesaNumero">%02d</string>
     <string name="statusMesaLivre">Livre</string>
     <string name="statusMesaOcupada">Ocupada</string>
