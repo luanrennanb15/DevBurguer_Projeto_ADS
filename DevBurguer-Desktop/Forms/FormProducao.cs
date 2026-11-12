@@ -85,6 +85,109 @@ namespace DevBurguer.Forms
         }
 
         // ═══════════════════════════════════════════════════════════
+        //  FECHAR COMANDA (App do Garcom / Salao)
+        // ═══════════════════════════════════════════════════════════
+
+        // Pergunta o número da mesa num pequeno diálogo. Retorna null se cancelar.
+        private int? PerguntarNumeroMesa()
+        {
+            using (var dlg = new Form())
+            {
+                dlg.Text = "Fechar comanda";
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.ClientSize = new Size(260, 130);
+                dlg.MaximizeBox = false;
+                dlg.MinimizeBox = false;
+                dlg.BackColor = CDarkPanel;
+                dlg.ForeColor = CText;
+
+                var lbl = new Label
+                {
+                    Text = "Número da mesa a fechar:",
+                    AutoSize = true,
+                    Location = new Point(16, 18),
+                    ForeColor = CText
+                };
+                var num = new NumericUpDown
+                {
+                    Minimum = 1,
+                    Maximum = 999,
+                    Value = 1,
+                    Location = new Point(16, 44),
+                    Width = 228,
+                    Font = new Font("Segoe UI", 12f)
+                };
+                var ok = new Button
+                {
+                    Text = "Fechar comanda",
+                    DialogResult = DialogResult.OK,
+                    Location = new Point(134, 88),
+                    Width = 110,
+                    Height = 28,
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = CPronto,
+                    ForeColor = CText
+                };
+                var cancel = new Button
+                {
+                    Text = "Cancelar",
+                    DialogResult = DialogResult.Cancel,
+                    Location = new Point(16, 88),
+                    Width = 100,
+                    Height = 28,
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = Color.FromArgb(40, 40, 60),
+                    ForeColor = CText
+                };
+
+                dlg.Controls.Add(lbl);
+                dlg.Controls.Add(num);
+                dlg.Controls.Add(ok);
+                dlg.Controls.Add(cancel);
+                dlg.AcceptButton = ok;
+                dlg.CancelButton = cancel;
+
+                return dlg.ShowDialog(this) == DialogResult.OK ? (int?)(int)num.Value : null;
+            }
+        }
+
+        // Fecha a comanda da mesa escolhida: finaliza todas as rodadas e libera a mesa.
+        private async Task FecharComandaDialogAsync()
+        {
+            int? mesa = PerguntarNumeroMesa();
+            if (mesa == null) return;
+
+            try
+            {
+                var repo = new PedidoRepository();
+                ComandaFechada r = await repo.FecharComandaAsync(mesa.Value);
+
+                if (r.Rodadas == 0)
+                {
+                    MessageBox.Show(
+                        "A mesa " + mesa.Value + " não tem comanda em aberto.",
+                        "Fechar comanda", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "Comanda da mesa " + mesa.Value + " fechada!\n\n" +
+                        r.Rodadas + " rodada(s)  •  Total: R$ " + r.Total.ToString("N2"),
+                        "Comanda fechada", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+
+                await CarregarAsync(); // atualiza o Kanban (a mesa sai da produção)
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Erro ao fechar a comanda:\n" + ex.Message,
+                    "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
         //  LAYOUT
         // ═══════════════════════════════════════════════════════════
         private void ConstruirLayout()

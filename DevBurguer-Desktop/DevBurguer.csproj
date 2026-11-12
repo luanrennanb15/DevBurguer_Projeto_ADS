@@ -166,6 +166,7 @@
     <Compile Include="Forms\FormProducao.Designer.cs">
       <DependentUpon>FormProducao.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\FormSalao.cs" />
     <Compile Include="Forms\FormProdutos.cs">
       <SubType>Form</SubType>
     </Compile>
