@@ -39,6 +39,7 @@
     <string name="erroCardapioInesperado">Algo deu errado ao carregar o cardápio.</string>
     <string name="erroInesperado">Algo deu errado. Tente novamente.</string>
     <string name="mensagemPedidoVazio">Adicione pelo menos um item antes de ver o pedido.</string>
+    <string name="mensagemCarrinhoVazio">Nenhum item no pedido. Volte ao cardápio para adicionar.</string>
 
     <string name="botaoVoltarCardapio">Cardápio</string>
     <string name="tituloTelaCarrinho">Pedido · Mesa %1$02d</string>

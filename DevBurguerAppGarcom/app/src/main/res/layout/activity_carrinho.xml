@@ -36,18 +36,36 @@
 
     </LinearLayout>
 
-    <ListView
-        android:id="@+id/lstItensCarrinho"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="12dp"
-        android:divider="@null"
-        android:dividerHeight="12dp"
-        android:paddingStart="20dp"
-        android:paddingTop="4dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="4dp" />
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/lstItensCarrinho"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="12dp"
+            android:divider="@null"
+            android:dividerHeight="12dp"
+            android:paddingStart="20dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="4dp" />
+
+        <TextView
+            android:id="@+id/txvCarrinhoVazio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:padding="32dp"
+            android:text="@string/mensagemCarrinhoVazio"
+            android:textColor="@color/corTextoSecundario"
+            android:textSize="15sp"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

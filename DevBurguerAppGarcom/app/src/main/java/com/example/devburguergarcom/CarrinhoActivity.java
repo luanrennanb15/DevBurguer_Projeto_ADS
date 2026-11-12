@@ -23,6 +23,7 @@ public class CarrinhoActivity extends AppCompatActivity
 
     private TextView txvTituloCarrinho;
     private ListView lstItensCarrinho;
+    private TextView txvCarrinhoVazio;
     private TextView txvCarrinhoTotalItens;
     private TextView txvCarrinhoTotalValor;
     private Button btnEnviarRodada;
@@ -47,6 +48,7 @@ public class CarrinhoActivity extends AppCompatActivity
     {
         txvTituloCarrinho = findViewById(R.id.txvTituloCarrinho);
         lstItensCarrinho = findViewById(R.id.lstItensCarrinho);
+        txvCarrinhoVazio = findViewById(R.id.txvCarrinhoVazio);
         txvCarrinhoTotalItens = findViewById(R.id.txvCarrinhoTotalItens);
         txvCarrinhoTotalValor = findViewById(R.id.txvCarrinhoTotalValor);
         btnEnviarRodada = findViewById(R.id.btnEnviarRodada);
@@ -137,5 +139,10 @@ public class CarrinhoActivity extends AppCompatActivity
 
         txvCarrinhoTotalItens.setText(getString(R.string.rotuloTotalItens, totalItens));
         txvCarrinhoTotalValor.setText(getString(R.string.rotuloPreco, Dinheiro.formatar(totalValor)));
+
+        boolean carrinhoVazio = itens.isEmpty();
+        txvCarrinhoVazio.setVisibility(carrinhoVazio ? View.VISIBLE : View.GONE);
+        lstItensCarrinho.setVisibility(carrinhoVazio ? View.GONE : View.VISIBLE);
+        btnEnviarRodada.setEnabled(!carrinhoVazio);
     }
 }
