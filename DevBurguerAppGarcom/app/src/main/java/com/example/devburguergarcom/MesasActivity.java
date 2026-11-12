@@ -6,8 +6,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -29,6 +29,11 @@ public class MesasActivity extends AppCompatActivity
     private TextView txvSaudacaoGarcom;
     private GridView grdMesas;
     private Button btnSair;
+    private LinearLayout lytCarregando;
+    private LinearLayout lytErro;
+    private TextView txvMensagemErro;
+    private Button btnTentarNovamente;
+    private LinearLayout lytConteudo;
 
     private ApiDevBurguer api;
     private List<Mesa> mesas = new ArrayList<>();
@@ -49,6 +54,11 @@ public class MesasActivity extends AppCompatActivity
         txvSaudacaoGarcom = findViewById(R.id.txvSaudacaoGarcom);
         grdMesas = findViewById(R.id.grdMesas);
         btnSair = findViewById(R.id.btnSair);
+        lytCarregando = findViewById(R.id.lytCarregando);
+        lytErro = findViewById(R.id.lytErro);
+        txvMensagemErro = findViewById(R.id.txvMensagemErro);
+        btnTentarNovamente = findViewById(R.id.btnTentarNovamente);
+        lytConteudo = findViewById(R.id.lytConteudo);
 
         api = new ApiDevBurguer(this);
 
@@ -66,6 +76,8 @@ public class MesasActivity extends AppCompatActivity
     // falhar, mantém todas livres (igual ao app do Luan) em vez de travar a tela.
     private void carregarMesas()
     {
+        mostrarCarregando();
+
         api.buscarMesasOcupadas(new OuvinteApi<List<Integer>>()
         {
             @Override
@@ -80,18 +92,50 @@ public class MesasActivity extends AppCompatActivity
                     mesas.add(new Mesa(numero, status));
                 }
                 grdMesas.setAdapter(new AdaptadorMesa(MesasActivity.this, mesas));
+                mostrarConteudo();
             }
 
             @Override
             public void aoFalhar(String mensagemErro)
             {
-                Toast.makeText(MesasActivity.this, mensagemErro, Toast.LENGTH_LONG).show();
+                mostrarErro(mensagemErro);
             }
         });
     }
 
+    private void mostrarCarregando()
+    {
+        lytCarregando.setVisibility(View.VISIBLE);
+        lytErro.setVisibility(View.GONE);
+        lytConteudo.setVisibility(View.GONE);
+    }
+
+    private void mostrarErro(String mensagem)
+    {
+        txvMensagemErro.setText(mensagem);
+        lytCarregando.setVisibility(View.GONE);
+        lytErro.setVisibility(View.VISIBLE);
+        lytConteudo.setVisibility(View.GONE);
+    }
+
+    private void mostrarConteudo()
+    {
+        lytCarregando.setVisibility(View.GONE);
+        lytErro.setVisibility(View.GONE);
+        lytConteudo.setVisibility(View.VISIBLE);
+    }
+
     private void eventos()
     {
+        btnTentarNovamente.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                carregarMesas();
+            }
+        });
+
         grdMesas.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
             @Override
