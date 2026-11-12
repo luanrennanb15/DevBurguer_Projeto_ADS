@@ -202,6 +202,50 @@ public class ApiDevBurguer
         });
     }
 
+    // GET /api/mesas/ocupadas -> números das mesas ocupadas (comanda em aberto).
+    // A API ainda não distingue "pronto": por enquanto é só livre/ocupada.
+    public void buscarMesasOcupadas(OuvinteApi<List<Integer>> ouvinte)
+    {
+        executor.execute(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    RespostaHttp resposta = chamar("GET", "/mesas/ocupadas", null);
+                    JSONObject corpoResposta = new JSONObject(resposta.corpo.isEmpty() ? "{}" : resposta.corpo);
+
+                    if (resposta.codigo == 200)
+                    {
+                        JSONArray ocupadasJson = corpoResposta.optJSONArray("ocupadas");
+                        List<Integer> ocupadas = new ArrayList<>();
+                        if (ocupadasJson != null)
+                        {
+                            for (int i = 0; i < ocupadasJson.length(); i++)
+                            {
+                                ocupadas.add(ocupadasJson.getInt(i));
+                            }
+                        }
+                        avisarSucesso(ouvinte, ocupadas);
+                    }
+                    else
+                    {
+                        avisarFalha(ouvinte, extrairMensagemErro(corpoResposta));
+                    }
+                }
+                catch (ErroApi erro)
+                {
+                    avisarFalha(ouvinte, erro.mensagem);
+                }
+                catch (Exception e)
+                {
+                    avisarFalha(ouvinte, contexto.getString(R.string.erroInesperado));
+                }
+            }
+        });
+    }
+
     // GET /api/mesas/:mesa/comanda -> itens em aberto da mesa, agrupados por
     // rodada (cada rodada é um idPedido). O status mostrado é o texto exato do
     // banco (ex.: "Em Producao"), sem tradução.

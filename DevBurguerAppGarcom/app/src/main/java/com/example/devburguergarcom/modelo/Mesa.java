@@ -1,8 +1,7 @@
 package com.example.devburguergarcom.modelo;
 
-// Representa uma mesa do salão. Por enquanto só com dados mock (a API de mesas
-// ainda está em desenvolvimento pelo Luan); quando ela existir, só precisamos
-// trocar quem cria os objetos Mesa, essa classe continua igual.
+// Representa uma mesa do salão. O número total de mesas é fixo (12, decidido
+// no app); só o status (livre/ocupada) vem de GET /api/mesas/ocupadas.
 public class Mesa
 {
     private int numero;
