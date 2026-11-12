@@ -4,8 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="104dp"
     android:background="@drawable/fundo_mesa_livre"
-    android:clickable="true"
-    android:focusable="true"
     android:foreground="?android:attr/selectableItemBackground"
     android:gravity="center"
     android:orientation="vertical">
