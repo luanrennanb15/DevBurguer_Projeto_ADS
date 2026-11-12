@@ -377,7 +377,7 @@ namespace DevBurguer.Data
         /// em aberto da mesa de uma vez. Usado no caixa, quando o cliente paga.
         /// Retorna quantas rodadas foram fechadas e o total cobrado.
         /// </summary>
-        public async Task<ComandaFechada> FecharComandaAsync(int mesa)
+        public async Task<ComandaFechada> FecharComandaAsync(int mesa, string formaPagamento = null)
         {
             var resultado = new ComandaFechada { Mesa = mesa };
 
@@ -403,20 +403,61 @@ namespace DevBurguer.Data
                     }
                 }
 
-                // Se houver comanda aberta, finaliza todas as rodadas de uma vez.
+                // Se houver comanda aberta, finaliza todas as rodadas de uma vez,
+                // gravando a forma de pagamento quando informada.
                 if (resultado.Rodadas > 0)
                 {
-                    using (var cmd = new NpgsqlCommand(
-                        @"UPDATE Pedidos SET Status = 'Finalizado'
-                          WHERE Mesa = @m AND Origem = 'Garcom'
-                            AND Status NOT IN ('Finalizado', 'Cancelado')", conn) { CommandTimeout = 60 })
+                    bool temForma = !string.IsNullOrWhiteSpace(formaPagamento);
+                    string sqlUpdate = temForma
+                        ? @"UPDATE Pedidos SET Status = 'Finalizado', FormaPagamento = @fp
+                            WHERE Mesa = @m AND Origem = 'Garcom'
+                              AND Status NOT IN ('Finalizado', 'Cancelado')"
+                        : @"UPDATE Pedidos SET Status = 'Finalizado'
+                            WHERE Mesa = @m AND Origem = 'Garcom'
+                              AND Status NOT IN ('Finalizado', 'Cancelado')";
+
+                    using (var cmd = new NpgsqlCommand(sqlUpdate, conn) { CommandTimeout = 60 })
                     {
                         cmd.Parameters.AddWithValue("@m", mesa);
+                        if (temForma) cmd.Parameters.AddWithValue("@fp", formaPagamento);
                         await cmd.ExecuteNonQueryAsync();
                     }
+                    resultado.FormaPagamento = temForma ? formaPagamento : "";
                 }
             }
             return resultado;
+        }
+
+        /// <summary>
+        /// Itens em aberto de uma mesa (comanda do App do Garcom), para exibir no caixa.
+        /// </summary>
+        public async Task<DataTable> GetComandaMesaAsync(int mesa)
+        {
+            const string sql = @"
+                SELECT pr.Nome AS Produto, i.Quantidade, i.Preco,
+                       COALESCE(i.Observacao, '') AS Observacao,
+                       COALESCE(i.Adicionais, '') AS Adicionais
+                FROM Pedidos p
+                JOIN ItensPedido i ON i.IdPedido = p.Id
+                JOIN Produtos pr   ON pr.Id = i.IdProduto
+                WHERE p.Mesa = @m AND p.Origem = 'Garcom'
+                  AND p.Status NOT IN ('Finalizado', 'Cancelado')
+                ORDER BY p.Id, i.Id";
+
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new NpgsqlCommand(sql, conn) { CommandTimeout = 30 })
+                {
+                    cmd.Parameters.AddWithValue("@m", mesa);
+                    using (var r = await cmd.ExecuteReaderAsync())
+                    {
+                        var dt = new DataTable();
+                        dt.Load(r);
+                        return dt;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -444,6 +485,33 @@ namespace DevBurguer.Data
             }
             return mesas;
         }
+
+        /// <summary>
+        /// Mesas ocupadas com o total e a quantidade de rodadas de cada uma,
+        /// para a tela do salão mostrar o valor no botão da mesa.
+        /// </summary>
+        public async Task<DataTable> GetMesasOcupadasComTotalAsync()
+        {
+            const string sql = @"
+                SELECT Mesa, COALESCE(SUM(Total), 0) AS Total, COUNT(*) AS Rodadas
+                FROM Pedidos
+                WHERE Origem = 'Garcom' AND Mesa IS NOT NULL
+                  AND Status NOT IN ('Finalizado', 'Cancelado')
+                GROUP BY Mesa
+                ORDER BY Mesa";
+
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new NpgsqlCommand(sql, conn) { CommandTimeout = 30 })
+                using (var r = await cmd.ExecuteReaderAsync())
+                {
+                    var dt = new DataTable();
+                    dt.Load(r);
+                    return dt;
+                }
+            }
+        }
     }
 
     /// <summary>Resultado do fechamento da comanda de uma mesa.</summary>
@@ -452,5 +520,6 @@ namespace DevBurguer.Data
         public int Mesa { get; set; }
         public int Rodadas { get; set; }
         public decimal Total { get; set; }
+        public string FormaPagamento { get; set; }
     }
 }
