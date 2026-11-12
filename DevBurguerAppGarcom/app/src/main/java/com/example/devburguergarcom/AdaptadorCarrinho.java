@@ -1,6 +1,7 @@
 package com.example.devburguergarcom;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -12,6 +13,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 
 import com.example.devburguergarcom.modelo.ItemPedido;
 
@@ -94,16 +96,28 @@ public class AdaptadorCarrinho extends ArrayAdapter<ItemPedido>
             {
                 if (item.getQuantidade() <= 1)
                 {
-                    remove(item);
+                    new AlertDialog.Builder(getContext())
+                            .setTitle(R.string.tituloRemoverItem)
+                            .setMessage(getContext().getString(R.string.mensagemRemoverItem, item.getProduto().getNome()))
+                            .setNegativeButton(R.string.botaoCancelar, null)
+                            .setPositiveButton(R.string.botaoRemover, new DialogInterface.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which)
+                                {
+                                    remove(item);
+                                    ouvinte.aoAlterarCarrinho();
+                                }
+                            })
+                            .show();
                 }
                 else
                 {
                     item.setQuantidade(item.getQuantidade() - 1);
                     txvQuantidade.setText(String.valueOf(item.getQuantidade()));
                     atualizarPreco(txvPreco, item);
+                    ouvinte.aoAlterarCarrinho();
                 }
-
-                ouvinte.aoAlterarCarrinho();
             }
         });
 

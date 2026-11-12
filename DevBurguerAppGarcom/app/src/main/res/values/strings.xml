@@ -47,6 +47,9 @@
     <string name="botaoVoltarCardapio">Cardápio</string>
     <string name="tituloTelaCarrinho">Pedido · Mesa %1$02d</string>
     <string name="dicaObservacaoItem">Observação do item</string>
+    <string name="tituloRemoverItem">Remover item?</string>
+    <string name="mensagemRemoverItem">Remover \"%1$s\" do pedido?</string>
+    <string name="botaoRemover">Remover</string>
     <string name="rotuloObservacaoPedido">Observação do pedido</string>
     <string name="dicaObservacaoPedido">Ex.: servir juntos</string>
     <string name="rotuloTotalItens">Total · %1$d itens</string>
