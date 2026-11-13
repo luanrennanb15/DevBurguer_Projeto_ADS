@@ -1,0 +1,41 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example.devburguergarcom'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.devburguergarcom"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+// Evita o erro "Duplicate class kotlin...": algumas libs do AndroidX puxam, por baixo
+// dos panos, tanto o kotlin-stdlib novo quanto os módulos antigos jdk7/jdk8 (já
+// inclusos nele). A gente nem usa Kotlin aqui, então só ignora os antigos.
+configurations.all {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+}
+
+dependencies {
+    // Dependências padrão de qualquer projeto Android com Activity/XML (não são bibliotecas extras como Retrofit).
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+}

@@ -1,0 +1,5 @@
+// Arquivo de build do projeto (nível raiz). Só declara o plugin do Android,
+// cada módulo (o "app") configura o resto no seu próprio build.gradle.
+plugins {
+    id 'com.android.application' version '8.5.0' apply false
+}
