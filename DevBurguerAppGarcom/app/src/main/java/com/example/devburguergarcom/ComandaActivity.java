@@ -75,8 +75,19 @@ public class ComandaActivity extends AppCompatActivity
         });
     }
 
+    // Se a mesa foi liberada (pagou e fechou no caixa) entre o garçom tocar
+    // nela e a comanda carregar, não tem rodada nenhuma pra mostrar. Sem esse
+    // aviso, a tela ficava zerada do mesmo jeito que num bug de carregamento.
     private void mostrarRodadas(List<Rodada> rodadas)
     {
+        if (rodadas.isEmpty())
+        {
+            txvSubtituloComanda.setText(R.string.avisoMesaLiberada);
+            txvTotalComanda.setText(getString(R.string.rotuloPreco, Dinheiro.formatar(0)));
+            lstRodadas.setAdapter(new AdaptadorRodada(this, rodadas));
+            return;
+        }
+
         int totalItens = 0;
         double totalValor = 0;
         for (Rodada rodada : rodadas)

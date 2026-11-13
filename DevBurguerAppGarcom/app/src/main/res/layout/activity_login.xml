@@ -12,29 +12,13 @@
         android:orientation="vertical"
         android:padding="28dp">
 
-        <FrameLayout
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginBottom="14dp"
-            android:background="@drawable/fundo_circulo_vermelho">
-
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_gravity="center"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_hamburguer" />
-
-        </FrameLayout>
-
-        <TextView
-            android:id="@+id/txvTituloApp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/tituloApp"
-            android:textColor="@color/corBranca"
-            android:textSize="34sp"
-            android:textStyle="bold" />
+        <ImageView
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="4dp"
+            android:contentDescription="@null"
+            android:src="@drawable/logo_devburger" />
 
         <TextView
             android:id="@+id/txvSubtituloApp"
