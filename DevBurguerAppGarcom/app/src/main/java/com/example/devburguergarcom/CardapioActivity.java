@@ -28,6 +28,8 @@ public class CardapioActivity extends AppCompatActivity
 {
     public static final String EXTRA_NUMERO_MESA = "numeroMesa";
 
+    private static final int REQUISICAO_CARRINHO = 1;
+
     private TextView txvTituloCardapio;
     private LinearLayout lytCategorias;
     private LinearLayout lytCarregando;
@@ -250,7 +252,22 @@ public class CardapioActivity extends AppCompatActivity
         Intent intent = new Intent(this, CarrinhoActivity.class);
         intent.putExtra(CarrinhoActivity.EXTRA_NUMERO_MESA, numeroMesa);
         intent.putExtra(CarrinhoActivity.EXTRA_ITENS_PEDIDO, itensPedido);
-        startActivity(intent);
+        startActivityForResult(intent, REQUISICAO_CARRINHO);
+    }
+
+    // Se o Carrinho enviou a rodada (RESULT_OK), essa tela também se fecha:
+    // uma rodada enviada não pode ser editada, então não faz sentido voltar
+    // pra cá com os produtos da rodada antiga ainda marcados.
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUISICAO_CARRINHO && resultCode == RESULT_OK)
+        {
+            setResult(RESULT_OK);
+            finish();
+        }
     }
 
     private void atualizarRodape()

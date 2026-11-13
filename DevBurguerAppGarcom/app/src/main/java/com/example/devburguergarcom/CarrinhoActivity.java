@@ -1,6 +1,5 @@
 package com.example.devburguergarcom;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -108,9 +107,10 @@ public class CarrinhoActivity extends AppCompatActivity
                     @Override
                     public void aoSucesso(Void resultado)
                     {
-                        Intent intent = new Intent(CarrinhoActivity.this, ComandaActivity.class);
-                        intent.putExtra(ComandaActivity.EXTRA_NUMERO_MESA, numeroMesa);
-                        startActivity(intent);
+                        // Quem abriu o Carrinho (Cardápio) decide pra onde ir: ele se
+                        // fecha em cadeia até voltar pra tela de Mesas, que então abre
+                        // a Comanda. Assim não fica nenhuma tela antiga pra trás.
+                        setResult(RESULT_OK);
                         finish();
                     }
 

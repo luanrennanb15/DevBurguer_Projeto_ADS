@@ -37,6 +37,14 @@ public class ComandaActivity extends AppCompatActivity
 
         configuracao();
         eventos();
+    }
+
+    // Recarrega sempre que a tela volta a ficar visível (ex.: depois de
+    // adicionar uma nova rodada no Cardápio), pra mostrar a comanda atual.
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
         carregarComanda();
     }
 
