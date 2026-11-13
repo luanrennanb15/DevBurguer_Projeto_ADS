@@ -856,12 +856,13 @@ namespace DevBurguer.Forms
                 if (ehSalao)
                 {
                     // Pedido de salão (app do garçom): entregue na própria mesa,
-                    // sem motoboy. "Entregar na mesa" finaliza o pedido.
+                    // sem motoboy. "Entregar na mesa" apenas SERVE o pedido na mesa
+                    // (status 'Entregue') — não fecha a comanda nem finaliza a venda.
+                    // A comanda só é fechada no caixa (tela Salão), com o pagamento.
                     var btn = BtnAcao("Entregar na mesa", CPronto, 0, pnl.Width, 0);
                     btn.Click += async (s, e) =>
                     {
-                        await new PedidoRepository().AtualizarStatusAsync(idPedido, "Finalizado");
-                        PedidoEventos.NotificarPedidoFinalizado();
+                        await new PedidoRepository().AtualizarStatusAsync(idPedido, "Entregue");
                         await CarregarAsync();
                     };
                     pnl.Controls.Add(btn);
