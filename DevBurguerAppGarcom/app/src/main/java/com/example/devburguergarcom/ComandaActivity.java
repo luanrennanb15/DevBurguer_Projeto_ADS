@@ -98,6 +98,12 @@ public class ComandaActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
+                // Vai direto pras Mesas e limpa Cardápio/Carrinho que tenham
+                // ficado atrás na pilha (senão a seta de voltar cairia numa
+                // tela antiga, ainda com os itens da rodada que já foi enviada).
+                Intent intent = new Intent(ComandaActivity.this, MesasActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
                 finish();
             }
         });
