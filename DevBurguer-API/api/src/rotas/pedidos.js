@@ -170,6 +170,29 @@ router.post('/pedidos/garcom', async (req, res) => {
 });
 
 /**
+ * GET /api/mesas/ocupadas
+ * Devolve os números das mesas que estão ocupadas (com comanda em aberto),
+ * para o app pintar de verde (livre) ou vermelho (ocupada).
+ */
+router.get('/mesas/ocupadas', async (req, res) => {
+    try {
+        const r = await pool.query(`
+            SELECT DISTINCT mesa
+              FROM pedidos
+             WHERE origem = 'Garcom'
+               AND mesa IS NOT NULL
+               AND status <> ALL($1::text[])
+             ORDER BY mesa
+        `, [STATUS_FECHADOS]);
+
+        res.json({ ocupadas: r.rows.map(x => x.mesa) });
+    } catch (err) {
+        console.error('Erro em GET /mesas/ocupadas:', err.message);
+        res.status(500).json({ erro: 'Falha ao consultar as mesas.' });
+    }
+});
+
+/**
  * GET /api/mesas/:mesa/comanda
  * Lista os itens em aberto de uma mesa (todas as rodadas ainda nao
  * finalizadas/canceladas) e o total acumulado, para conferir no caixa.

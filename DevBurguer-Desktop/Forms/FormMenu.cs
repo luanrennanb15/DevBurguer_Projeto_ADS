@@ -34,6 +34,65 @@ namespace DevBurguer
             _timerAlerta.Tick += async (s, ev) => await VerificarPedidosSiteAsync();
             _timerAlerta.Start();
             _ = VerificarPedidosSiteAsync(); // primeira checagem imediata
+
+            MontarBotaoSalao();
+        }
+
+        /// <summary>
+        /// Adiciona o botão "Salão" no menu lateral, logo abaixo de "Pedidos",
+        /// deslocando os demais para baixo. Abre a tela no painel central, igual
+        /// aos outros botões. Feito em código para não alterar o Designer.
+        /// </summary>
+        private void MontarBotaoSalao()
+        {
+            var btnSalao = new Button
+            {
+                Text = "Salão",
+                // Y temporário logo abaixo de Pedidos, para entrar na sequência certa.
+                Location = new Point(btnPedidos.Location.X, btnPedidos.Location.Y + 2),
+                Size = btnPedidos.Size,
+                Font = btnPedidos.Font,
+                FlatStyle = btnPedidos.FlatStyle,
+                BackColor = Color.FromArgb(30, 30, 30),
+                ForeColor = Color.White,
+                UseVisualStyleBackColor = false,
+                Cursor = Cursors.Hand
+            };
+            btnSalao.Click += (s, ev) => { AtivarBotao(btnSalao); AbrirForm(new FormSalao()); };
+            panelMenu.Controls.Add(btnSalao);
+
+            ReorganizarMenu();
+            panelMenu.SizeChanged += (s, ev) => ReorganizarMenu();
+        }
+
+        /// <summary>
+        /// Distribui todos os botões do menu no mesmo tamanho, encolhendo-os
+        /// para caber na altura do painel sem precisar de rolagem.
+        /// </summary>
+        private void ReorganizarMenu()
+        {
+            panelMenu.AutoScroll = false;
+
+            var botoes = new System.Collections.Generic.List<Button>();
+            foreach (Control c in panelMenu.Controls)
+                if (c is Button b) botoes.Add(b);
+            if (botoes.Count == 0) return;
+            botoes.Sort((a, b) => a.Location.Y.CompareTo(b.Location.Y));
+
+            int n = botoes.Count;
+            int x = botoes[0].Location.X;
+            int topo = 10, baixo = 10, gap = 5, largura = 192;
+            int disp = Math.Max(120, panelMenu.ClientSize.Height - topo - baixo);
+            int altura = (disp - (n - 1) * gap) / n;
+            if (altura > 54) altura = 54;   // não maior que o padrão
+            if (altura < 26) altura = 26;   // mínimo legível
+            int passo = altura + gap;
+
+            for (int i = 0; i < n; i++)
+            {
+                botoes[i].Size = new Size(largura, altura);
+                botoes[i].Location = new Point(x, topo + i * passo);
+            }
         }
 
         private async Task VerificarPedidosSiteAsync()

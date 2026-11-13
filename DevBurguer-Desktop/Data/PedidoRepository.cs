@@ -180,19 +180,23 @@ namespace DevBurguer.Data
             string sql = @"
                 SELECT
                     p.Id,
-                    c.Nome                      AS Cliente,
-                    c.Telefone                  AS Telefone,
+                    COALESCE(c.Nome, CASE WHEN COALESCE(p.Origem, '') = 'Garcom'
+                                          THEN 'Mesa ' || p.Mesa
+                                          ELSE 'Balcao' END) AS Cliente,
+                    COALESCE(c.Telefone, '')    AS Telefone,
                     COALESCE(c.Endereco, '') || ', ' || COALESCE(c.Numero, '') || ' - ' || COALESCE(c.Bairro, '') AS Endereco,
                     p.Total,
                     p.Status,
                     COALESCE(p.TipoEntrega, '') AS TipoEntrega,
+                    COALESCE(p.Mesa, 0)         AS Mesa,
+                    COALESCE(p.Origem, '')      AS Origem,
                     p.Data,
                     COALESCE(m.Nome, '')        AS Motoboy,
                     COALESCE(p.IdMotoboy, 0)    AS IdMotoboy,
                     COALESCE(p.TrocoPara, 0)    AS TrocoPara,
                     " + BlocoItensSql + @"
                 FROM Pedidos p
-                JOIN Clientes c      ON c.Id = p.IdCliente
+                LEFT JOIN Clientes c ON c.Id = p.IdCliente
                 LEFT JOIN Motoboys m ON m.Id = p.IdMotoboy
                 WHERE p.Status NOT IN ('Finalizado', 'Cancelado', 'Aguardando')
                 ORDER BY p.Data ASC";
@@ -272,11 +276,13 @@ namespace DevBurguer.Data
                            p.Total,
                            COALESCE(p.TrocoPara, 0)     AS Troco,
                            COALESCE(p.FormaPagamento, '') AS FormaPagamento,
-                           c.Nome                       AS Cliente,
+                           COALESCE(c.Nome, CASE WHEN COALESCE(p.Origem, '') = 'Garcom'
+                                                 THEN 'Mesa ' || p.Mesa
+                                                 ELSE 'Balcao' END) AS Cliente,
                            COALESCE(c.Telefone, '')     AS Telefone,
                            COALESCE(c.Endereco,'') || ', ' || COALESCE(c.Numero,'') || ' - ' || COALESCE(c.Bairro,'') AS Endereco
                     FROM Pedidos p
-                    JOIN Clientes c ON c.Id = p.IdCliente
+                    LEFT JOIN Clientes c ON c.Id = p.IdCliente
                     WHERE p.Id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("@id", idPedido);
@@ -365,5 +371,375 @@ namespace DevBurguer.Data
                 ORDER BY m.Nome";
             return await DbHelper.ExecuteDataTableAsync(sql);
         }
+
+        /// <summary>
+        /// Fecha a comanda de uma mesa (App do Garcom): finaliza TODAS as rodadas
+        /// em aberto da mesa de uma vez. Usado no caixa, quando o cliente paga.
+        /// Retorna quantas rodadas foram fechadas e o total cobrado.
+        /// </summary>
+        public async Task<ComandaFechada> FecharComandaAsync(int mesa, string formaPagamento = null)
+        {
+            var resultado = new ComandaFechada { Mesa = mesa };
+
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+
+                // Primeiro apura o total e a quantidade de rodadas em aberto.
+                using (var cmd = new NpgsqlCommand(
+                    @"SELECT COUNT(*), COALESCE(SUM(Total), 0)
+                      FROM Pedidos
+                      WHERE Mesa = @m AND Origem = 'Garcom'
+                        AND Status NOT IN ('Finalizado', 'Cancelado')", conn) { CommandTimeout = 30 })
+                {
+                    cmd.Parameters.AddWithValue("@m", mesa);
+                    using (var r = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await r.ReadAsync())
+                        {
+                            resultado.Rodadas = Convert.ToInt32(r[0]);
+                            resultado.Total = Convert.ToDecimal(r[1]);
+                        }
+                    }
+                }
+
+                // Se houver comanda aberta, finaliza todas as rodadas de uma vez,
+                // gravando a forma de pagamento quando informada.
+                if (resultado.Rodadas > 0)
+                {
+                    bool temForma = !string.IsNullOrWhiteSpace(formaPagamento);
+                    string sqlUpdate = temForma
+                        ? @"UPDATE Pedidos SET Status = 'Finalizado', FormaPagamento = @fp
+                            WHERE Mesa = @m AND Origem = 'Garcom'
+                              AND Status NOT IN ('Finalizado', 'Cancelado')"
+                        : @"UPDATE Pedidos SET Status = 'Finalizado'
+                            WHERE Mesa = @m AND Origem = 'Garcom'
+                              AND Status NOT IN ('Finalizado', 'Cancelado')";
+
+                    using (var cmd = new NpgsqlCommand(sqlUpdate, conn) { CommandTimeout = 60 })
+                    {
+                        cmd.Parameters.AddWithValue("@m", mesa);
+                        if (temForma) cmd.Parameters.AddWithValue("@fp", formaPagamento);
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                    resultado.FormaPagamento = temForma ? formaPagamento : "";
+                }
+            }
+            return resultado;
+        }
+
+        /// <summary>
+        /// Cancela TODA a comanda de uma mesa (ex.: o cliente desistiu do pedido).
+        /// Marca as rodadas em aberto como 'Cancelado' — sem pagamento —, libera a
+        /// mesa e faz com que entrem na contagem de "pedidos cancelados" do dia no
+        /// Dashboard. Retorna a quantidade de rodadas e o total cancelado.
+        /// </summary>
+        public async Task<ComandaFechada> CancelarComandaAsync(int mesa)
+        {
+            var resultado = new ComandaFechada { Mesa = mesa };
+
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+
+                // Apura total e quantidade de rodadas em aberto.
+                using (var cmd = new NpgsqlCommand(
+                    @"SELECT COUNT(*), COALESCE(SUM(Total), 0)
+                      FROM Pedidos
+                      WHERE Mesa = @m AND Origem = 'Garcom'
+                        AND Status NOT IN ('Finalizado', 'Cancelado')", conn) { CommandTimeout = 30 })
+                {
+                    cmd.Parameters.AddWithValue("@m", mesa);
+                    using (var r = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await r.ReadAsync())
+                        {
+                            resultado.Rodadas = Convert.ToInt32(r[0]);
+                            resultado.Total = Convert.ToDecimal(r[1]);
+                        }
+                    }
+                }
+
+                // Marca todas as rodadas em aberto como canceladas.
+                if (resultado.Rodadas > 0)
+                {
+                    using (var cmd = new NpgsqlCommand(
+                        @"UPDATE Pedidos SET Status = 'Cancelado'
+                          WHERE Mesa = @m AND Origem = 'Garcom'
+                            AND Status NOT IN ('Finalizado', 'Cancelado')", conn) { CommandTimeout = 60 })
+                    {
+                        cmd.Parameters.AddWithValue("@m", mesa);
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+            return resultado;
+        }
+
+        /// <summary>
+        /// Remove um item da comanda ou diminui a sua quantidade e mantém o
+        /// financeiro consistente: recalcula o Total do pedido a partir dos itens
+        /// restantes e, se o pedido ficar sem itens, cancela a rodada (para não
+        /// contar como venda nem manter a mesa ocupada). Passar novaQuantidade
+        /// menor ou igual a zero remove o item por completo.
+        /// </summary>
+        public async Task AlterarItemComandaAsync(int idItem, int novaQuantidade)
+        {
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+
+                // Descobre a qual pedido (rodada) o item pertence.
+                int idPedido;
+                using (var cmd = new NpgsqlCommand(
+                    "SELECT IdPedido FROM ItensPedido WHERE Id = @i", conn) { CommandTimeout = 30 })
+                {
+                    cmd.Parameters.AddWithValue("@i", idItem);
+                    object o = await cmd.ExecuteScalarAsync();
+                    if (o == null || o == DBNull.Value) return; // item já não existe
+                    idPedido = Convert.ToInt32(o);
+                }
+
+                // Remove o item ou atualiza a quantidade.
+                if (novaQuantidade <= 0)
+                {
+                    using (var cmd = new NpgsqlCommand(
+                        "DELETE FROM ItensPedido WHERE Id = @i", conn) { CommandTimeout = 30 })
+                    {
+                        cmd.Parameters.AddWithValue("@i", idItem);
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                }
+                else
+                {
+                    using (var cmd = new NpgsqlCommand(
+                        "UPDATE ItensPedido SET Quantidade = @q WHERE Id = @i", conn) { CommandTimeout = 30 })
+                    {
+                        cmd.Parameters.AddWithValue("@q", novaQuantidade);
+                        cmd.Parameters.AddWithValue("@i", idItem);
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                }
+
+                // Recalcula o total do pedido a partir dos itens que restaram.
+                using (var cmd = new NpgsqlCommand(
+                    @"UPDATE Pedidos
+                      SET Total = COALESCE(
+                          (SELECT SUM(Preco * Quantidade) FROM ItensPedido WHERE IdPedido = @p), 0)
+                      WHERE Id = @p", conn) { CommandTimeout = 30 })
+                {
+                    cmd.Parameters.AddWithValue("@p", idPedido);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                // Se a rodada ficou sem itens, cancela-a (não conta como venda).
+                using (var cmd = new NpgsqlCommand(
+                    @"UPDATE Pedidos SET Status = 'Cancelado'
+                      WHERE Id = @p
+                        AND NOT EXISTS (SELECT 1 FROM ItensPedido WHERE IdPedido = @p)", conn) { CommandTimeout = 30 })
+                {
+                    cmd.Parameters.AddWithValue("@p", idPedido);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Lista os produtos ativos do cardápio, para o caixa escolher um novo
+        /// item a adicionar na comanda de uma mesa.
+        /// </summary>
+        public async Task<DataTable> GetProdutosAtivosAsync()
+        {
+            const string sql = @"
+                SELECT Id, Nome, Preco, COALESCE(Categoria, '') AS Categoria
+                FROM Produtos
+                WHERE Ativo = TRUE
+                ORDER BY Categoria, Nome";
+
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new NpgsqlCommand(sql, conn) { CommandTimeout = 30 })
+                using (var r = await cmd.ExecuteReaderAsync())
+                {
+                    var dt = new DataTable();
+                    dt.Load(r);
+                    return dt;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adiciona um produto na comanda de uma mesa (ex.: o cliente resolve
+        /// comprar algo no caixa antes de ir embora). O item entra na rodada
+        /// aberta mais recente da mesa; se não houver nenhuma, cria uma nova
+        /// rodada de salão. Em seguida recalcula o Total do pedido, mantendo o
+        /// financeiro correto.
+        /// </summary>
+        public async Task AdicionarProdutoComandaAsync(int mesa, int idProduto, int quantidade)
+        {
+            if (quantidade < 1) quantidade = 1;
+
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+
+                // 1) Rodada aberta mais recente da mesa; se não houver, cria uma.
+                int idPedido;
+                using (var cmd = new NpgsqlCommand(
+                    @"SELECT Id FROM Pedidos
+                      WHERE Mesa = @m AND Origem = 'Garcom'
+                        AND Status NOT IN ('Finalizado', 'Cancelado')
+                      ORDER BY Id DESC LIMIT 1", conn) { CommandTimeout = 30 })
+                {
+                    cmd.Parameters.AddWithValue("@m", mesa);
+                    object o = await cmd.ExecuteScalarAsync();
+                    if (o != null && o != DBNull.Value)
+                    {
+                        idPedido = Convert.ToInt32(o);
+                    }
+                    else
+                    {
+                        using (var ins = new NpgsqlCommand(
+                            @"INSERT INTO Pedidos (Mesa, Origem, TipoEntrega, Status, Total)
+                              VALUES (@m, 'Garcom', 'Salao', 'Em Producao', 0)
+                              RETURNING Id", conn) { CommandTimeout = 30 })
+                        {
+                            ins.Parameters.AddWithValue("@m", mesa);
+                            idPedido = Convert.ToInt32(await ins.ExecuteScalarAsync());
+                        }
+                    }
+                }
+
+                // 2) Preço atual do produto.
+                decimal preco;
+                using (var cmd = new NpgsqlCommand(
+                    "SELECT Preco FROM Produtos WHERE Id = @prod", conn) { CommandTimeout = 30 })
+                {
+                    cmd.Parameters.AddWithValue("@prod", idProduto);
+                    object o = await cmd.ExecuteScalarAsync();
+                    if (o == null || o == DBNull.Value)
+                        throw new Exception("Produto não encontrado.");
+                    preco = Convert.ToDecimal(o);
+                }
+
+                // 3) Insere o item na rodada.
+                using (var cmd = new NpgsqlCommand(
+                    @"INSERT INTO ItensPedido (IdPedido, IdProduto, Quantidade, Preco)
+                      VALUES (@p, @prod, @q, @preco)", conn) { CommandTimeout = 30 })
+                {
+                    cmd.Parameters.AddWithValue("@p", idPedido);
+                    cmd.Parameters.AddWithValue("@prod", idProduto);
+                    cmd.Parameters.AddWithValue("@q", quantidade);
+                    cmd.Parameters.AddWithValue("@preco", preco);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                // 4) Recalcula o total do pedido.
+                using (var cmd = new NpgsqlCommand(
+                    @"UPDATE Pedidos
+                      SET Total = COALESCE(
+                          (SELECT SUM(Preco * Quantidade) FROM ItensPedido WHERE IdPedido = @p), 0)
+                      WHERE Id = @p", conn) { CommandTimeout = 30 })
+                {
+                    cmd.Parameters.AddWithValue("@p", idPedido);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Itens em aberto de uma mesa (comanda do App do Garcom), para exibir no caixa.
+        /// </summary>
+        public async Task<DataTable> GetComandaMesaAsync(int mesa)
+        {
+            const string sql = @"
+                SELECT i.Id AS IdItem, pr.Nome AS Produto, i.Quantidade, i.Preco,
+                       COALESCE(i.Observacao, '') AS Observacao,
+                       COALESCE(i.Adicionais, '') AS Adicionais
+                FROM Pedidos p
+                JOIN ItensPedido i ON i.IdPedido = p.Id
+                JOIN Produtos pr   ON pr.Id = i.IdProduto
+                WHERE p.Mesa = @m AND p.Origem = 'Garcom'
+                  AND p.Status NOT IN ('Finalizado', 'Cancelado')
+                ORDER BY p.Id, i.Id";
+
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new NpgsqlCommand(sql, conn) { CommandTimeout = 30 })
+                {
+                    cmd.Parameters.AddWithValue("@m", mesa);
+                    using (var r = await cmd.ExecuteReaderAsync())
+                    {
+                        var dt = new DataTable();
+                        dt.Load(r);
+                        return dt;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Lista os numeros das mesas com comanda em aberto (App do Garcom),
+        /// para a tela de caixa saber o que esta ocupado.
+        /// </summary>
+        public async Task<List<int>> GetMesasOcupadasAsync()
+        {
+            var mesas = new List<int>();
+            const string sql = @"
+                SELECT DISTINCT Mesa FROM Pedidos
+                WHERE Origem = 'Garcom' AND Mesa IS NOT NULL
+                  AND Status NOT IN ('Finalizado', 'Cancelado')
+                ORDER BY Mesa";
+
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new NpgsqlCommand(sql, conn) { CommandTimeout = 30 })
+                using (var r = await cmd.ExecuteReaderAsync())
+                {
+                    while (await r.ReadAsync())
+                        mesas.Add(Convert.ToInt32(r["Mesa"]));
+                }
+            }
+            return mesas;
+        }
+
+        /// <summary>
+        /// Mesas ocupadas com o total e a quantidade de rodadas de cada uma,
+        /// para a tela do salão mostrar o valor no botão da mesa.
+        /// </summary>
+        public async Task<DataTable> GetMesasOcupadasComTotalAsync()
+        {
+            const string sql = @"
+                SELECT Mesa, COALESCE(SUM(Total), 0) AS Total, COUNT(*) AS Rodadas
+                FROM Pedidos
+                WHERE Origem = 'Garcom' AND Mesa IS NOT NULL
+                  AND Status NOT IN ('Finalizado', 'Cancelado')
+                GROUP BY Mesa
+                ORDER BY Mesa";
+
+            using (var conn = DevBurguer.Banco.Conexao.GetConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new NpgsqlCommand(sql, conn) { CommandTimeout = 30 })
+                using (var r = await cmd.ExecuteReaderAsync())
+                {
+                    var dt = new DataTable();
+                    dt.Load(r);
+                    return dt;
+                }
+            }
+        }
+    }
+
+    /// <summary>Resultado do fechamento da comanda de uma mesa.</summary>
+    public class ComandaFechada
+    {
+        public int Mesa { get; set; }
+        public int Rodadas { get; set; }
+        public decimal Total { get; set; }
+        public string FormaPagamento { get; set; }
     }
 }

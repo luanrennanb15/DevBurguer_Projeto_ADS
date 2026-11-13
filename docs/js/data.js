@@ -156,6 +156,10 @@ function getProdutosDestaque(ids) {
     // Se conseguiu carregar os mais vendidos, usa eles
     if (TOP_VENDIDOS.length > 0) return TOP_VENDIDOS;
 
-    // Fallback: se a API de mais vendidos falhou, mostra os 3 primeiros produtos
-    return PRODUTOS.slice(0, 3);
+    // Fallback (sem vendas registradas ainda): mostra os 3 primeiros LANCHES
+    // (tradicionais/gourmet). Nunca bebidas/sucos — não faz sentido em destaques.
+    const lanches = PRODUTOS.filter(
+        p => p.categoria === 'tradicionais' || p.categoria === 'gourmet'
+    );
+    return (lanches.length > 0 ? lanches : PRODUTOS).slice(0, 3);
 }

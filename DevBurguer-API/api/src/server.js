@@ -56,6 +56,7 @@ app.get('/', (req, res) => {
             'GET  /api/pedidos/:id/status',
             'POST /api/pedidos/garcom',
             'GET  /api/mesas/:mesa/comanda',
+            'GET  /api/mesas/ocupadas',
             'POST /api/garcom/login',
         ],
     });
