@@ -28,8 +28,6 @@ public class MesasActivity extends AppCompatActivity
     // ocupadas; "Pronto" ainda não existe aí, então por enquanto é só livre/ocupada.
     private static final int TOTAL_MESAS = 12;
 
-    private static final int REQUISICAO_CARDAPIO = 1;
-
     private TextView txvSaudacaoGarcom;
     private GridView grdMesas;
     private Button btnSair;
@@ -41,7 +39,6 @@ public class MesasActivity extends AppCompatActivity
 
     private ApiDevBurguer api;
     private List<Mesa> mesas = new ArrayList<>();
-    private int numeroMesaAberta;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -51,30 +48,7 @@ public class MesasActivity extends AppCompatActivity
 
         configuracao();
         eventos();
-    }
-
-    // Recarrega sempre que a tela volta a ficar visível (ex.: voltando da
-    // Comanda), pra mostrar o status atualizado das mesas.
-    @Override
-    protected void onResume()
-    {
-        super.onResume();
         carregarMesas();
-    }
-
-    // Se a mesa era livre e o garçom enviou a rodada no Cardápio/Carrinho (que
-    // se fecham em cadeia e voltam com RESULT_OK), abre a comanda dessa mesa.
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == REQUISICAO_CARDAPIO && resultCode == RESULT_OK)
-        {
-            Intent intent = new Intent(MesasActivity.this, ComandaActivity.class);
-            intent.putExtra(ComandaActivity.EXTRA_NUMERO_MESA, numeroMesaAberta);
-            startActivity(intent);
-        }
     }
 
     private void configuracao()
@@ -173,10 +147,9 @@ public class MesasActivity extends AppCompatActivity
 
                 if (mesa.getStatus().equals(getString(R.string.statusMesaLivre)))
                 {
-                    numeroMesaAberta = mesa.getNumero();
                     Intent intent = new Intent(MesasActivity.this, CardapioActivity.class);
                     intent.putExtra(CardapioActivity.EXTRA_NUMERO_MESA, mesa.getNumero());
-                    startActivityForResult(intent, REQUISICAO_CARDAPIO);
+                    startActivity(intent);
                 }
                 else
                 {
