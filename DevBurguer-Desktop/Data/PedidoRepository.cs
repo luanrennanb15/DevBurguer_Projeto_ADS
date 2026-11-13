@@ -198,7 +198,7 @@ namespace DevBurguer.Data
                 FROM Pedidos p
                 LEFT JOIN Clientes c ON c.Id = p.IdCliente
                 LEFT JOIN Motoboys m ON m.Id = p.IdMotoboy
-                WHERE p.Status NOT IN ('Finalizado', 'Cancelado', 'Aguardando')
+                WHERE p.Status NOT IN ('Finalizado', 'Cancelado', 'Aguardando', 'Entregue')
                 ORDER BY p.Data ASC";
 
             using (var conn = DevBurguer.Banco.Conexao.GetConnection())
