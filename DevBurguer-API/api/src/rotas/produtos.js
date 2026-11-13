@@ -16,7 +16,7 @@ const { categoriaParaSite } = require('../config/categorias');
 router.get('/produtos', async (req, res) => {
     try {
         const resultado = await pool.query(`
-            SELECT id, nome, preco, categoria, ingredientes
+            SELECT id, nome, preco, categoria, ingredientes, imagem
             FROM produtos
             WHERE ativo = TRUE
             ORDER BY categoria, nome
@@ -29,6 +29,7 @@ router.get('/produtos', async (req, res) => {
             categoria:      categoriaParaSite(p.categoria),
             categoriaBanco: p.categoria,
             descricao:      p.ingredientes || '',
+            imagem:         p.imagem || null,
         }));
 
         res.json(produtos);
@@ -68,7 +69,7 @@ router.get('/mais-vendidos', async (req, res) => {
 
         const resultado = await pool.query(`
             SELECT
-                p.id, p.nome, p.preco, p.categoria, p.ingredientes,
+                p.id, p.nome, p.preco, p.categoria, p.ingredientes, p.imagem,
                 SUM(i.quantidade) AS totalvendido
             FROM itenspedido i
             JOIN produtos p   ON p.id   = i.idproduto
@@ -77,7 +78,7 @@ router.get('/mais-vendidos', async (req, res) => {
               AND ped.data >= NOW() - INTERVAL '30 days'
               AND p.ativo = TRUE
               AND p.categoria IN ('Lanche Tradicional', 'Lanche Gourmet')
-            GROUP BY p.id, p.nome, p.preco, p.categoria, p.ingredientes
+            GROUP BY p.id, p.nome, p.preco, p.categoria, p.ingredientes, p.imagem
             ORDER BY totalvendido DESC
             LIMIT $1
         `, [top]);
@@ -88,6 +89,7 @@ router.get('/mais-vendidos', async (req, res) => {
             preco:         Number(p.preco),
             categoria:     categoriaParaSite(p.categoria),
             descricao:     p.ingredientes || '',
+            imagem:        p.imagem || null,
             totalVendido:  Number(p.totalvendido),
         }));
 

@@ -65,6 +65,22 @@ const IMAGENS_POR_ID = {
 };
 
 /**
+ * Imagem PADRÃO por categoria.
+ * Produtos cadastrados depois (que ainda não têm uma foto específica no mapa
+ * acima nem URL própria) usam a imagem padrão da sua categoria — assim todo
+ * produto novo já aparece com uma foto coerente no site.
+ */
+const IMAGEM_PADRAO_POR_CATEGORIA = {
+    tradicionais: 'img/xdev-burguer.jpeg',
+    gourmet:      'img/devclassic.jpeg',
+    combos:       'img/combo-devclassic.jpeg',
+    bebidas:      'img/coca-cola.jpeg',
+    sucos:        'img/suco-laranja.jpeg',
+    alcoolicas:   'img/heineken.jpeg',
+    milkshakes:   'img/shake-chocolate.jpeg',
+};
+
+/**
  * Converte um produto cru da API para o formato que o site usa.
  */
 function adaptarProduto(p) {
@@ -75,7 +91,9 @@ function adaptarProduto(p) {
         categoria: p.categoria,                  // a API já manda o slug certo
         descricao: p.descricao || '',
         emoji:     emojiPorCategoria(p.categoria),
-        imagem:    IMAGENS_POR_ID[p.id] || null, // null = site usa emoji
+        // 1º a foto cadastrada no desktop (URL do banco); 2º a foto específica
+        // por id; 3º a foto padrão da categoria; só então cai no emoji (null).
+        imagem:    p.imagem || IMAGENS_POR_ID[p.id] || IMAGEM_PADRAO_POR_CATEGORIA[p.categoria] || null,
     };
 }
 

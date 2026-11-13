@@ -56,15 +56,16 @@ namespace DevBurguer.Data
             }
         }
 
-        public async Task InsertAsync(string nome, decimal preco, string categoria, string ingredientes)
+        public async Task InsertAsync(string nome, decimal preco, string categoria, string ingredientes, string imagem)
         {
-            const string sql = "INSERT INTO Produtos (Nome, Preco, Categoria, Ingredientes, Ativo) VALUES (@n,@p,@c,@i,TRUE)";
+            const string sql = "INSERT INTO Produtos (Nome, Preco, Categoria, Ingredientes, Imagem, Ativo) VALUES (@n,@p,@c,@i,@img,TRUE)";
             var p = new NpgsqlParameter[]
             {
                 new NpgsqlParameter("@n", NpgsqlDbType.Varchar) { Value = nome },
                 new NpgsqlParameter("@p", NpgsqlDbType.Numeric)       { Precision = 18, Scale = 2, Value = preco },
                 new NpgsqlParameter("@c", NpgsqlDbType.Varchar) { Value = categoria },
-                new NpgsqlParameter("@i", NpgsqlDbType.Varchar) { Value = (object)ingredientes ?? string.Empty }
+                new NpgsqlParameter("@i", NpgsqlDbType.Varchar) { Value = (object)ingredientes ?? string.Empty },
+                new NpgsqlParameter("@img", NpgsqlDbType.Varchar) { Value = string.IsNullOrWhiteSpace(imagem) ? (object)System.DBNull.Value : imagem.Trim() }
             };
             try
             {
@@ -77,15 +78,16 @@ namespace DevBurguer.Data
             }
         }
 
-        public async Task UpdateAsync(int id, string nome, decimal preco, string categoria, string ingredientes)
+        public async Task UpdateAsync(int id, string nome, decimal preco, string categoria, string ingredientes, string imagem)
         {
-            const string sql = "UPDATE Produtos SET Nome=@n, Preco=@p, Categoria=@c, Ingredientes=@i WHERE Id=@id";
+            const string sql = "UPDATE Produtos SET Nome=@n, Preco=@p, Categoria=@c, Ingredientes=@i, Imagem=@img WHERE Id=@id";
             var p = new NpgsqlParameter[]
             {
                 new NpgsqlParameter("@n",  NpgsqlDbType.Varchar) { Value = nome },
                 new NpgsqlParameter("@p",  NpgsqlDbType.Numeric)       { Precision = 18, Scale = 2, Value = preco },
                 new NpgsqlParameter("@c",  NpgsqlDbType.Varchar) { Value = categoria },
                 new NpgsqlParameter("@i",  NpgsqlDbType.Varchar) { Value = (object)ingredientes ?? string.Empty },
+                new NpgsqlParameter("@img", NpgsqlDbType.Varchar) { Value = string.IsNullOrWhiteSpace(imagem) ? (object)System.DBNull.Value : imagem.Trim() },
                 new NpgsqlParameter("@id", NpgsqlDbType.Integer)           { Value = id }
             };
             try

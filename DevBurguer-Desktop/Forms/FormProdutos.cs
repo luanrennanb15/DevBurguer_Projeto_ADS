@@ -12,6 +12,9 @@ namespace DevBurguer
         private bool bloqueandoEvento = false;
         private int idSelecionado = 0;
 
+        // ✅ NOVO: campo de URL da imagem (criado em código, sem mexer no Designer)
+        private TextBox txtImagem;
+
         public FormProdutos()
         {
             InitializeComponent();
@@ -57,6 +60,40 @@ namespace DevBurguer
             btnReativar.FlatAppearance.BorderSize = 0;
             btnReativar.Click += btnReativar_Click;
             btnExcluir.Parent.Controls.Add(btnReativar);
+
+            // ✅ NOVO: campo "URL da imagem" logo abaixo do Reativar
+            ConstruirCampoImagem(btnReativar);
+        }
+
+        // ✅ NOVO: cria o rótulo + caixa de texto para a URL da imagem do produto.
+        // O que for digitado aqui é salvo no banco (coluna Imagem) e aparece no site.
+        private void ConstruirCampoImagem(Button botaoAcima)
+        {
+            int x = botaoAcima.Location.X;
+            int yLabel = botaoAcima.Location.Y + botaoAcima.Height + 16;
+
+            var lbl = new Label
+            {
+                Text = "URL da foto (opcional)",
+                AutoSize = true,
+                ForeColor = System.Drawing.Color.White,
+                Font = new System.Drawing.Font("Segoe UI", 9F),
+                Location = new System.Drawing.Point(x, yLabel)
+            };
+
+            txtImagem = new TextBox
+            {
+                MaxLength = 500,
+                Font = new System.Drawing.Font("Segoe UI", 10F),
+                BackColor = System.Drawing.Color.FromArgb(45, 45, 55),
+                ForeColor = System.Drawing.Color.White,
+                BorderStyle = BorderStyle.FixedSingle,
+                Location = new System.Drawing.Point(x, yLabel + 22),
+                Size = new System.Drawing.Size(botaoAcima.Width, 26)
+            };
+
+            botaoAcima.Parent.Controls.Add(lbl);
+            botaoAcima.Parent.Controls.Add(txtImagem);
         }
 
         private async Task CarregarCategoriasAsync()
@@ -106,6 +143,10 @@ namespace DevBurguer
                 if (dgvProdutos.Columns["Id"] != null)
                     dgvProdutos.Columns["Id"].Visible = false;
 
+                // A URL da imagem não precisa poluir o grid — fica escondida.
+                if (dgvProdutos.Columns["Imagem"] != null)
+                    dgvProdutos.Columns["Imagem"].Visible = false;
+
                 if (dgvProdutos.Columns["Ingredientes"] != null)
                     dgvProdutos.Columns["Ingredientes"].Width = 300;
             }
@@ -127,6 +168,10 @@ namespace DevBurguer
             txtNome.Text = row.Cells["Nome"].Value?.ToString();
             txtPreco.Text = row.Cells["Preco"].Value?.ToString();
             txtIngredientes.Text = row.Cells["Ingredientes"].Value?.ToString();
+
+            // Preenche a URL da foto do produto selecionado (se a coluna existir)
+            if (txtImagem != null && dgvProdutos.Columns.Contains("Imagem"))
+                txtImagem.Text = row.Cells["Imagem"].Value?.ToString();
 
             string categoria = row.Cells["Categoria"].Value?.ToString();
 
@@ -210,7 +255,7 @@ namespace DevBurguer
                 if (categoria == null) return;
 
                 var repo = new DevBurguer.Data.ProdutoRepository();
-                await repo.InsertAsync(txtNome.Text, preco, categoria, txtIngredientes.Text);
+                await repo.InsertAsync(txtNome.Text, preco, categoria, txtIngredientes.Text, txtImagem?.Text);
 
                 DialogHelper.Info("Produto cadastrado com sucesso!", "Sucesso", DialogHelper.Verde);
 
@@ -254,7 +299,7 @@ namespace DevBurguer
                 if (categoria == null) return;
 
                 var repo = new DevBurguer.Data.ProdutoRepository();
-                await repo.UpdateAsync(idSelecionado, txtNome.Text, preco, categoria, txtIngredientes.Text);
+                await repo.UpdateAsync(idSelecionado, txtNome.Text, preco, categoria, txtIngredientes.Text, txtImagem?.Text);
 
                 DialogHelper.Info("Produto atualizado com sucesso!", "Sucesso", DialogHelper.Verde);
 
@@ -361,6 +406,7 @@ namespace DevBurguer
             txtPreco.Clear();
             txtCategoria.Clear();
             txtIngredientes.Clear();
+            txtImagem?.Clear();
             cmbCategoria.SelectedIndex = 0;
             idSelecionado = 0;
         }
