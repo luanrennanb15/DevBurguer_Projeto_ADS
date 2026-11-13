@@ -40,6 +40,13 @@ public class LoginActivity extends AppCompatActivity
         api = new ApiDevBurguer(this);
     }
 
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        api.encerrar();
+    }
+
     private void eventos()
     {
         btnEntrar.setOnClickListener(new View.OnClickListener()
@@ -64,6 +71,13 @@ public class LoginActivity extends AppCompatActivity
                     @Override
                     public void aoSucesso(Garcom garcom)
                     {
+                        // A resposta da API chega em outra thread e pode demorar; se o
+                        // garçom já saiu da tela antes dela voltar, não navega de novo.
+                        if (isFinishing() || isDestroyed())
+                        {
+                            return;
+                        }
+
                         Intent intent = new Intent(LoginActivity.this, MesasActivity.class);
                         intent.putExtra(MesasActivity.EXTRA_NOME_GARCOM, garcom.getNome());
                         startActivity(intent);
@@ -73,6 +87,11 @@ public class LoginActivity extends AppCompatActivity
                     @Override
                     public void aoFalhar(String mensagemErro)
                     {
+                        if (isFinishing() || isDestroyed())
+                        {
+                            return;
+                        }
+
                         btnEntrar.setEnabled(true);
                         btnEntrar.setText(getString(R.string.botaoEntrar));
                         Toast.makeText(LoginActivity.this, mensagemErro, Toast.LENGTH_LONG).show();

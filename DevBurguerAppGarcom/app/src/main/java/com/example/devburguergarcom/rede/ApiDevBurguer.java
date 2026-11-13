@@ -54,6 +54,14 @@ public class ApiDevBurguer
         this.contexto = contexto.getApplicationContext();
     }
 
+    // Cada tela cria o seu ApiDevBurguer (e portanto a sua própria thread).
+    // Sem isso, a thread nunca é fechada e fica rodando parada pro resto do
+    // app aberto, mesmo depois da tela que a criou já ter sido destruída.
+    public void encerrar()
+    {
+        executor.shutdown();
+    }
+
     public void buscarProdutos(OuvinteApi<List<Produto>> ouvinte)
     {
         if (MODO_TESTE_OFFLINE)

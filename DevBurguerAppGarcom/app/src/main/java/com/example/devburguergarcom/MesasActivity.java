@@ -82,6 +82,13 @@ public class MesasActivity extends AppCompatActivity
         grdMesas.setAdapter(new AdaptadorMesa(this, mesas));
     }
 
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        api.encerrar();
+    }
+
     // Busca GET /api/mesas/ocupadas e marca as mesas correspondentes. Se a API
     // falhar, mantém todas livres (igual ao app do Luan) em vez de travar a tela.
     private void carregarMesas()
@@ -93,6 +100,11 @@ public class MesasActivity extends AppCompatActivity
             @Override
             public void aoSucesso(List<Integer> ocupadas)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 mesas.clear();
                 for (int numero = 1; numero <= TOTAL_MESAS; numero++)
                 {
@@ -108,6 +120,11 @@ public class MesasActivity extends AppCompatActivity
             @Override
             public void aoFalhar(String mensagemErro)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 mostrarErro(mensagemErro);
             }
         });

@@ -53,6 +53,13 @@ public class ComandaActivity extends AppCompatActivity
         txvTituloComanda.setText(getString(R.string.tituloTelaComanda, numeroMesa));
     }
 
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        api.encerrar();
+    }
+
     // Busca a comanda de verdade em GET /api/mesas/:mesa/comanda.
     private void carregarComanda()
     {
@@ -63,12 +70,22 @@ public class ComandaActivity extends AppCompatActivity
             @Override
             public void aoSucesso(List<Rodada> rodadas)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 mostrarRodadas(rodadas);
             }
 
             @Override
             public void aoFalhar(String mensagemErro)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 txvSubtituloComanda.setText(mensagemErro);
                 Toast.makeText(ComandaActivity.this, mensagemErro, Toast.LENGTH_LONG).show();
             }

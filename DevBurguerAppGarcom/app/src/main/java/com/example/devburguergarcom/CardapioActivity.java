@@ -86,6 +86,13 @@ public class CardapioActivity extends AppCompatActivity
         atualizarRodape();
     }
 
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        api.encerrar();
+    }
+
     private void eventos()
     {
         findViewById(R.id.btnVoltarMesas).setOnClickListener(new View.OnClickListener()
@@ -125,6 +132,11 @@ public class CardapioActivity extends AppCompatActivity
             @Override
             public void aoSucesso(List<Categoria> resultado)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 categorias = resultado;
                 carregarProdutos();
             }
@@ -132,6 +144,11 @@ public class CardapioActivity extends AppCompatActivity
             @Override
             public void aoFalhar(String mensagemErro)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 mostrarErro(mensagemErro);
             }
         });
@@ -144,6 +161,11 @@ public class CardapioActivity extends AppCompatActivity
             @Override
             public void aoSucesso(List<Produto> resultado)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 todosProdutos = resultado;
                 montarCategorias();
                 mostrarConteudo();
@@ -152,6 +174,11 @@ public class CardapioActivity extends AppCompatActivity
             @Override
             public void aoFalhar(String mensagemErro)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 mostrarErro(mensagemErro);
             }
         });
