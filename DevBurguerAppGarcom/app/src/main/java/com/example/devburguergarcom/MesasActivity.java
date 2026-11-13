@@ -22,8 +22,6 @@ import java.util.List;
 
 public class MesasActivity extends AppCompatActivity
 {
-    public static final String EXTRA_NOME_GARCOM = "nomeGarcom";
-
     // O salão tem 12 mesas fixas (não vem da API). A API só diz quais estão
     // ocupadas, então o status de cada mesa é só livre/ocupada.
     private static final int TOTAL_MESAS = 12;
@@ -72,7 +70,12 @@ public class MesasActivity extends AppCompatActivity
 
         api = new ApiDevBurguer(this);
 
-        String nomeGarcom = getIntent().getStringExtra(EXTRA_NOME_GARCOM);
+        // Lê do SharedPreferences (gravado no login), não do Intent: essa tela
+        // pode ser recriada do zero por outra Activity (ex.: o botão de voltar
+        // da Comanda usa FLAG_ACTIVITY_CLEAR_TOP), então um Intent novo não
+        // teria esse dado se ele só viesse de lá.
+        String nomeGarcom = getSharedPreferences(LoginActivity.PREFS_SESSAO, MODE_PRIVATE)
+                .getString(LoginActivity.PREF_NOME_GARCOM, "");
         txvSaudacaoGarcom.setText(getString(R.string.saudacaoGarcom, nomeGarcom));
 
         for (int numero = 1; numero <= TOTAL_MESAS; numero++)
@@ -199,6 +202,11 @@ public class MesasActivity extends AppCompatActivity
                             @Override
                             public void onClick(DialogInterface dialog, int which)
                             {
+                                getSharedPreferences(LoginActivity.PREFS_SESSAO, MODE_PRIVATE)
+                                        .edit()
+                                        .clear()
+                                        .apply();
+
                                 startActivity(new Intent(MesasActivity.this, LoginActivity.class));
                                 finish();
                             }

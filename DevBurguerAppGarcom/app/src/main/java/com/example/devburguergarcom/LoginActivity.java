@@ -15,6 +15,14 @@ import com.example.devburguergarcom.rede.OuvinteApi;
 
 public class LoginActivity extends AppCompatActivity
 {
+    // Guarda o nome do garçom logado num SharedPreferences (um "cofrinho" local
+    // simples do Android) em vez de só passar pelo Intent da tela de Mesas.
+    // Assim, mesmo quando a Mesas é recriada do zero por outra tela (ex.: ao
+    // voltar da Comanda, que usa FLAG_ACTIVITY_CLEAR_TOP), o nome continua
+    // disponível pra mostrar na saudação.
+    public static final String PREFS_SESSAO = "sessaoGarcom";
+    public static final String PREF_NOME_GARCOM = "nomeGarcom";
+
     private EditText edtUsuario;
     private EditText edtSenha;
     private Button btnEntrar;
@@ -78,8 +86,12 @@ public class LoginActivity extends AppCompatActivity
                             return;
                         }
 
+                        getSharedPreferences(PREFS_SESSAO, MODE_PRIVATE)
+                                .edit()
+                                .putString(PREF_NOME_GARCOM, garcom.getNome())
+                                .apply();
+
                         Intent intent = new Intent(LoginActivity.this, MesasActivity.class);
-                        intent.putExtra(MesasActivity.EXTRA_NOME_GARCOM, garcom.getNome());
                         startActivity(intent);
                         finish();
                     }
