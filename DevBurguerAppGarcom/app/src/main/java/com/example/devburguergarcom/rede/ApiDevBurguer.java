@@ -152,8 +152,8 @@ public class ApiDevBurguer
     }
 
     // POST /api/pedidos/garcom -> registra a rodada da mesa (sem cliente nem
-    // pagamento: isso é sempre no caixa). Adicionais ainda não têm tela própria,
-    // então vai sempre vazio por enquanto.
+    // pagamento: isso é sempre no caixa). Os adicionais vão pelos nomes (ex.:
+    // "Bacon,Cheddar"); o preço de cada um é sempre recalculado pelo servidor.
     public void enviarRodadaGarcom(int mesa, List<ItemPedido> itens, OuvinteApi<Void> ouvinte)
     {
         executor.execute(new Runnable()
@@ -170,7 +170,7 @@ public class ApiDevBurguer
                         itemJson.put("idProduto", item.getProduto().getId());
                         itemJson.put("quantidade", item.getQuantidade());
                         itemJson.put("observacao", item.getObservacao());
-                        itemJson.put("adicionais", "");
+                        itemJson.put("adicionais", String.join(",", item.getAdicionais()));
                         itensJson.put(itemJson);
                     }
 

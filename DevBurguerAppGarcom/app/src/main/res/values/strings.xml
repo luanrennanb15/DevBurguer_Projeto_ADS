@@ -48,6 +48,12 @@
     <string name="tituloRemoverItem">Remover item?</string>
     <string name="mensagemRemoverItem">Remover \"%1$s\" do pedido?</string>
     <string name="botaoRemover">Remover</string>
+    <string name="botaoAdicionais">Adicionais</string>
+    <string name="tituloEscolherAdicionais">Escolha os adicionais</string>
+    <string name="botaoConfirmar">Confirmar</string>
+    <string name="rotuloOpcaoAdicional">%1$s (+ R$ %2$s)</string>
+    <string name="rotuloSemAdicionais">Sem adicionais</string>
+    <string name="rotuloAdicionaisEscolhidos">+ %1$s</string>
     <string name="rotuloObservacaoPedido">Observação do pedido</string>
     <string name="dicaObservacaoPedido">Ex.: servir juntos</string>
     <string name="rotuloTotalItens">Total · %1$d itens</string>
