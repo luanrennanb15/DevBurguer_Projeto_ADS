@@ -78,6 +78,19 @@ public class CarrinhoActivity extends AppCompatActivity
         atualizarRodape();
     }
 
+    // Sempre que o Carrinho é fechado — seja pelo botão "Cardápio" ou pela seta
+    // de voltar do próprio Android — devolve a lista de itens atual pro
+    // Cardápio. Sem isso, cada visita ao Carrinho começava do zero e perdia
+    // observação/adicionais já preenchidos numa visita anterior.
+    @Override
+    public void finish()
+    {
+        Intent resultado = new Intent();
+        resultado.putExtra(EXTRA_ITENS_PEDIDO, itens);
+        setResult(RESULT_OK, resultado);
+        super.finish();
+    }
+
     private void eventos()
     {
         findViewById(R.id.btnVoltarCardapio).setOnClickListener(new View.OnClickListener()
