@@ -65,6 +65,23 @@ namespace DevBurguer
             btnReativar.Click += btnReativar_Click;
             btnExcluir.Parent.Controls.Add(btnReativar);
 
+            // ✅ NOVO: botão "Novo / Limpar" na mesma linha do Reativar (à esquerda).
+            // Desmarca o produto selecionado e limpa o formulário para um cadastro novo.
+            var btnNovo = new Button
+            {
+                Text = "Novo / Limpar",
+                BackColor = System.Drawing.Color.FromArgb(90, 90, 100),
+                ForeColor = System.Drawing.Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new System.Drawing.Font("Segoe UI Semibold", 9F),
+                Location = new System.Drawing.Point(16, y),
+                Size = new System.Drawing.Size(190, 32),
+                Cursor = Cursors.Hand
+            };
+            btnNovo.FlatAppearance.BorderSize = 0;
+            btnNovo.Click += (s, e) => LimparCampos();
+            btnExcluir.Parent.Controls.Add(btnNovo);
+
             // ✅ NOVO: foto do produto (upload do computador) logo abaixo do Reativar
             ConstruirCampoFoto(btnReativar);
         }
@@ -363,6 +380,21 @@ namespace DevBurguer
                 {
                     DialogHelper.Aviso("Preencha o nome e o preco!", "Aviso", DialogHelper.Verde);
                     return;
+                }
+
+                // ✅ Evita duplicar sem querer: se há um produto selecionado na tabela,
+                // "Salvar" criaria uma CÓPIA. Avisa e deixa claro que para alterar é o Atualizar.
+                if (idSelecionado != 0)
+                {
+                    if (!DialogHelper.Confirmar(
+                            "Voce esta com o produto \"" + txtNome.Text + "\" selecionado.\n\n" +
+                            "Para ALTERAR este produto (inclusive trocar a foto), use o botao Atualizar.\n\n" +
+                            "Se continuar, um produto NOVO (uma copia) sera cadastrado. Deseja mesmo criar um novo?",
+                            "Cadastrar um novo produto?", DialogHelper.Verde))
+                        return;
+
+                    // Vai mesmo criar um novo: solta a seleção para não confundir.
+                    idSelecionado = 0;
                 }
 
                 // ✅ Fix #15: aceita 10,50 e 10.50 via CultureInfo
