@@ -65,7 +65,7 @@ namespace DevBurguer.Data
                 new NpgsqlParameter("@p", NpgsqlDbType.Numeric)       { Precision = 18, Scale = 2, Value = preco },
                 new NpgsqlParameter("@c", NpgsqlDbType.Varchar) { Value = categoria },
                 new NpgsqlParameter("@i", NpgsqlDbType.Varchar) { Value = (object)ingredientes ?? string.Empty },
-                new NpgsqlParameter("@img", NpgsqlDbType.Varchar) { Value = string.IsNullOrWhiteSpace(imagem) ? (object)System.DBNull.Value : imagem.Trim() }
+                new NpgsqlParameter("@img", NpgsqlDbType.Text) { Value = string.IsNullOrWhiteSpace(imagem) ? (object)System.DBNull.Value : imagem.Trim() }
             };
             try
             {
@@ -87,7 +87,7 @@ namespace DevBurguer.Data
                 new NpgsqlParameter("@p",  NpgsqlDbType.Numeric)       { Precision = 18, Scale = 2, Value = preco },
                 new NpgsqlParameter("@c",  NpgsqlDbType.Varchar) { Value = categoria },
                 new NpgsqlParameter("@i",  NpgsqlDbType.Varchar) { Value = (object)ingredientes ?? string.Empty },
-                new NpgsqlParameter("@img", NpgsqlDbType.Varchar) { Value = string.IsNullOrWhiteSpace(imagem) ? (object)System.DBNull.Value : imagem.Trim() },
+                new NpgsqlParameter("@img", NpgsqlDbType.Text) { Value = string.IsNullOrWhiteSpace(imagem) ? (object)System.DBNull.Value : imagem.Trim() },
                 new NpgsqlParameter("@id", NpgsqlDbType.Integer)           { Value = id }
             };
             try
