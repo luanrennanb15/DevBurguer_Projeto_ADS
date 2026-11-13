@@ -121,6 +121,7 @@ namespace DevBurguer.Forms
                 Font = new Font("Segoe UI Semibold", 18f),
                 ForeColor = CAmbar,
                 AutoSize = true,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Location = new Point(1150, 24)
             };
             pnlTopo.Controls.Add(_lblHora);
@@ -131,6 +132,7 @@ namespace DevBurguer.Forms
                 Font = new Font("Segoe UI", 8.5f),
                 ForeColor = CMuted,
                 AutoSize = true,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Location = new Point(1100, 54)
             });
 
@@ -141,6 +143,7 @@ namespace DevBurguer.Forms
                 Width = 90,
                 Height = 26,
                 Location = new Point(850, 28),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(40, 40, 60),
                 ForeColor = CText,

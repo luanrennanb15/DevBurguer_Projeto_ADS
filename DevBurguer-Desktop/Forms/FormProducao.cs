@@ -234,6 +234,7 @@ namespace DevBurguer.Forms
                 Width = 90,
                 Height = 26,
                 Location = new Point(1220, 10),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(40, 40, 60),
                 ForeColor = CText,
@@ -250,6 +251,7 @@ namespace DevBurguer.Forms
                 ForeColor = CMuted,
                 AutoSize = true,
                 Location = new Point(820, 14),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
                 Font = new Font("Segoe UI", 8f)
             };
             _pnlTopo.Controls.Add(_lblStatus);
