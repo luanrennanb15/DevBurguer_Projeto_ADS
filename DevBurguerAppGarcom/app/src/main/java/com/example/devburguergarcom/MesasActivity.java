@@ -48,6 +48,14 @@ public class MesasActivity extends AppCompatActivity
 
         configuracao();
         eventos();
+    }
+
+    // Recarrega sempre que a tela volta a ficar visível (ex.: voltando da
+    // Comanda), pra mostrar o status atualizado das mesas.
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
         carregarMesas();
     }
 
