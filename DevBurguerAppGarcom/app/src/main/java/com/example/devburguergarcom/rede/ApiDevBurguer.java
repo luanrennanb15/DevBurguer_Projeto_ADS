@@ -38,8 +38,6 @@ public class ApiDevBurguer
 {
     // MODO DE TESTE: deixe "true" só se quiser testar as telas sem depender da
     // internet. Com "false", chama a API de verdade (GET /produtos e /categorias).
-    // Aviso: em 11/11 o /api/produtos ainda estava devolvendo erro 500 no Render;
-    // se isso ainda não foi corrigido, o Cardápio vai mostrar a tela de erro.
     private static final boolean MODO_TESTE_OFFLINE = false;
 
     private static final String URL_BASE = "https://devburguer-api-9gds.onrender.com/api";
@@ -314,6 +312,7 @@ public class ApiDevBurguer
 
             ItemPedido itemPedido = new ItemPedido(produto, item.getInt("quantidade"));
             itemPedido.setObservacao(item.optString("observacao", ""));
+            itemPedido.setAdicionaisTexto(item.optString("adicionais", ""));
 
             List<ItemPedido> itensDaRodada = itensPorPedido.get(idPedido);
             if (itensDaRodada == null)

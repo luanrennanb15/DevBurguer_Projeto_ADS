@@ -13,6 +13,11 @@ public class ItemPedido implements Serializable
     private int quantidade;
     private String observacao;
     private List<String> adicionais;
+    // Só usado quando o item vem da Comanda (GET /mesas/:mesa/comanda), pra
+    // exibir os adicionais que já foram escolhidos. Não usa o campo
+    // "adicionais" de cima porque o preço que vem da comanda já inclui o
+    // valor dos adicionais, e getSubtotal() somaria esse valor de novo.
+    private String adicionaisTexto;
 
     public ItemPedido(Produto produto, int quantidade)
     {
@@ -20,6 +25,7 @@ public class ItemPedido implements Serializable
         this.quantidade = quantidade;
         this.observacao = "";
         this.adicionais = new ArrayList<>();
+        this.adicionaisTexto = "";
     }
 
     public Produto getProduto()
@@ -55,6 +61,16 @@ public class ItemPedido implements Serializable
     public void setAdicionais(List<String> adicionais)
     {
         this.adicionais = adicionais;
+    }
+
+    public String getAdicionaisTexto()
+    {
+        return adicionaisTexto;
+    }
+
+    public void setAdicionaisTexto(String adicionaisTexto)
+    {
+        this.adicionaisTexto = adicionaisTexto;
     }
 
     public double getSubtotal()

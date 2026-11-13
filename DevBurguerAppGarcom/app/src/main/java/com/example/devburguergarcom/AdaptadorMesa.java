@@ -44,7 +44,7 @@ public class AdaptadorMesa extends ArrayAdapter<Mesa>
         if (mesa.getStatus().equals(getContext().getString(R.string.statusMesaLivre)))
         {
             painel.setBackgroundResource(R.drawable.fundo_mesa_livre);
-            txvStatus.setTextColor(ContextCompat.getColor(getContext(), R.color.corTextoSecundario));
+            txvStatus.setTextColor(ContextCompat.getColor(getContext(), R.color.corVerde));
         }
         else
         {

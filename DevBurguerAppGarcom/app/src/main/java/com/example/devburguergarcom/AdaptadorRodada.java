@@ -69,6 +69,11 @@ public class AdaptadorRodada extends ArrayAdapter<Rodada>
 
     private View criarLinhaItem(ItemPedido item)
     {
+        LinearLayout coluna = new LinearLayout(getContext());
+        coluna.setOrientation(LinearLayout.VERTICAL);
+        coluna.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
         LinearLayout linha = new LinearLayout(getContext());
         linha.setOrientation(LinearLayout.HORIZONTAL);
         linha.setLayoutParams(new LinearLayout.LayoutParams(
@@ -90,7 +95,20 @@ public class AdaptadorRodada extends ArrayAdapter<Rodada>
 
         linha.addView(txvDescricao);
         linha.addView(txvValor);
+        coluna.addView(linha);
 
-        return linha;
+        // A API devolve os adicionais como texto separado por vírgula
+        // (ex.: "Bacon,Cheddar"); só reformata pra exibir com espaço.
+        if (!item.getAdicionaisTexto().isEmpty())
+        {
+            TextView txvAdicionais = new TextView(getContext());
+            String adicionaisFormatados = String.join(", ", item.getAdicionaisTexto().split(","));
+            txvAdicionais.setText(getContext().getString(R.string.rotuloAdicionaisEscolhidos, adicionaisFormatados));
+            txvAdicionais.setTextColor(ContextCompat.getColor(getContext(), R.color.corVerde));
+            txvAdicionais.setTextSize(12);
+            coluna.addView(txvAdicionais);
+        }
+
+        return coluna;
     }
 }

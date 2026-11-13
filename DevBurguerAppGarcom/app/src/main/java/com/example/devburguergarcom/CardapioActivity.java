@@ -226,9 +226,10 @@ public class CardapioActivity extends AppCompatActivity
                 @Override
                 public void onClick(View v)
                 {
+                    // montarCategorias() já chama atualizarListaProdutos() no final,
+                    // não precisa chamar de novo aqui.
                     categoriaSelecionada = categoria.getSlug();
                     montarCategorias();
-                    atualizarListaProdutos();
                 }
             });
 
