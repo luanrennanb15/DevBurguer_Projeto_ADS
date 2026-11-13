@@ -719,6 +719,9 @@ namespace DevBurguer.Forms
             decimal total = row["Total"] == DBNull.Value ? 0m : Convert.ToDecimal(row["Total"]);
             string status = row["Status"] == DBNull.Value ? "" : row["Status"].ToString();
             string tipo = row["TipoEntrega"] == DBNull.Value ? "" : row["TipoEntrega"].ToString();
+            string origem = row.Table.Columns.Contains("Origem") && row["Origem"] != DBNull.Value ? row["Origem"].ToString() : "";
+            // Pedido de salão (app do garçom): entregue na mesa, nunca via motoboy.
+            bool ehSalao = origem == "Garcom" || tipo == "Salao";
             string motoboy = row["Motoboy"] == DBNull.Value ? "" : row["Motoboy"].ToString();
             int idMotoboy = row["IdMotoboy"] == DBNull.Value ? 0 : Convert.ToInt32(row["IdMotoboy"]);
             DateTime data = row["Data"] == DBNull.Value ? DateTime.Now : Convert.ToDateTime(row["Data"]);
@@ -748,7 +751,7 @@ namespace DevBurguer.Forms
             Lbl(card, "Pedido #" + id + "  -  " + data.ToString("HH:mm"),
                 new Font("Segoe UI Semibold", 9f), corStatus, ref y, 22);
 
-            Lbl(card, tipo == "Entrega" ? "Entrega" : "Retirada",
+            Lbl(card, ehSalao ? "Salão (mesa)" : (tipo == "Entrega" ? "Entrega" : "Retirada"),
                 new Font("Segoe UI", 8.5f), tipo == "Entrega" ? CACaminho : CPronto, ref y, 18);
 
             Lbl(card, cliente, new Font("Segoe UI Semibold", 9.5f), CText, ref y, 22);
@@ -790,8 +793,8 @@ namespace DevBurguer.Forms
             }
             y += 4;
 
-            // ✅ Taxa do motoboy (só em pedidos de entrega) — vem antes do total
-            if (tipo == "Entrega")
+            // ✅ Taxa do motoboy (só em pedidos de entrega; nunca no salão)
+            if (tipo == "Entrega" && !ehSalao)
                 Lbl(card, "Taxa do motoboy: " + Configuracoes.TaxaEntrega.ToString("C2"),
                     new Font("Segoe UI Semibold", 8.5f), Color.FromArgb(255, 180, 60), ref y, 20);
 
@@ -806,7 +809,7 @@ namespace DevBurguer.Forms
                 Lbl(card, "Motoboy: " + motoboy, new Font("Segoe UI", 8.5f), CACaminho, ref y, 20);
 
             y += 4;
-            var pnlBtns = CriarBotoes(id, status, tipo, idMotoboy);
+            var pnlBtns = CriarBotoes(id, status, tipo, idMotoboy, ehSalao);
             pnlBtns.Location = new Point(8, y);
             pnlBtns.Width = card.Width - 16;
             card.Controls.Add(pnlBtns);
@@ -832,7 +835,7 @@ namespace DevBurguer.Forms
         // ═══════════════════════════════════════════════════════════
         //  BOTOES
         // ═══════════════════════════════════════════════════════════
-        private Panel CriarBotoes(int idPedido, string status, string tipo, int idMotoboyAtual)
+        private Panel CriarBotoes(int idPedido, string status, string tipo, int idMotoboyAtual, bool ehSalao)
         {
             var pnl = new Panel { Height = 76, BackColor = Color.Transparent };
 
@@ -848,7 +851,20 @@ namespace DevBurguer.Forms
             }
             else if (status == "Pronto")
             {
-                if (tipo == "Retirada")
+                if (ehSalao)
+                {
+                    // Pedido de salão (app do garçom): entregue na própria mesa,
+                    // sem motoboy. "Entregar na mesa" finaliza o pedido.
+                    var btn = BtnAcao("Entregar na mesa", CPronto, 0, pnl.Width, 0);
+                    btn.Click += async (s, e) =>
+                    {
+                        await new PedidoRepository().AtualizarStatusAsync(idPedido, "Finalizado");
+                        PedidoEventos.NotificarPedidoFinalizado();
+                        await CarregarAsync();
+                    };
+                    pnl.Controls.Add(btn);
+                }
+                else if (tipo == "Retirada")
                 {
                     var btn = BtnAcao("Finalizar", Color.FromArgb(150, 50, 200), 0, pnl.Width, 0);
                     btn.Click += async (s, e) =>
