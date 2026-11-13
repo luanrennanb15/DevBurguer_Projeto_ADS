@@ -25,7 +25,7 @@ public class MesasActivity extends AppCompatActivity
     public static final String EXTRA_NOME_GARCOM = "nomeGarcom";
 
     // O salão tem 12 mesas fixas (não vem da API). A API só diz quais estão
-    // ocupadas; "Pronto" ainda não existe aí, então por enquanto é só livre/ocupada.
+    // ocupadas, então o status de cada mesa é só livre/ocupada.
     private static final int TOTAL_MESAS = 12;
 
     private TextView txvSaudacaoGarcom;

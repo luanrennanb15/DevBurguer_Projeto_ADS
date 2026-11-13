@@ -16,7 +16,6 @@
     <string name="botaoSair">Sair</string>
     <string name="legendaStatusLivre">Livre</string>
     <string name="legendaStatusOcupada">Ocupada</string>
-    <string name="legendaStatusPronto">Pedido pronto</string>
     <string name="avisoToqueMesa">Mesa livre abre um pedido novo. Mesa ocupada abre a comanda.</string>
     <string name="carregandoMesas">Carregando mesas…</string>
     <string name="tituloConfirmarSaida">Sair do app?</string>
@@ -25,7 +24,6 @@
     <string name="rotuloMesaNumero">%02d</string>
     <string name="statusMesaLivre">Livre</string>
     <string name="statusMesaOcupada">Ocupada</string>
-    <string name="statusMesaPronto">Pronto</string>
     <string name="tituloTelaCardapio">Mesa %1$02d</string>
     <string name="botaoVoltarMesas">Mesas</string>
     <string name="botaoAdicionar">Adicionar</string>

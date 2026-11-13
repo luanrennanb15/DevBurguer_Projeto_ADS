@@ -203,7 +203,6 @@ public class ApiDevBurguer
     }
 
     // GET /api/mesas/ocupadas -> números das mesas ocupadas (comanda em aberto).
-    // A API ainda não distingue "pronto": por enquanto é só livre/ocupada.
     public void buscarMesasOcupadas(OuvinteApi<List<Integer>> ouvinte)
     {
         executor.execute(new Runnable()

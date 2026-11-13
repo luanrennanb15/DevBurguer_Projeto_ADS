@@ -147,22 +147,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
                     android:text="@string/legendaStatusOcupada"
-                    android:textColor="@color/corBranca"
-                    android:textSize="13sp" />
-
-                <View
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginEnd="6dp"
-                    android:background="@drawable/fundo_mesa_pronto" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/legendaStatusPronto"
                     android:textColor="@color/corBranca"
                     android:textSize="13sp" />
 
