@@ -325,9 +325,15 @@ public class ApiDevBurguer
             statusPorPedido.put(idPedido, item.getString("status"));
         }
 
+        // A API devolve os itens ordenados por p.id (ORDER BY na query de
+        // /mesas/:mesa/comanda), ou seja, na ordem em que as rodadas foram
+        // enviadas. Por isso dá pra numerar 1, 2, 3... pela posição aqui,
+        // em vez de mostrar o idPedido (id bruto do banco, ex.: "Rodada 137").
+        int numeroRodada = 1;
         for (Integer idPedido : itensPorPedido.keySet())
         {
-            rodadas.add(new Rodada(idPedido, statusPorPedido.get(idPedido), itensPorPedido.get(idPedido)));
+            rodadas.add(new Rodada(numeroRodada, statusPorPedido.get(idPedido), itensPorPedido.get(idPedido)));
+            numeroRodada++;
         }
 
         return rodadas;

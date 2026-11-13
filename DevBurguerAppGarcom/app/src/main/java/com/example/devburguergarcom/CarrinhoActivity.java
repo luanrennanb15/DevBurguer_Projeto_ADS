@@ -133,6 +133,11 @@ public class CarrinhoActivity extends AppCompatActivity
                             return;
                         }
 
+                        // Limpa antes do finish(): esse método devolve "itens" pro Cardápio
+                        // de qualquer jeito, e a rodada que acabou de ser enviada não pode
+                        // continuar aparecendo lá como se ainda estivesse no carrinho.
+                        itens.clear();
+
                         Intent intent = new Intent(CarrinhoActivity.this, ComandaActivity.class);
                         intent.putExtra(ComandaActivity.EXTRA_NUMERO_MESA, numeroMesa);
                         startActivity(intent);
