@@ -18,22 +18,28 @@ com o mesmo banco.
 | API REST        | https://devburguer-api-9gds.onrender.com/api                    |
 | Banco de dados  | PostgreSQL — Supabase                                            |
 
+> O app do garçom não fica "no ar": é instalado no aparelho Android (APK) e consome a API acima.
+
 ## 🏗️ Arquitetura (visão geral)
 
 ```
-   Cliente (navegador)                 Operação interna (loja)
-          │                                     │
-          ▼                                     ▼
-   ┌──────────────┐   HTTP/JSON   ┌──────────────────────────┐
-   │  Site (docs) │──────────────▶│      API REST (Node)     │
-   └──────────────┘               └────────────┬─────────────┘
-                                                │  SQL
-   ┌────────────────────────┐   SQL (Npgsql)    ▼
-   │  Desktop (C# WinForms)  │────────▶ ┌──────────────────┐
-   └────────────────────────┘          │  PostgreSQL       │
-                                        │  (Supabase)       │
-                                        └──────────────────┘
+    Cliente (site)          Garçom (app Android)
+          │                         │
+          │  HTTP/JSON              │  HTTP/JSON
+          ▼                         ▼
+        ┌───────────────────────────────┐
+        │         API REST (Node)        │
+        └───────────────┬───────────────┘
+                        │ SQL
+                        ▼
+  ┌───────────────────────────┐   SQL (Npgsql)   ┌───────────────────────────┐
+  │   PostgreSQL (Supabase)    │◀─────────────────│  Desktop (C# WinForms)     │
+  └───────────────────────────┘                  └───────────────────────────┘
 ```
+
+O **site** e o **app do garçom** acessam os dados pela **API REST**; o **desktop** acessa
+o banco diretamente (Npgsql). Todos compartilham o mesmo PostgreSQL, então um pedido feito
+em qualquer canal aparece na mesma esteira de produção.
 
 Detalhes e decisões em **[ARQUITETURA.md](ARQUITETURA.md)**.
 
@@ -49,13 +55,17 @@ DevBurguer/
 ├── database/             # 🗄️ Scripts do banco (PostgreSQL)
 │   ├── schema/           #     estrutura das tabelas
 │   ├── seeds/            #     dados iniciais
-│   └── migrations/       #     alterações posteriores
+│   ├── migrations/       #     alterações posteriores
+│   ├── procedures/       #     funções/procedimentos
+│   └── triggers/         #     gatilhos (auditoria/histórico)
 ├── documentacao/         # 📄 PIM, portfólio, regras e fotos
 │   ├── pim/
 │   ├── portfolio/
 │   ├── regras/
 │   └── fotos/
-├── assets/               # 🎨 Logo e imagens do sistema
+├── assets/               # 🎨 Logos do sistema
+├── ARQUITETURA.md        # 📐 Decisões de arquitetura
+├── render.yaml           # ⚙️ Configuração de deploy da API (Render)
 └── README.md
 ```
 
@@ -64,14 +74,14 @@ DevBurguer/
 
 ## 🛠️ Tecnologias
 
-| Camada   | Stack                                                             |
-|----------|-------------------------------------------------------------------|
-| Desktop  | C# · WinForms · .NET Framework 4.8 · Npgsql                        |
+| Camada   | Stack                                                                |
+|----------|----------------------------------------------------------------------|
+| Desktop  | C# · WinForms · .NET Framework 4.8 · Npgsql                           |
 | Mobile   | Java · Android nativo (Android Studio) · HttpURLConnection · org.json |
-| API      | Node.js · Express · node-postgres (pg)                            |
-| Web      | HTML5 · CSS3 · JavaScript (vanilla) · VLibras (acessibilidade)     |
-| Banco    | PostgreSQL (Supabase)                                             |
-| Deploy   | GitHub Pages (site) · Render (API) · Supabase (banco)            |
+| API      | Node.js · Express · node-postgres (pg) · Helmet · CORS               |
+| Web      | HTML5 · CSS3 · JavaScript (vanilla) · VLibras (acessibilidade)        |
+| Banco    | PostgreSQL (Supabase)                                                 |
+| Deploy   | GitHub Pages (site) · Render (API) · Supabase (banco)                |
 
 ## ▶️ Como rodar
 
@@ -79,7 +89,8 @@ DevBurguer/
 No seu PostgreSQL (Supabase → SQL Editor), rode nesta ordem:
 1. `database/schema/01_schema_postgres.sql`
 2. `database/seeds/*.sql`
-3. `database/migrations/*.sql`
+3. `database/procedures/*.sql` e `database/triggers/*.sql`
+4. `database/migrations/*.sql`
 
 ### 2. API (local)
 ```bash
@@ -102,21 +113,34 @@ Abra a pasta `DevBurguerAppGarcom/` no **Android Studio**, deixe o Gradle sincro
 execute (▶) em um emulador ou em um aparelho Android real (Android 8.0+). O app consome
 a mesma **API REST** — não precisa de configuração extra.
 
+## 🔐 Perfis de acesso
+
+O sistema tem três perfis de usuário, todos na tabela `usuarios`:
+
+- **Administrador** — acesso total; gerencia usuários e redefine senhas.
+- **Operador** — acesso às telas operacionais (sem as áreas administrativas).
+- **Garçom** — acessa **somente** o app Android; é bloqueado no desktop.
+
+As senhas são guardadas com hash **PBKDF2 + salt**.
+
 ## 🗺️ Próximos passos (roadmap)
 
 Evoluções planejadas para tornar o sistema mais **automatizado** e completo:
 
-- **📱 App mobile de autoatendimento nas mesas** — *em desenvolvimento*
-  Um aplicativo para **tablets, um em cada mesa**, integrado à mesma **API REST** do
-  sistema. O próprio cliente monta e envia o pedido **direto da mesa**, sem precisar
-  chamar um atendente nem se levantar. O pedido cai **em tempo real** no painel de
-  produção da cozinha — exatamente como já acontece com o site. Isso reduz a
-  necessidade de garçom, agiliza o atendimento e diminui filas.
+- **📱 Autoatendimento do cliente nas mesas** — *planejado*
+  Um app (ou página) para **tablets, um em cada mesa**, em que o **próprio cliente** monta
+  e envia o pedido, sem chamar atendente. É diferente do app do garçom (que já existe): aqui
+  quem usa é o cliente. O pedido cairia **em tempo real** no painel de produção, como já
+  acontece com o site.
 
 - **💳 Pagamento online** (Pix / cartão) integrado a um gateway, para o cliente pagar direto pelo site/app.
 - **🔔 Acompanhamento do pedido em tempo real** pelo cliente (recebido → em produção → pronto).
 - **🏢 Suporte a múltiplas lojas** (multi-tenant), para usar o sistema em vários estabelecimentos.
 - **🔄 Deploy automatizado (CI/CD)** e testes a cada mudança, para publicar sem risco.
 
-## 👤 Autor
-**Luan Rennan** — Análise e Desenvolvimento de Sistemas / UNIP
+## 👥 Autores
+
+- **Luan Rennan** — sistema desktop, API, site e banco de dados
+- **Mauricio Reis** — aplicativo do garçom (Android nativo)
+
+Análise e Desenvolvimento de Sistemas — UNIP.
