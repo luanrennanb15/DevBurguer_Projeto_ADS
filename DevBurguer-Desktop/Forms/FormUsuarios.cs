@@ -83,7 +83,7 @@ namespace DevBurguer
                 Location = new Point(x, y),
                 Size = new Size(200, 28)
             };
-            _cmbTipo.Items.AddRange(new object[] { "operador", "admin" });
+            _cmbTipo.Items.AddRange(new object[] { "operador", "admin", "garcom" });
             _cmbTipo.SelectedIndex = 0;
             pnl.Controls.Add(_cmbTipo); y += 48;
 
