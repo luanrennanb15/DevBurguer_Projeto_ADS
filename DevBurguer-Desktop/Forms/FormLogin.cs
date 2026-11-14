@@ -19,10 +19,14 @@ namespace DevBurguer
         {
             try
             {
-                bool acessoLiberado = await _repo.AutenticarAsync(txtUsuario.Text, txtSenha.Text);
+                var usuario = await _repo.AutenticarAsync(txtUsuario.Text, txtSenha.Text);
 
-                if (acessoLiberado)
+                if (usuario != null)
                 {
+                    // Guarda quem entrou (e qual o perfil) para o menu usar nas permissões.
+                    DevBurguer.Services.SessaoAtual.Definir(
+                        usuario.Id, usuario.Nome, usuario.NomeUsuario, usuario.Tipo);
+
                     DialogHelper.Info("Login realizado com sucesso!", "Bem-vindo!");
 
                     // FormMenu vira o form principal da aplicação
