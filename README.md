@@ -1,13 +1,14 @@
 # 🍔 DevBurguer
 
 Sistema integrado de gestão para hamburgueria, desenvolvido como **Projeto Integrado
-Multidisciplinar III (PIM III)** — Análise e Desenvolvimento de Sistemas / UNIP.
+Multidisciplinar IV (PIM IV)** — Análise e Desenvolvimento de Sistemas / UNIP.
 
-A solução é composta por **três aplicações que compartilham um único banco de dados
+A solução é composta por **quatro aplicações que compartilham um único banco de dados
 PostgreSQL na nuvem**: um sistema desktop para a operação interna, uma API REST de
-integração e um site responsivo para o cliente final. Um pedido feito no site chega
-**em tempo real** ao painel de produção do desktop, porque todos os módulos falam com
-o mesmo banco.
+integração, um site responsivo para o cliente final e um **aplicativo Android nativo
+para o garçom** (atendimento no salão). Um pedido feito no site ou pelo app do garçom
+chega **em tempo real** ao painel de produção do desktop, porque todos os módulos falam
+com o mesmo banco.
 
 ## 🌐 No ar
 
@@ -44,6 +45,7 @@ DevBurguer/
 ├── DevBurguer-API/       # 🔌 API REST (Node.js + Express) — hospedada no Render
 │   └── api/
 ├── DevBurguer-Desktop/   # 🖥️ Sistema desktop (C# WinForms / .NET Framework 4.8)
+├── DevBurguerAppGarcom/  # 📱 App do garçom (Android nativo, Java / Android Studio)
 ├── database/             # 🗄️ Scripts do banco (PostgreSQL)
 │   ├── schema/           #     estrutura das tabelas
 │   ├── seeds/            #     dados iniciais
@@ -65,6 +67,7 @@ DevBurguer/
 | Camada   | Stack                                                             |
 |----------|-------------------------------------------------------------------|
 | Desktop  | C# · WinForms · .NET Framework 4.8 · Npgsql                        |
+| Mobile   | Java · Android nativo (Android Studio) · HttpURLConnection · org.json |
 | API      | Node.js · Express · node-postgres (pg)                            |
 | Web      | HTML5 · CSS3 · JavaScript (vanilla) · VLibras (acessibilidade)     |
 | Banco    | PostgreSQL (Supabase)                                             |
@@ -93,6 +96,11 @@ pacote **Npgsql** e compile (Ctrl+Shift+B). A string de conexão fica em `config
 
 ### 4. Site
 Abra `docs/index.html` no navegador — em produção é servido pelo GitHub Pages.
+
+### 5. App do garçom (mobile)
+Abra a pasta `DevBurguerAppGarcom/` no **Android Studio**, deixe o Gradle sincronizar e
+execute (▶) em um emulador ou em um aparelho Android real (Android 8.0+). O app consome
+a mesma **API REST** — não precisa de configuração extra.
 
 ## 🗺️ Próximos passos (roadmap)
 
