@@ -759,3 +759,61 @@
     color: var(--color-success);
     font-size: var(--font-size-sm);
 }
+
+/* ─── Acompanhamento de pedido ("Meus Pedidos") ───────────────────────────── */
+.track-button {
+    background: transparent;
+    border: none;
+    color: var(--color-text);
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 10px;
+    line-height: 1;
+    transition: background-color .2s, transform .1s;
+}
+.track-button:hover { background: rgba(127,127,127,.15); }
+.track-button:active { transform: scale(.94); }
+
+#pedidosModal .modal { max-width: 520px; }
+
+.pedidos-lista { display: flex; flex-direction: column; gap: 14px; padding: 4px; }
+.pedidos-vazio { color: var(--color-text-muted); text-align: center; padding: 30px 10px; line-height: 1.5; }
+
+.pedido-card {
+    background: var(--color-surface);
+    border: 1px solid rgba(127,127,127,.18);
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+.pedido-topo { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pedido-num { font-weight: 700; color: var(--color-text); }
+.pedido-sub { color: var(--color-text-muted); font-size: .82rem; margin-top: 2px; }
+
+.pedido-badge {
+    font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+    white-space: nowrap; color: #fff;
+}
+.badge-aguardando { background: var(--color-warning); color: #1a1a1a; }
+.badge-producao   { background: var(--color-accent);  color: #1a1a1a; }
+.badge-pronto     { background: var(--color-success); }
+.badge-concluido  { background: var(--color-success-dark); }
+.badge-cancelado  { background: var(--color-primary); }
+
+/* barra de etapas */
+.pedido-steps { display: flex; align-items: flex-start; margin-top: 14px; }
+.step { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; width: 64px; text-align: center; }
+.step-dot {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: rgba(127,127,127,.3); border: 2px solid rgba(127,127,127,.4);
+    transition: background-color .3s, border-color .3s;
+}
+.step-nome { font-size: .7rem; color: var(--color-text-muted); margin-top: 6px; line-height: 1.1; }
+.step.done .step-dot { background: var(--color-success); border-color: var(--color-success); }
+.step.done .step-nome { color: var(--color-text); font-weight: 600; }
+.step-linha {
+    flex: 1 1 auto; height: 3px; background: rgba(127,127,127,.3);
+    margin-top: 9px; border-radius: 2px; min-width: 10px;
+}
+.step-linha.done { background: var(--color-success); }
+.pedido-cancelado { margin-top: 12px; color: var(--color-primary); font-weight: 700; text-align: center; }

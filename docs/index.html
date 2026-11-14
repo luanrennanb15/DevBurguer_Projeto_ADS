@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/globals.css">
-    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/components.css?v=3">
     <link rel="stylesheet" href="css/layouts.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -48,6 +48,9 @@
             <div class="header-actions">
                 <button class="theme-toggle" id="themeToggle" aria-label="Alternar tema claro/escuro">
                     <i class="fa-solid fa-sun" id="themeIcon" aria-hidden="true"></i>
+                </button>
+                <button class="track-button" id="pedidosButton" aria-label="Meus pedidos" title="Meus pedidos">
+                    <span aria-hidden="true">📋</span>
                 </button>
                 <button class="cart-button" id="cartButton" aria-label="Abrir carrinho">
                     <span class="cart-icon" aria-hidden="true">🛒</span>
@@ -202,6 +205,22 @@
     <div class="cart-overlay" id="cartOverlay" aria-hidden="true"></div>
 
     <!-- MODAL CHECKOUT -->
+    <!-- Modal: Meus Pedidos (acompanhamento de status) -->
+    <div class="modal-overlay" id="pedidosModal" role="dialog" aria-modal="true"
+        aria-labelledby="pedidosModalTitle" aria-hidden="true">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="pedidosModalTitle">Meus Pedidos</h2>
+                <button class="close-btn" id="closePedidosBtn" aria-label="Fechar">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="pedidos-lista" id="pedidosLista"></div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="checkoutModal" role="dialog" aria-modal="true"
         aria-labelledby="checkoutModalTitle" aria-hidden="true">
         <div class="modal">
@@ -355,6 +374,7 @@
     <script src="js/ui.js?v=2"></script>
     <script src="js/checkout.js?v=2"></script>
     <script src="js/main.js?v=2"></script>
+    <script src="js/acompanhamento.js?v=2"></script>
 
     <!-- VLIBRAS: Widget de acessibilidade em Libras -->
     <div vw class="enabled">
