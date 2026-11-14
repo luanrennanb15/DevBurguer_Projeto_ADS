@@ -198,6 +198,7 @@
     <Compile Include="Services\ExceptionLogger.cs" />
     <Compile Include="Services\SecurityHelper.cs" />
     <Compile Include="Services\SessaoAtual.cs" />
+    <Compile Include="Services\GridTheme.cs" />
     <EmbeddedResource Include="Forms\FormClientes.resx">
       <DependentUpon>FormClientes.cs</DependentUpon>
     </EmbeddedResource>

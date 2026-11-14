@@ -309,6 +309,7 @@ namespace DevBurguer.Forms
                 // atualiza UI na thread principal
                 grid.DataSource = null;
                 grid.DataSource = dt;
+                DevBurguer.Services.GridTheme.Aplicar(grid);
                 if (grid.Columns["Receita"] != null) grid.Columns["Receita"].DefaultCellStyle.Format = "C2";
                 if (grid.Columns["#"] != null) { grid.Columns["#"].Width = 40; grid.Columns["#"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None; }
 

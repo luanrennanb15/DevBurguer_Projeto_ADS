@@ -128,6 +128,7 @@ namespace DevBurguer
             _dgv.ColumnHeadersDefaultCellStyle.BackColor = _cPanel;
             _dgv.ColumnHeadersDefaultCellStyle.ForeColor = DialogHelper.Verde;
             _dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Arial", 12, FontStyle.Bold);
+            GridTheme.Aplicar(_dgv); // seleção por linha, texto legível, cabeçalho sem azul
             _dgv.CellClick += Dgv_CellClick;
             Controls.Add(_dgv);
         }

@@ -48,6 +48,7 @@ namespace DevBurguer
                     col.ReadOnly = true;
 
                 dgvMotoboys.DataSource = dt;
+                DevBurguer.Services.GridTheme.Aplicar(dgvMotoboys);
                 dgvMotoboys.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 dgvMotoboys.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
                 dgvMotoboys.MultiSelect = false;

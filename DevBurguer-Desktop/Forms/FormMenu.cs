@@ -138,10 +138,18 @@ namespace DevBurguer
             if (altura < 26) altura = 26;   // mínimo legível
             int passo = altura + gap;
 
+            // Ajusta a fonte à altura disponível para o texto (até 2 linhas, ex.:
+            // "Faturamento da Lanchonete") não ficar cortado quando há muitos botões.
+            float fonteTam = altura >= 48 ? 10f : altura >= 40 ? 9f : altura >= 34 ? 8f : 7.25f;
+
             for (int i = 0; i < n; i++)
             {
                 botoes[i].Size = new Size(largura, altura);
                 botoes[i].Location = new Point(x, topo + i * passo);
+                botoes[i].Font = new Font("Segoe UI", fonteTam, FontStyle.Bold);
+                botoes[i].TextAlign = ContentAlignment.MiddleCenter;
+                botoes[i].AutoEllipsis = false; // deixa quebrar em 2 linhas, não cortar
+                botoes[i].Padding = new Padding(2, 0, 2, 0);
             }
         }
 
