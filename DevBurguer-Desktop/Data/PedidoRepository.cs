@@ -261,6 +261,40 @@ namespace DevBurguer.Data
         }
 
         // Carrega um pedido (cabeçalho + itens) para impressão do cupom.
+        /// <summary>
+        /// Ids das rodadas de salão (origem 'Garcom') que entraram em produção e
+        /// ainda NÃO tiveram a comanda impressa. Usado para imprimir automaticamente
+        /// a notinha da cozinha assim que o garçom envia a rodada.
+        /// </summary>
+        public async Task<System.Collections.Generic.List<int>> GetRodadasSalaoNaoImpressasAsync()
+        {
+            const string sql = @"SELECT Id FROM Pedidos
+                                  WHERE COALESCE(Origem,'') = 'Garcom'
+                                    AND COALESCE(Impresso, FALSE) = FALSE
+                                    AND Status NOT IN ('Finalizado','Cancelado')
+                                  ORDER BY Data ASC";
+            var ids = new System.Collections.Generic.List<int>();
+            try
+            {
+                var dt = await DbHelper.ExecuteDataTableAsync(sql);
+                foreach (System.Data.DataRow r in dt.Rows)
+                    ids.Add(Convert.ToInt32(r["Id"]));
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.Log(ex, "PedidoRepository.GetRodadasSalaoNaoImpressasAsync");
+            }
+            return ids;
+        }
+
+        /// <summary>Marca um pedido como já impresso (comanda da cozinha já saiu).</summary>
+        public async Task MarcarComoImpressoAsync(int idPedido)
+        {
+            const string sql = "UPDATE Pedidos SET Impresso = TRUE WHERE Id = @id";
+            await DbHelper.ExecuteNonQueryAsync(sql,
+                new NpgsqlParameter("@id", NpgsqlDbType.Integer) { Value = idPedido });
+        }
+
         public async Task<DevBurguer.Services.CupomDados> GetPedidoParaCupomAsync(int idPedido)
         {
             var d = new DevBurguer.Services.CupomDados { NumeroPedido = idPedido };
