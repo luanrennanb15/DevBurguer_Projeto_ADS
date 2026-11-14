@@ -21,6 +21,16 @@ namespace DevBurguer
             {
                 var usuario = await _repo.AutenticarAsync(txtUsuario.Text, txtSenha.Text);
 
+                // Garçom acessa somente o App do Garçom, nunca o sistema desktop.
+                if (usuario != null &&
+                    string.Equals(usuario.Tipo, "garcom", StringComparison.OrdinalIgnoreCase))
+                {
+                    DialogHelper.Aviso(
+                        "Este usuario e um garcom e acessa apenas o App do Garcom.",
+                        "Acesso negado");
+                    return;
+                }
+
                 if (usuario != null)
                 {
                     // Guarda quem entrou (e qual o perfil) para o menu usar nas permissões.

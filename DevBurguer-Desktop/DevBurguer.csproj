@@ -70,11 +70,7 @@
     <Compile Include="Data\SqlLoader.cs" />
     <Compile Include="Data\StatusPedido.cs" />
     <Compile Include="Data\UsuarioRepository.cs" />
-    <Compile Include="Data\GarcomRepository.cs" />
     <Compile Include="Forms\FormUsuarios.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormGarcons.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\FormBase.cs">

@@ -52,7 +52,6 @@ namespace DevBurguer
             if (admin)
             {
                 MontarBotaoUsuarios();
-                MontarBotaoGarcons();
             }
             else
             {
@@ -87,26 +86,6 @@ namespace DevBurguer
             };
             btnUsuarios.Click += (s, ev) => { AtivarBotao(btnUsuarios); AbrirForm(new FormUsuarios()); };
             panelMenu.Controls.Add(btnUsuarios);
-        }
-
-        /// <summary>Adiciona o botão "Garçons" (só para administradores).</summary>
-        private void MontarBotaoGarcons()
-        {
-            var btnGarcons = new Button
-            {
-                Text = "Garçons",
-                // logo após "Usuários" na ordenação por Y
-                Location = new Point(btnConfiguracoes.Location.X, btnConfiguracoes.Location.Y + 4),
-                Size = btnConfiguracoes.Size,
-                Font = btnConfiguracoes.Font,
-                FlatStyle = btnConfiguracoes.FlatStyle,
-                BackColor = Color.FromArgb(30, 30, 30),
-                ForeColor = Color.White,
-                UseVisualStyleBackColor = false,
-                Cursor = Cursors.Hand
-            };
-            btnGarcons.Click += (s, ev) => { AtivarBotao(btnGarcons); AbrirForm(new FormGarcons()); };
-            panelMenu.Controls.Add(btnGarcons);
         }
 
         /// <summary>

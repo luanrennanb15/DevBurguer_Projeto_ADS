@@ -47,6 +47,7 @@ namespace DevBurguer.Data
                 if (!ativo) return null; // usuário inativo não entra
 
                 int id = Convert.ToInt32(row["id"]);
+                string tipo = row["tipo"] == DBNull.Value ? "operador" : row["tipo"]?.ToString();
                 string hashSalvo = row["senha"]?.ToString() ?? string.Empty;
                 string salt = row["salt"] == DBNull.Value ? null : row["salt"]?.ToString();
 
@@ -58,9 +59,10 @@ namespace DevBurguer.Data
                 }
                 else
                 {
-                    // Formato antigo (SHA-256 puro). Se bater, migra para PBKDF2.
+                    // Formato antigo (SHA-256 puro). Se bater, migra para PBKDF2 —
+                    // exceto garçom, cuja senha é gerida pelo app/API.
                     ok = string.Equals(hashSalvo, SecurityHelper.HashSha256(senha), StringComparison.OrdinalIgnoreCase);
-                    if (ok)
+                    if (ok && !string.Equals(tipo, "garcom", StringComparison.OrdinalIgnoreCase))
                     {
                         try { await MigrarParaPbkdf2Async(id, senha); }
                         catch (Exception exMig) { ExceptionLogger.Log(exMig, "UsuarioRepository.MigrarParaPbkdf2Async"); }
@@ -74,7 +76,7 @@ namespace DevBurguer.Data
                     Id = id,
                     Nome = row["nome"] == DBNull.Value ? null : row["nome"]?.ToString(),
                     NomeUsuario = row["usuario"]?.ToString(),
-                    Tipo = row["tipo"] == DBNull.Value ? "operador" : row["tipo"]?.ToString(),
+                    Tipo = tipo,
                     Ativo = ativo
                 };
             }
