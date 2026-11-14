@@ -70,6 +70,9 @@
     <Compile Include="Data\SqlLoader.cs" />
     <Compile Include="Data\StatusPedido.cs" />
     <Compile Include="Data\UsuarioRepository.cs" />
+    <Compile Include="Forms\FormUsuarios.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\FormBase.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -194,6 +197,7 @@
     <Compile Include="Services\CupomPrinter.cs" />
     <Compile Include="Services\ExceptionLogger.cs" />
     <Compile Include="Services\SecurityHelper.cs" />
+    <Compile Include="Services\SessaoAtual.cs" />
     <EmbeddedResource Include="Forms\FormClientes.resx">
       <DependentUpon>FormClientes.cs</DependentUpon>
     </EmbeddedResource>

@@ -36,6 +36,56 @@ namespace DevBurguer
             _ = VerificarPedidosSiteAsync(); // primeira checagem imediata
 
             MontarBotaoSalao();
+            AplicarPermissoes();
+        }
+
+        /// <summary>
+        /// Ajusta o menu conforme o perfil de quem está logado.
+        /// Administrador vê tudo (e ganha o botão "Usuários").
+        /// Operador não vê as telas administrativas (financeiro, previsão,
+        /// configurações e cadastro de usuários).
+        /// </summary>
+        private void AplicarPermissoes()
+        {
+            bool admin = DevBurguer.Services.SessaoAtual.EhAdmin;
+
+            if (admin)
+            {
+                MontarBotaoUsuarios();
+            }
+            else
+            {
+                // Telas restritas a administradores
+                var restritos = new Button[]
+                {
+                    btnFaturamento, btnFaturamentoMotoboy, btnPagmentoDeMotoboy,
+                    btnPrevisao, btnConfiguracoes
+                };
+                foreach (var b in restritos)
+                    if (b != null) b.Visible = false;
+            }
+
+            ReorganizarMenu();
+        }
+
+        /// <summary>Adiciona o botão "Usuários" (só para administradores).</summary>
+        private void MontarBotaoUsuarios()
+        {
+            var btnUsuarios = new Button
+            {
+                Text = "Usuários",
+                // logo após Configurações na ordenação por Y
+                Location = new Point(btnConfiguracoes.Location.X, btnConfiguracoes.Location.Y + 2),
+                Size = btnConfiguracoes.Size,
+                Font = btnConfiguracoes.Font,
+                FlatStyle = btnConfiguracoes.FlatStyle,
+                BackColor = Color.FromArgb(30, 30, 30),
+                ForeColor = Color.White,
+                UseVisualStyleBackColor = false,
+                Cursor = Cursors.Hand
+            };
+            btnUsuarios.Click += (s, ev) => { AtivarBotao(btnUsuarios); AbrirForm(new FormUsuarios()); };
+            panelMenu.Controls.Add(btnUsuarios);
         }
 
         /// <summary>
@@ -75,7 +125,7 @@ namespace DevBurguer
 
             var botoes = new System.Collections.Generic.List<Button>();
             foreach (Control c in panelMenu.Controls)
-                if (c is Button b) botoes.Add(b);
+                if (c is Button b && b.Visible) botoes.Add(b); // só os visíveis entram no layout
             if (botoes.Count == 0) return;
             botoes.Sort((a, b) => a.Location.Y.CompareTo(b.Location.Y));
 
