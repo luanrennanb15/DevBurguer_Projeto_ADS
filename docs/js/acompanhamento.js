@@ -15,6 +15,8 @@
 
     const CHAVE = 'devburger_pedidos';
     const INTERVALO_MS = 15000; // consulta a cada 15s enquanto a tela está aberta
+    const HORAS_MANTER = 3;     // pedidos concluídos somem da lista após X horas
+    const FINAIS = ['Finalizado', 'Entregue', 'Cancelado'];
     let timer = null;
 
     // Etapas lineares exibidas na barra de progresso.
@@ -40,12 +42,26 @@
         try { localStorage.setItem(CHAVE, JSON.stringify(lista)); } catch (e) {}
     }
 
+    // Remove da lista os pedidos já concluídos/cancelados há mais de X horas,
+    // para a tela mostrar basicamente os pedidos em andamento (não acumular).
+    function limparAntigos() {
+        const agora = Date.now();
+        const lista = lerHistorico();
+        const mantidos = lista.filter(p => {
+            if (!FINAIS.includes(p.status)) return true; // em andamento: sempre fica
+            const t = new Date(p.data).getTime();
+            return isNaN(t) || (agora - t) < HORAS_MANTER * 3600 * 1000;
+        });
+        if (mantidos.length !== lista.length) salvarHistorico(mantidos);
+    }
+
     // ─── Elementos ──────────────────────────────────────────────────────────
     function el(id) { return document.getElementById(id); }
 
     function abrir() {
         const modal = el('pedidosModal');
         if (!modal) return;
+        limparAntigos();
         modal.classList.add('active');
         render();
         atualizarTodos();
@@ -115,14 +131,39 @@
                 if (!r.ok) return;
                 const dados = await r.json();
                 if (dados && dados.status && dados.status !== p.status) {
+                    const anterior = p.status;
                     p.status = dados.status;
                     mudou = true;
+                    // Avisa o cliente quando o pedido fica PRONTO.
+                    if (dados.status === 'Pronto' && anterior !== 'Pronto') {
+                        avisarPronto(p.id);
+                    }
                 }
                 aplicarStatusNaTela(p.id, dados.status);
             } catch (e) { /* mantém o último status conhecido */ }
         }));
 
         if (mudou) salvarHistorico(historico);
+    }
+
+    // Toast + um bip curto quando o pedido fica pronto.
+    function avisarPronto(id) {
+        try {
+            if (typeof mostrarToast === 'function') {
+                mostrarToast(`🎉 Seu pedido #${id} está pronto!`, 'success');
+            }
+        } catch (e) {}
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = 'sine'; osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0.001, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+            osc.start(); osc.stop(ctx.currentTime + 0.4);
+        } catch (e) { /* alguns navegadores bloqueiam som sem interação — ok */ }
     }
 
     function aplicarStatusNaTela(id, status) {
