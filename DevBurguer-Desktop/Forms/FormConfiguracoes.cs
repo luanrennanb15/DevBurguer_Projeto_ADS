@@ -20,6 +20,7 @@ namespace DevBurguer.Forms
         private TextBox txtUsuario, txtSenha;
         private Label lblResultado;
         private Button btnTestar, btnSalvar;
+        private CheckBox chkPreview;
 
         public FormConfiguracoes()
         {
@@ -196,6 +197,38 @@ namespace DevBurguer.Forms
                 Location = new Point(40, 410)
             };
             pnlConteudo.Controls.Add(lblResultado);
+
+            // ── Seção: Impressão ──────────────────────────────────
+            pnlConteudo.Controls.Add(new Label
+            {
+                Width = 800, Height = 1, BackColor = Color.FromArgb(50, 50, 70),
+                Location = new Point(40, 452)
+            });
+            pnlConteudo.Controls.Add(new Label
+            {
+                Text = "Impressao da comanda",
+                Font = new Font("Segoe UI Semibold", 11f),
+                ForeColor = CAmbar, AutoSize = true,
+                Location = new Point(40, 466)
+            });
+            chkPreview = new CheckBox
+            {
+                Text = "Mostrar pre-visualizacao antes de imprimir (desmarque para imprimir direto na impressora padrao)",
+                Font = new Font("Segoe UI", 9.5f),
+                ForeColor = CorText,
+                Location = new Point(40, 494),
+                AutoSize = true,
+                Checked = DevBurguer.Configuracoes.ImpressaoPreview
+            };
+            chkPreview.CheckedChanged += (s, e) =>
+            {
+                DevBurguer.Configuracoes.SalvarImpressaoPreview(chkPreview.Checked);
+                lblResultado.Text = chkPreview.Checked
+                    ? "Impressao: mostrara a pre-visualizacao."
+                    : "Impressao: imprime direto na impressora padrao.";
+                lblResultado.ForeColor = CVerde;
+            };
+            pnlConteudo.Controls.Add(chkPreview);
 
             tbl.Controls.Add(pnlConteudo, 0, 1);
 
