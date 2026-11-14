@@ -238,6 +238,7 @@ namespace DevBurguer
                 // Grid
                 dgvFaturamento.DataSource = null;
                 dgvFaturamento.DataSource = dt;
+                DevBurguer.Services.GridTheme.Aplicar(dgvFaturamento);
                 if (dgvFaturamento.Columns["TotalRecebido"] != null) dgvFaturamento.Columns["TotalRecebido"].DefaultCellStyle.Format = "C2";
                 if (dgvFaturamento.Columns["ValorEntregas"] != null) dgvFaturamento.Columns["ValorEntregas"].DefaultCellStyle.Format = "C2";
                 if (dgvFaturamento.Columns["ValorChegada"] != null) dgvFaturamento.Columns["ValorChegada"].DefaultCellStyle.Format = "C2";

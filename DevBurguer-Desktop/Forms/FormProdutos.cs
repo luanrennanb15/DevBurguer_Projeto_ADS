@@ -242,6 +242,7 @@ namespace DevBurguer
                 var dt = await repo.GetAllProdutosAsync();
 
                 dgvProdutos.DataSource = dt;
+                DevBurguer.Services.GridTheme.Aplicar(dgvProdutos);
                 dgvProdutos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 dgvProdutos.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
                 dgvProdutos.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;

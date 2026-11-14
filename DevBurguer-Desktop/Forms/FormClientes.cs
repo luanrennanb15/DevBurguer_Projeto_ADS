@@ -38,6 +38,7 @@ namespace DevBurguer
                 DataTable dt = await _repo.GetAllAsync();
 
                 dgvClientes.DataSource = dt;
+                DevBurguer.Services.GridTheme.Aplicar(dgvClientes);
                 dgvClientes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 if (dgvClientes.Columns["Id"] != null)
                     dgvClientes.Columns["Id"].Visible = false;

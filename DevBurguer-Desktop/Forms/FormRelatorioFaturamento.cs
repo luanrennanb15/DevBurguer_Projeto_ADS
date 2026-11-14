@@ -237,6 +237,7 @@ namespace DevBurguer.Forms
 
                 grid.DataSource = null;
                 grid.DataSource = dt;
+                DevBurguer.Services.GridTheme.Aplicar(grid);
                 if (grid.Columns["Faturamento"] != null) grid.Columns["Faturamento"].DefaultCellStyle.Format = "C2";
                 if (grid.Columns["TicketMedio"] != null) grid.Columns["TicketMedio"].DefaultCellStyle.Format = "C2";
                 if (grid.Columns["Dia"] != null) grid.Columns["Dia"].DefaultCellStyle.Format = "dd/MM/yyyy";

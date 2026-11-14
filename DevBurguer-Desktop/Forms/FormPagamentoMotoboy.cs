@@ -332,6 +332,7 @@ namespace DevBurguer
                 List<PagamentoMotoboy> lista = await _repo.BuscarAsync(data, nome) ?? new List<PagamentoMotoboy>();
                 _pagBind.DataSource = lista;
                 dgvPagamentos.DataSource = _pagBind;
+                DevBurguer.Services.GridTheme.Aplicar(dgvPagamentos);
                 dgvPagamentos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 if (dgvPagamentos.Columns["Id"] != null) dgvPagamentos.Columns["Id"].Visible = false;
                 if (dgvPagamentos.Columns["IdMotoboy"] != null) dgvPagamentos.Columns["IdMotoboy"].Visible = false;
@@ -409,6 +410,7 @@ namespace DevBurguer
                 List<PagamentoMotoboy> lista = await _repo.GetAllPagamentosAsync() ?? new List<PagamentoMotoboy>();
                 _pagBind.DataSource = lista;
                 dgvPagamentos.DataSource = _pagBind;
+                DevBurguer.Services.GridTheme.Aplicar(dgvPagamentos);
                 idSelecionado = 0;
                 LimparCampos();
             }
