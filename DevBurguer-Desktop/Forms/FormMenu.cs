@@ -15,6 +15,7 @@ namespace DevBurguer
         // Fica no menu (sempre aberto), então toca em QUALQUER tela.
         private System.Windows.Forms.Timer _timerAlerta;
         private bool _alertaOcupado = false; // evita sobreposição de consultas
+        private bool _imprimindoSalao = false; // evita impressão duplicada da comanda do salão
 
         public FormMenu()
         {
@@ -31,9 +32,14 @@ namespace DevBurguer
             // Verifica a cada 8s; enquanto houver pedido pendente, toca de novo —
             // independente da tela aberta. Para sozinho quando o operador aprova.
             _timerAlerta = new System.Windows.Forms.Timer { Interval = 8000 };
-            _timerAlerta.Tick += async (s, ev) => await VerificarPedidosSiteAsync();
+            _timerAlerta.Tick += async (s, ev) =>
+            {
+                await VerificarPedidosSiteAsync();
+                await VerificarImpressaoSalaoAsync();
+            };
             _timerAlerta.Start();
-            _ = VerificarPedidosSiteAsync(); // primeira checagem imediata
+            _ = VerificarPedidosSiteAsync();       // primeira checagem imediata
+            _ = VerificarImpressaoSalaoAsync();    // imprime rodadas de salão pendentes
 
             MontarBotaoSalao();
             AplicarPermissoes();
@@ -167,6 +173,41 @@ namespace DevBurguer
                 DevBurguer.Services.ExceptionLogger.Log(ex, "FormMenu.VerificarPedidosSiteAsync");
             }
             finally { _alertaOcupado = false; }
+        }
+
+        /// <summary>
+        /// Imprime automaticamente a comanda da cozinha das rodadas do salão
+        /// (app do garçom) que ainda não foram impressas. Como essas rodadas já
+        /// chegam "Em Produção" (sem passar pelo "Aceitar"), esta é a etapa que
+        /// garante que a cozinha receba a notinha. Cada rodada é impressa uma vez.
+        /// </summary>
+        private async Task VerificarImpressaoSalaoAsync()
+        {
+            if (_imprimindoSalao) return;
+            _imprimindoSalao = true;
+            try
+            {
+                var repo = new PedidoRepository();
+                var ids = await repo.GetRodadasSalaoNaoImpressasAsync();
+                foreach (int id in ids)
+                {
+                    try
+                    {
+                        var cupom = await repo.GetPedidoParaCupomAsync(id);
+                        DevBurguer.Services.CupomPrinter.Imprimir(cupom);
+                        await repo.MarcarComoImpressoAsync(id);
+                    }
+                    catch (Exception exItem)
+                    {
+                        DevBurguer.Services.ExceptionLogger.Log(exItem, "FormMenu.VerificarImpressaoSalaoAsync.item");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                DevBurguer.Services.ExceptionLogger.Log(ex, "FormMenu.VerificarImpressaoSalaoAsync");
+            }
+            finally { _imprimindoSalao = false; }
         }
 
         /// <summary>
