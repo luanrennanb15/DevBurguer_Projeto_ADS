@@ -38,8 +38,6 @@ public class ApiDevBurguer
 {
     // MODO DE TESTE: deixe "true" só se quiser testar as telas sem depender da
     // internet. Com "false", chama a API de verdade (GET /produtos e /categorias).
-    // Aviso: em 11/11 o /api/produtos ainda estava devolvendo erro 500 no Render;
-    // se isso ainda não foi corrigido, o Cardápio vai mostrar a tela de erro.
     private static final boolean MODO_TESTE_OFFLINE = false;
 
     private static final String URL_BASE = "https://devburguer-api-9gds.onrender.com/api";
@@ -52,6 +50,14 @@ public class ApiDevBurguer
     public ApiDevBurguer(Context contexto)
     {
         this.contexto = contexto.getApplicationContext();
+    }
+
+    // Cada tela cria o seu ApiDevBurguer (e portanto a sua própria thread).
+    // Sem isso, a thread nunca é fechada e fica rodando parada pro resto do
+    // app aberto, mesmo depois da tela que a criou já ter sido destruída.
+    public void encerrar()
+    {
+        executor.shutdown();
     }
 
     public void buscarProdutos(OuvinteApi<List<Produto>> ouvinte)
@@ -152,8 +158,8 @@ public class ApiDevBurguer
     }
 
     // POST /api/pedidos/garcom -> registra a rodada da mesa (sem cliente nem
-    // pagamento: isso é sempre no caixa). Adicionais ainda não têm tela própria,
-    // então vai sempre vazio por enquanto.
+    // pagamento: isso é sempre no caixa). Os adicionais vão pelos nomes (ex.:
+    // "Bacon,Cheddar"); o preço de cada um é sempre recalculado pelo servidor.
     public void enviarRodadaGarcom(int mesa, List<ItemPedido> itens, OuvinteApi<Void> ouvinte)
     {
         executor.execute(new Runnable()
@@ -170,7 +176,7 @@ public class ApiDevBurguer
                         itemJson.put("idProduto", item.getProduto().getId());
                         itemJson.put("quantidade", item.getQuantidade());
                         itemJson.put("observacao", item.getObservacao());
-                        itemJson.put("adicionais", "");
+                        itemJson.put("adicionais", String.join(",", item.getAdicionais()));
                         itensJson.put(itemJson);
                     }
 
@@ -306,6 +312,7 @@ public class ApiDevBurguer
 
             ItemPedido itemPedido = new ItemPedido(produto, item.getInt("quantidade"));
             itemPedido.setObservacao(item.optString("observacao", ""));
+            itemPedido.setAdicionaisTexto(item.optString("adicionais", ""));
 
             List<ItemPedido> itensDaRodada = itensPorPedido.get(idPedido);
             if (itensDaRodada == null)
@@ -318,9 +325,15 @@ public class ApiDevBurguer
             statusPorPedido.put(idPedido, item.getString("status"));
         }
 
+        // A API devolve os itens ordenados por p.id (ORDER BY na query de
+        // /mesas/:mesa/comanda), ou seja, na ordem em que as rodadas foram
+        // enviadas. Por isso dá pra numerar 1, 2, 3... pela posição aqui,
+        // em vez de mostrar o idPedido (id bruto do banco, ex.: "Rodada 137").
+        int numeroRodada = 1;
         for (Integer idPedido : itensPorPedido.keySet())
         {
-            rodadas.add(new Rodada(idPedido, statusPorPedido.get(idPedido), itensPorPedido.get(idPedido)));
+            rodadas.add(new Rodada(numeroRodada, statusPorPedido.get(idPedido), itensPorPedido.get(idPedido)));
+            numeroRodada++;
         }
 
         return rodadas;

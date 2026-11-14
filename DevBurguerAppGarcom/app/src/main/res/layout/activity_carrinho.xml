@@ -70,38 +70,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="20dp"
-        android:paddingTop="4dp"
-        android:paddingEnd="20dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="@string/rotuloObservacaoPedido"
-            android:textColor="@color/corBranca"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <EditText
-            android:id="@+id/edtObservacaoPedido"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/fundo_campo_texto"
-            android:hint="@string/dicaObservacaoPedido"
-            android:inputType="text"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:textColor="@color/corBranca"
-            android:textColorHint="@color/corTextoSecundario"
-            android:textSize="15sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:background="@color/corFundoSecundaria"
         android:orientation="vertical"
         android:padding="20dp">

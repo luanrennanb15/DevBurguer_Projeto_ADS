@@ -53,6 +53,13 @@ public class ComandaActivity extends AppCompatActivity
         txvTituloComanda.setText(getString(R.string.tituloTelaComanda, numeroMesa));
     }
 
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        api.encerrar();
+    }
+
     // Busca a comanda de verdade em GET /api/mesas/:mesa/comanda.
     private void carregarComanda()
     {
@@ -63,20 +70,41 @@ public class ComandaActivity extends AppCompatActivity
             @Override
             public void aoSucesso(List<Rodada> rodadas)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 mostrarRodadas(rodadas);
             }
 
             @Override
             public void aoFalhar(String mensagemErro)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 txvSubtituloComanda.setText(mensagemErro);
                 Toast.makeText(ComandaActivity.this, mensagemErro, Toast.LENGTH_LONG).show();
             }
         });
     }
 
+    // Se a mesa foi liberada (pagou e fechou no caixa) entre o garçom tocar
+    // nela e a comanda carregar, não tem rodada nenhuma pra mostrar. Sem esse
+    // aviso, a tela ficava zerada do mesmo jeito que num bug de carregamento.
     private void mostrarRodadas(List<Rodada> rodadas)
     {
+        if (rodadas.isEmpty())
+        {
+            txvSubtituloComanda.setText(R.string.avisoMesaLiberada);
+            txvTotalComanda.setText(getString(R.string.rotuloPreco, Dinheiro.formatar(0)));
+            lstRodadas.setAdapter(new AdaptadorRodada(this, rodadas));
+            return;
+        }
+
         int totalItens = 0;
         double totalValor = 0;
         for (Rodada rodada : rodadas)
@@ -98,6 +126,12 @@ public class ComandaActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
+                // Vai direto pras Mesas e limpa Cardápio/Carrinho que tenham
+                // ficado atrás na pilha (senão a seta de voltar cairia numa
+                // tela antiga, ainda com os itens da rodada que já foi enviada).
+                Intent intent = new Intent(ComandaActivity.this, MesasActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
                 finish();
             }
         });

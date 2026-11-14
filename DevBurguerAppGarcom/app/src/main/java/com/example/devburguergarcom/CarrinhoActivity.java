@@ -78,6 +78,26 @@ public class CarrinhoActivity extends AppCompatActivity
         atualizarRodape();
     }
 
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        api.encerrar();
+    }
+
+    // Sempre que o Carrinho é fechado — seja pelo botão "Cardápio" ou pela seta
+    // de voltar do próprio Android — devolve a lista de itens atual pro
+    // Cardápio. Sem isso, cada visita ao Carrinho começava do zero e perdia
+    // observação/adicionais já preenchidos numa visita anterior.
+    @Override
+    public void finish()
+    {
+        Intent resultado = new Intent();
+        resultado.putExtra(EXTRA_ITENS_PEDIDO, itens);
+        setResult(RESULT_OK, resultado);
+        super.finish();
+    }
+
     private void eventos()
     {
         findViewById(R.id.btnVoltarCardapio).setOnClickListener(new View.OnClickListener()
@@ -108,6 +128,16 @@ public class CarrinhoActivity extends AppCompatActivity
                     @Override
                     public void aoSucesso(Void resultado)
                     {
+                        if (isFinishing() || isDestroyed())
+                        {
+                            return;
+                        }
+
+                        // Limpa antes do finish(): esse método devolve "itens" pro Cardápio
+                        // de qualquer jeito, e a rodada que acabou de ser enviada não pode
+                        // continuar aparecendo lá como se ainda estivesse no carrinho.
+                        itens.clear();
+
                         Intent intent = new Intent(CarrinhoActivity.this, ComandaActivity.class);
                         intent.putExtra(ComandaActivity.EXTRA_NUMERO_MESA, numeroMesa);
                         startActivity(intent);
@@ -117,6 +147,11 @@ public class CarrinhoActivity extends AppCompatActivity
                     @Override
                     public void aoFalhar(String mensagemErro)
                     {
+                        if (isFinishing() || isDestroyed())
+                        {
+                            return;
+                        }
+
                         btnEnviarRodada.setEnabled(true);
                         btnEnviarRodada.setText(getString(R.string.botaoEnviarRodada));
                         Toast.makeText(CarrinhoActivity.this, mensagemErro, Toast.LENGTH_LONG).show();

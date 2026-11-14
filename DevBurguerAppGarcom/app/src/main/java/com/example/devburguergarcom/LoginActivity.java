@@ -15,6 +15,14 @@ import com.example.devburguergarcom.rede.OuvinteApi;
 
 public class LoginActivity extends AppCompatActivity
 {
+    // Guarda o nome do garçom logado num SharedPreferences (um "cofrinho" local
+    // simples do Android) em vez de só passar pelo Intent da tela de Mesas.
+    // Assim, mesmo quando a Mesas é recriada do zero por outra tela (ex.: ao
+    // voltar da Comanda, que usa FLAG_ACTIVITY_CLEAR_TOP), o nome continua
+    // disponível pra mostrar na saudação.
+    public static final String PREFS_SESSAO = "sessaoGarcom";
+    public static final String PREF_NOME_GARCOM = "nomeGarcom";
+
     private EditText edtUsuario;
     private EditText edtSenha;
     private Button btnEntrar;
@@ -38,6 +46,13 @@ public class LoginActivity extends AppCompatActivity
         btnEntrar = findViewById(R.id.btnEntrar);
 
         api = new ApiDevBurguer(this);
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        api.encerrar();
     }
 
     private void eventos()
@@ -64,8 +79,19 @@ public class LoginActivity extends AppCompatActivity
                     @Override
                     public void aoSucesso(Garcom garcom)
                     {
+                        // A resposta da API chega em outra thread e pode demorar; se o
+                        // garçom já saiu da tela antes dela voltar, não navega de novo.
+                        if (isFinishing() || isDestroyed())
+                        {
+                            return;
+                        }
+
+                        getSharedPreferences(PREFS_SESSAO, MODE_PRIVATE)
+                                .edit()
+                                .putString(PREF_NOME_GARCOM, garcom.getNome())
+                                .apply();
+
                         Intent intent = new Intent(LoginActivity.this, MesasActivity.class);
-                        intent.putExtra(MesasActivity.EXTRA_NOME_GARCOM, garcom.getNome());
                         startActivity(intent);
                         finish();
                     }
@@ -73,6 +99,11 @@ public class LoginActivity extends AppCompatActivity
                     @Override
                     public void aoFalhar(String mensagemErro)
                     {
+                        if (isFinishing() || isDestroyed())
+                        {
+                            return;
+                        }
+
                         btnEntrar.setEnabled(true);
                         btnEntrar.setText(getString(R.string.botaoEntrar));
                         Toast.makeText(LoginActivity.this, mensagemErro, Toast.LENGTH_LONG).show();

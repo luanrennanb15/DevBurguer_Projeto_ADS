@@ -48,8 +48,12 @@
     <string name="tituloRemoverItem">Remover item?</string>
     <string name="mensagemRemoverItem">Remover \"%1$s\" do pedido?</string>
     <string name="botaoRemover">Remover</string>
-    <string name="rotuloObservacaoPedido">Observação do pedido</string>
-    <string name="dicaObservacaoPedido">Ex.: servir juntos</string>
+    <string name="botaoAdicionais">Adicionais</string>
+    <string name="tituloEscolherAdicionais">Escolha os adicionais</string>
+    <string name="botaoConfirmar">Confirmar</string>
+    <string name="rotuloOpcaoAdicional">%1$s (+ R$ %2$s)</string>
+    <string name="rotuloSemAdicionais">Sem adicionais</string>
+    <string name="rotuloAdicionaisEscolhidos">+ %1$s</string>
     <string name="rotuloTotalItens">Total · %1$d itens</string>
     <string name="botaoEnviarRodada">Enviar rodada</string>
     <string name="botaoEnviando">Enviando…</string>
@@ -62,6 +66,7 @@
     <string name="rotuloSubtotal">Subtotal</string>
     <string name="rotuloTotalComanda">Total da comanda</string>
     <string name="botaoAdicionarItens">Adicionar itens</string>
+    <string name="avisoMesaLiberada">Mesa liberada — o pedido já foi fechado no caixa.</string>
     <string name="avisoPagamentoCaixa">O pagamento e o fechamento da mesa são feitos no caixa.</string>
     <string name="avisoAlteracaoDesktop">Depois de enviada, a rodada só pode ser alterada no desktop.</string>
 </resources>

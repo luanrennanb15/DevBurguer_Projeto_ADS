@@ -27,6 +27,7 @@ import java.util.Map;
 public class CardapioActivity extends AppCompatActivity
 {
     public static final String EXTRA_NUMERO_MESA = "numeroMesa";
+    private static final int REQUISICAO_CARRINHO = 1;
 
     private TextView txvTituloCardapio;
     private LinearLayout lytCategorias;
@@ -46,6 +47,10 @@ public class CardapioActivity extends AppCompatActivity
     private List<Categoria> categorias = new ArrayList<>();
     private List<Produto> todosProdutos = new ArrayList<>();
     private final Map<Integer, Integer> quantidades = new HashMap<>();
+    // Guarda os ItemPedido completos (observação, adicionais) que já passaram
+    // pelo Carrinho, pra não perder esses dados se o garçom voltar ao
+    // Cardápio e reabrir o Carrinho depois.
+    private final Map<Integer, ItemPedido> itensExistentes = new HashMap<>();
     private String categoriaSelecionada;
 
     @Override
@@ -79,6 +84,13 @@ public class CardapioActivity extends AppCompatActivity
         txvTituloCardapio.setText(getString(R.string.tituloTelaCardapio, numeroMesa));
 
         atualizarRodape();
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        api.encerrar();
     }
 
     private void eventos()
@@ -120,6 +132,11 @@ public class CardapioActivity extends AppCompatActivity
             @Override
             public void aoSucesso(List<Categoria> resultado)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 categorias = resultado;
                 carregarProdutos();
             }
@@ -127,6 +144,11 @@ public class CardapioActivity extends AppCompatActivity
             @Override
             public void aoFalhar(String mensagemErro)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 mostrarErro(mensagemErro);
             }
         });
@@ -139,6 +161,11 @@ public class CardapioActivity extends AppCompatActivity
             @Override
             public void aoSucesso(List<Produto> resultado)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 todosProdutos = resultado;
                 montarCategorias();
                 mostrarConteudo();
@@ -147,6 +174,11 @@ public class CardapioActivity extends AppCompatActivity
             @Override
             public void aoFalhar(String mensagemErro)
             {
+                if (isFinishing() || isDestroyed())
+                {
+                    return;
+                }
+
                 mostrarErro(mensagemErro);
             }
         });
@@ -194,9 +226,10 @@ public class CardapioActivity extends AppCompatActivity
                 @Override
                 public void onClick(View v)
                 {
+                    // montarCategorias() já chama atualizarListaProdutos() no final,
+                    // não precisa chamar de novo aqui.
                     categoriaSelecionada = categoria.getSlug();
                     montarCategorias();
-                    atualizarListaProdutos();
                 }
             });
 
@@ -237,7 +270,16 @@ public class CardapioActivity extends AppCompatActivity
             Integer quantidade = quantidades.get(produto.getId());
             if (quantidade != null && quantidade > 0)
             {
-                itensPedido.add(new ItemPedido(produto, quantidade));
+                ItemPedido itemExistente = itensExistentes.get(produto.getId());
+                if (itemExistente != null)
+                {
+                    itemExistente.setQuantidade(quantidade);
+                    itensPedido.add(itemExistente);
+                }
+                else
+                {
+                    itensPedido.add(new ItemPedido(produto, quantidade));
+                }
             }
         }
 
@@ -250,7 +292,40 @@ public class CardapioActivity extends AppCompatActivity
         Intent intent = new Intent(this, CarrinhoActivity.class);
         intent.putExtra(CarrinhoActivity.EXTRA_NUMERO_MESA, numeroMesa);
         intent.putExtra(CarrinhoActivity.EXTRA_ITENS_PEDIDO, itensPedido);
-        startActivity(intent);
+        startActivityForResult(intent, REQUISICAO_CARRINHO);
+    }
+
+    // O Carrinho sempre devolve, no finish(), a lista de itens como ficou lá
+    // (observação, adicionais, quantidade, remoções). Aqui a gente substitui
+    // o que o Cardápio tinha guardado por esse resultado mais recente.
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode != REQUISICAO_CARRINHO || data == null)
+        {
+            return;
+        }
+
+        ArrayList<ItemPedido> itensPedido =
+                (ArrayList<ItemPedido>) data.getSerializableExtra(CarrinhoActivity.EXTRA_ITENS_PEDIDO);
+        if (itensPedido == null)
+        {
+            return;
+        }
+
+        quantidades.clear();
+        itensExistentes.clear();
+        for (ItemPedido item : itensPedido)
+        {
+            quantidades.put(item.getProduto().getId(), item.getQuantidade());
+            itensExistentes.put(item.getProduto().getId(), item);
+        }
+
+        atualizarListaProdutos();
+        atualizarRodape();
     }
 
     private void atualizarRodape()
