@@ -6,6 +6,8 @@
     <string name="subtituloApp">App do garçom</string>
     <string name="dicaUsuario">Usuário</string>
     <string name="dicaSenha">Senha</string>
+    <string name="botaoMostrarSenha">Mostrar senha</string>
+    <string name="botaoOcultarSenha">Ocultar senha</string>
     <string name="botaoEntrar">Entrar</string>
     <string name="botaoEntrando">Entrando…</string>
     <string name="erroCamposVazios">Preencha usuário e senha</string>

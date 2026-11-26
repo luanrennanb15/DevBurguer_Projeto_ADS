@@ -9,7 +9,7 @@ app/src/main/
 ├── AndroidManifest.xml          Declara as Activities, permissão de internet e o ícone/tema do app
 ├── java/com/example/devburguergarcom/
 │   ├── LoginActivity.java       Tela de login do garçom (primeira tela do app)
-│   ├── MesasActivity.java       Tela com a grade de mesas (mock)
+│   ├── MesasActivity.java       Tela com a grade de mesas (status livre/ocupada vem da API)
 │   ├── CardapioActivity.java    Tela do cardápio da mesa (API real)
 │   ├── CarrinhoActivity.java    Tela do pedido (carrinho) montado na mesa
 │   ├── ComandaActivity.java     Tela da comanda da mesa (rodadas enviadas)
@@ -41,17 +41,26 @@ app/src/main/
     │   ├── item_carrinho.xml     Layout de um card de item do carrinho
     │   ├── activity_comanda.xml  Layout da tela de comanda (lista de rodadas)
     │   └── item_rodada.xml       Layout de um card de rodada da comanda
+    ├── layout-land/                  Versões HORIZONTAIS (celular deitado) das 5 telas; mesmo nome e mesmos ids do layout/
+    │   ├── activity_login.xml
+    │   ├── activity_mesas.xml
+    │   ├── activity_cardapio.xml
+    │   ├── activity_carrinho.xml
+    │   └── activity_comanda.xml
     ├── values/
     │   ├── strings.xml          Todos os textos da interface
     │   ├── colors.xml           Cores da identidade visual do DevBurguer
     │   └── themes.xml           Tema do app (cores aplicadas nos componentes)
     └── drawable/
-        ├── ic_launcher_devburguer.xml   Ícone do app
-        ├── ic_hamburguer.xml            Ícone usado no login
-        ├── ic_seta_voltar.xml           Seta de "voltar" do cardápio
+        ├── ic_launcher_devburguer.png   Ícone do app
+        ├── ic_hamburguer.xml            Ícone de hambúrguer
+        ├── ic_seta_voltar.xml           Seta de "voltar" das telas
+        ├── ic_olho.xml                  Olhinho aberto (mostrar senha no login)
+        ├── ic_olho_cortado.xml          Olhinho cortado (esconder senha no login)
         ├── fundo_botao_pilula.xml       Fundo arredondado (pílula) dos botões
         ├── fundo_mesa_livre/ocupada.xml   Fundo de cada status de mesa
         └── fundo_chip_selecionado/normal.xml, fundo_botao_quadrado_contorno/vermelho.xml   Chips de categoria e contador +/- do cardápio
+    (a logo do login, logo_devburger.png, fica em drawable-nodpi/)
 ```
 
 ## Telas
@@ -68,16 +77,17 @@ Todas as telas já falam com a API real (nenhuma usa mais dados fictícios para 
 
 ### Login do garçom (`LoginActivity`)
 
-Primeira tela do app (é a `LAUNCHER` no `AndroidManifest.xml`). Visual baseado na prototipagem: ícone num círculo vermelho, título "DevBurguer", campos com rótulo e borda arredondada, botão "Entrar" em pílula.
+Primeira tela do app (é a `LAUNCHER` no `AndroidManifest.xml`). Visual baseado na prototipagem: logo do DevBurguer, campos com rótulo e borda arredondada, botão "Entrar" em pílula.
 
 - `configuracao()`: liga as variáveis Java aos componentes do layout (`findViewById`).
-- `eventos()`: registra o clique do botão `btnEntrar`, que chama `ApiDevBurguer.loginGarcom()` (`POST /api/garcom/login`).
+- `eventos()`: registra o clique do botão `btnEntrar`, que chama `ApiDevBurguer.loginGarcom()` (`POST /api/garcom/login`), e o clique do olhinho `btnVerSenha`.
+- **Olhinho da senha** (`btnVerSenha`): um `ImageButton` posto por cima do canto direito do campo `edtSenha` (os dois ficam dentro de um `FrameLayout`). O clique chama `alternarVisibilidadeSenha()`, que troca o `TransformationMethod` do campo entre `PasswordTransformationMethod` (bolinhas) e `HideReturnsTransformationMethod` (texto), troca o ícone (`ic_olho` / `ic_olho_cortado`) e devolve o cursor ao lugar onde estava. O `inputType` do campo não muda e o que foi digitado é o mesmo. Foi feito assim, sem a biblioteca Material (`TextInputLayout`), para não adicionar dependência nova.
 - O nome do garçom devolvido pela API é salvo num `SharedPreferences` (`LoginActivity.PREFS_SESSAO`), não só passado por `Intent`: assim ele continua disponível mesmo quando a tela de Mesas é recriada do zero por outra Activity (ex.: ao voltar da Comanda).
 - Botão "Sair" (na tela de Mesas) limpa esse `SharedPreferences` e volta pro Login.
 
 ### Mesas (`MesasActivity`)
 
-Mostra as mesas do salão numa grade de 3 colunas (`GridView`), com cabeçalho "Olá, {garçom}", botão "Sair", legenda de status e aviso no rodapé — seguindo a prototipagem.
+Mostra as mesas do salão numa grade (`GridView` com `numColumns="auto_fit"` e colunas de 100dp: o número de colunas se ajusta sozinho à largura da tela), com cabeçalho "Olá, {garçom}", botão "Sair", legenda de status e aviso no rodapé — seguindo a prototipagem.
 
 - `configuracao()`: liga o `GridView`, lê o nome do garçom do `SharedPreferences` e monta as 12 mesas (fixas) como "Livre".
 - `onResume()`: chama `ApiDevBurguer.buscarMesasOcupadas()` (`GET /api/mesas/ocupadas`) e atualiza o status de cada mesa pra "Ocupada" conforme a resposta. Roda de novo toda vez que a tela volta a ficar visível, pra mostrar o status atualizado.
@@ -95,6 +105,7 @@ Mostra chips de categoria (montados dinamicamente a partir da resposta da API) e
 - `MODO_TESTE_OFFLINE` em `ApiDevBurguer.java` está em `false` (API real ligada). Só mude pra `true` se precisar testar as telas sem internet — isso faz a classe devolver produtos/categorias fictícios.
 - `ApiDevBurguer` (pacote `rede`) é a única classe que conversa com a API: monta a `URL`, usa `HttpURLConnection` (nativo do Android, sem biblioteca nova), lê a resposta e transforma o JSON em `List<Produto>`/`List<Categoria>` usando `org.json` (também nativo).
 - Ao tocar no rodapé "Ver pedido", abre o Carrinho com os itens marcados (`startActivityForResult`); ao voltar do Carrinho, o Cardápio recebe a lista atualizada (quantidade, observação, adicionais) e não perde o que já tinha.
+- **Estado ao girar a tela**: `onSaveInstanceState()` guarda no `Bundle` as quantidades, os itens com observação/adicionais e a categoria escolhida; `restaurarEstado()` (chamado no `onCreate`) devolve esses dados aos campos. Depois que os produtos chegam da API, `atualizarRodape()` recalcula o painel "Ver pedido". Detalhes na seção "Rotação da tela".
 
 ### Carrinho / pedido (`CarrinhoActivity`)
 
@@ -117,6 +128,45 @@ Mostra as rodadas já enviadas daquela mesa: cada card tem o número da rodada, 
 ### Fonte
 
 A identidade visual pede a fonte Poppins. Por ora as telas usam a fonte padrão do Android em negrito (visualmente parecida), para não depender de baixar fontes do Google em tempo de execução (risco na hora da apresentação sem internet). Se os arquivos `.ttf` da Poppins forem fornecidos, é simples trocar depois.
+
+## Rotação da tela (layout vertical e horizontal)
+
+O app segue o método do projeto `Calculadora` do professor: cada tela é **uma única Activity com duas versões de layout**, uma para o celular em pé e outra para ele deitado.
+
+- `res/layout/activity_xxx.xml`: versão padrão (vertical).
+- `res/layout-land/activity_xxx.xml`: versão usada quando o aparelho está na horizontal (`land` = *landscape*).
+
+### Como funciona
+
+Todas as Activities chamam `setContentView(R.layout.activity_xxx)`. O Android escolhe sozinho qual arquivo carregar: se a tela está deitada e existe uma pasta `layout-land/` com o mesmo nome de arquivo, usa essa; senão, usa a de `layout/`. O código Java não muda nada por causa disso.
+
+### Contrato dos ids
+
+O `findViewById` procura cada componente pelo `id`. Por isso **os dois XMLs de uma tela precisam ter exatamente os mesmos ids**. Se um id faltar no `layout-land`, o `findViewById` devolve `null` e o app trava ao girar. Quem muda entre as versões é só a organização visual (qual componente fica ao lado de qual), nunca os ids nem os textos (todos vêm de `strings.xml`).
+
+### O que muda em cada tela na horizontal
+
+| Tela | Layout horizontal |
+|---|---|
+| Login | Duas colunas iguais: logo e subtítulo à esquerda; campos, botão "Entrar" e aviso à direita. Tudo dentro de um `ScrollView`, para rolar se o teclado ocupar espaço |
+| Mesas | Cabeçalho numa linha só (título, saudação e "Sair"); legenda e aviso na mesma linha; a grade ganha a altura que sobra (as colunas já se ajustam sozinhas por `auto_fit`) |
+| Cardápio | Duas colunas (peso 3 e 2): à esquerda cabeçalho numa linha, categorias e lista de produtos; à direita o botão "Ver pedido" (`painelRodapeCarrinho`) |
+| Carrinho | Duas colunas (peso 3 e 2): à esquerda cabeçalho e lista de itens; à direita total e botão "Enviar rodada" |
+| Comanda | Duas colunas (peso 3 e 2): à esquerda cabeçalho e lista de rodadas; à direita avisos, total e botão "Adicionar itens" |
+
+As colunas usam `layout_width="0dp"` com `layout_weight` (3 e 2), para a lista ficar com cerca de 60% da largura. As colunas da direita ficam num `ScrollView` com `fillViewport="true"`, para rolar se a tela for baixa e continuar centralizadas quando sobra espaço.
+
+### O que acontece com a Activity ao girar
+
+Ao girar o aparelho, o Android **destrói a Activity e cria outra do zero** (`onDestroy()` → `onCreate()`), para carregar o layout certo. Todos os campos da classe voltam vazios e as chamadas à API do `onCreate` rodam de novo. O Android restaura sozinho só o que está nas próprias views com `id` (por exemplo, o texto de um `EditText`); o resto precisa ser guardado pelo código.
+
+| Tela | Ao girar |
+|---|---|
+| Login | Campos com id são restaurados pelo Android. A senha volta escondida (ícone do olho aberto) |
+| Mesas | Recarrega as mesas da API (já fazia isso a cada `onResume()`); nada a guardar |
+| Cardápio | **Guarda o estado**: quantidades, itens com observação/adicionais e categoria escolhida, em `onSaveInstanceState()`. Os produtos são buscados na API de novo, então aparece "Carregando..." por um instante |
+| Comanda | Recarrega a comanda da API; nada a guardar, porque a tela só mostra dados |
+| Carrinho | Recebe os itens por `Intent`. Testado no emulador: ao girar, as mudanças feitas dentro do Carrinho (quantidade, observação, adicionais) não se perdem, então ele não precisou de `onSaveInstanceState()` |
 
 ## Fluxo do app
 
