@@ -4,7 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,6 +29,10 @@ public class LoginActivity extends AppCompatActivity
     private EditText edtUsuario;
     private EditText edtSenha;
     private Button btnEntrar;
+    private ImageButton btnVerSenha;
+
+    // true = a senha está aparecendo em texto; false = aparece como bolinhas.
+    private boolean senhaVisivel = false;
 
     private ApiDevBurguer api;
 
@@ -44,8 +51,39 @@ public class LoginActivity extends AppCompatActivity
         edtUsuario = findViewById(R.id.edtUsuario);
         edtSenha = findViewById(R.id.edtSenha);
         btnEntrar = findViewById(R.id.btnEntrar);
+        btnVerSenha = findViewById(R.id.btnVerSenha);
 
         api = new ApiDevBurguer(this);
+    }
+
+    // Troca entre mostrar a senha em texto e escondê-la em bolinhas. Não muda o
+    // inputType do campo, só o "método de transformação" do texto, que é quem
+    // decide como as letras são desenhadas na tela. O texto digitado é o mesmo.
+    private void alternarVisibilidadeSenha()
+    {
+        // Guarda onde o cursor estava, porque trocar o método de transformação
+        // joga o cursor pro começo do campo.
+        int posicaoCursor = edtSenha.getSelectionEnd();
+
+        senhaVisivel = !senhaVisivel;
+
+        if (senhaVisivel)
+        {
+            edtSenha.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+            btnVerSenha.setImageResource(R.drawable.ic_olho_cortado);
+            btnVerSenha.setContentDescription(getString(R.string.botaoOcultarSenha));
+        }
+        else
+        {
+            edtSenha.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            btnVerSenha.setImageResource(R.drawable.ic_olho);
+            btnVerSenha.setContentDescription(getString(R.string.botaoMostrarSenha));
+        }
+
+        if (posicaoCursor >= 0)
+        {
+            edtSenha.setSelection(posicaoCursor);
+        }
     }
 
     @Override
@@ -57,6 +95,15 @@ public class LoginActivity extends AppCompatActivity
 
     private void eventos()
     {
+        btnVerSenha.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                alternarVisibilidadeSenha();
+            }
+        });
+
         btnEntrar.setOnClickListener(new View.OnClickListener()
         {
             @Override

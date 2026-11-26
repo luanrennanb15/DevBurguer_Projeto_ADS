@@ -60,18 +60,34 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/edtSenha"
+        <!-- O botao do olhinho fica por cima do canto direito do campo -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginBottom="24dp"
-            android:background="@drawable/fundo_campo_texto"
-            android:inputType="textPassword"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textColor="@color/corBranca"
-            android:textColorHint="@color/corTextoSecundario"
-            android:textSize="16sp" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp">
+
+            <EditText
+                android:id="@+id/edtSenha"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/fundo_campo_texto"
+                android:inputType="textPassword"
+                android:paddingStart="16dp"
+                android:paddingEnd="52dp"
+                android:textColor="@color/corBranca"
+                android:textColorHint="@color/corTextoSecundario"
+                android:textSize="16sp" />
+
+            <ImageButton
+                android:id="@+id/btnVerSenha"
+                android:layout_width="48dp"
+                android:layout_height="52dp"
+                android:layout_gravity="end|center_vertical"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/botaoMostrarSenha"
+                android:src="@drawable/ic_olho" />
+
+        </FrameLayout>
 
         <Button
             android:id="@+id/btnEntrar"
