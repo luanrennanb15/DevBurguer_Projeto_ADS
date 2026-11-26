@@ -22,7 +22,6 @@ import com.example.devburguergarcom.rede.OuvinteApi;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class CardapioActivity extends AppCompatActivity
 {
@@ -46,12 +45,18 @@ public class CardapioActivity extends AppCompatActivity
 
     private List<Categoria> categorias = new ArrayList<>();
     private List<Produto> todosProdutos = new ArrayList<>();
-    private final Map<Integer, Integer> quantidades = new HashMap<>();
+    // Declarados como HashMap (e não Map) porque o HashMap é Serializable e
+    // pode ser guardado no Bundle quando a tela gira (ver onSaveInstanceState).
+    private final HashMap<Integer, Integer> quantidades = new HashMap<>();
     // Guarda os ItemPedido completos (observação, adicionais) que já passaram
     // pelo Carrinho, pra não perder esses dados se o garçom voltar ao
     // Cardápio e reabrir o Carrinho depois.
-    private final Map<Integer, ItemPedido> itensExistentes = new HashMap<>();
+    private final HashMap<Integer, ItemPedido> itensExistentes = new HashMap<>();
     private String categoriaSelecionada;
+
+    private static final String ESTADO_QUANTIDADES = "estadoQuantidades";
+    private static final String ESTADO_ITENS_EXISTENTES = "estadoItensExistentes";
+    private static final String ESTADO_CATEGORIA = "estadoCategoria";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -61,8 +66,49 @@ public class CardapioActivity extends AppCompatActivity
 
         configuracao();
         eventos();
+        restaurarEstado(savedInstanceState);
 
         carregarCardapio();
+    }
+
+    // Quando a tela gira, o Android destrói a Activity e cria outra do zero,
+    // e os campos (quantidades, categoria...) voltam vazios. Antes de destruir,
+    // ele chama este método: tudo que for guardado no "outState" volta no
+    // savedInstanceState do onCreate da Activity nova.
+    @Override
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(ESTADO_QUANTIDADES, quantidades);
+        outState.putSerializable(ESTADO_ITENS_EXISTENTES, itensExistentes);
+        outState.putString(ESTADO_CATEGORIA, categoriaSelecionada);
+    }
+
+    // Só tem o que restaurar quando a Activity está sendo recriada (giro de
+    // tela). Na primeira abertura o savedInstanceState vem null e nada muda.
+    @SuppressWarnings("unchecked")
+    private void restaurarEstado(Bundle savedInstanceState)
+    {
+        if (savedInstanceState == null)
+        {
+            return;
+        }
+
+        HashMap<Integer, Integer> quantidadesSalvas =
+                (HashMap<Integer, Integer>) savedInstanceState.getSerializable(ESTADO_QUANTIDADES);
+        if (quantidadesSalvas != null)
+        {
+            quantidades.putAll(quantidadesSalvas);
+        }
+
+        HashMap<Integer, ItemPedido> itensSalvos =
+                (HashMap<Integer, ItemPedido>) savedInstanceState.getSerializable(ESTADO_ITENS_EXISTENTES);
+        if (itensSalvos != null)
+        {
+            itensExistentes.putAll(itensSalvos);
+        }
+
+        categoriaSelecionada = savedInstanceState.getString(ESTADO_CATEGORIA);
     }
 
     private void configuracao()
@@ -168,6 +214,10 @@ public class CardapioActivity extends AppCompatActivity
 
                 todosProdutos = resultado;
                 montarCategorias();
+                // O painel "Ver pedido" soma usando todosProdutos; depois de girar
+                // a tela as quantidades já estão restauradas, mas a lista de
+                // produtos só chegou agora. Por isso recalcula aqui.
+                atualizarRodape();
                 mostrarConteudo();
             }
 
